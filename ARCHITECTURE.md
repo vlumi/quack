@@ -28,33 +28,48 @@ of the display's refresh rate.
 - `PlaneInput` — elevator in -1…1 and power on/off. Plane-relative.
 - `PlaneState` — position, heading (radians, anticlockwise from +x), speed,
   and `inverted`, which says which way the cockpit faces relative to flight.
-- `FlightTuning` — every dial in one struct: gravity, cruise and stall speeds,
-  engine response, energy exchange, glide drag, pitch and upright rates.
-- `FlightModel` — pitch rotates the heading; power holds cruise speed;
-  climbing bleeds speed and diving gains it (the energy model); below stall
-  the nose falls; **with the elevator released the plane rolls to the nearer
-  way up**, so a half loop and release is the turn (the Sopwith rule).
+- `FlightTuning` — every dial in one struct: gravity, thrust, cruise and
+  stall speeds, lift-deficit sink, pitch rate. Drag is derived so that thrust
+  and drag cancel at cruise.
+- `FlightModel` — pitch rotates the heading; thrust pushes and drag grows with
+  the square of speed; the vertical component of gravity trades speed for
+  height, so a dive gains speed past cruise, a shallow climb holds, a steep one
+  bleeds to a stall; below stall the nose falls; **with the elevator released
+  the plane rolls to the nearer way up**, so a half loop and release is the
+  turn (the Sopwith rule).
+- `Livery` — the paint on a plane: body, wing and trim colours plus a fin
+  emblem (roundel, star, chequer). Pure data, `Codable`, with three built-ins.
 
 The numbers and shapes here are a starting point to be flown and replaced.
 
 ## The scene
 
-`FlightScene` (SpriteKit) draws a ground line with distance ticks and a
-line-art biplane, camera following the plane horizontally. Touching the
-ground resets the flight (milestone 1 has no landing). `ThumbControls`: left
-half of the screen, a vertical drag from wherever the thumb landed sets the
-elevator (the thumb defines its own centre; `throwDistance` points = full
-throw); right half, holding is power, releasing is glide. On macOS, ↑/↓ and
-space stand in for the thumbs.
+`FlightScene` (SpriteKit) draws a ground line with distance ticks and the
+plane, camera following sideways always and upward once the plane would leave
+the top of the view. Touching the ground resets the flight (milestone 1 has no
+landing). `PlaneArt` builds the biplane from a `Livery` as filled and stroked
+paths (wings from one airfoil function), plus a gloss layer whose alpha the
+scene sets each frame from the plane's attitude against a fixed sun. When the
+sim flips `inverted`, the scene rolls the drawing through edge-on over a
+quarter second. `ThumbControls`: left half of the screen, a vertical drag from
+wherever the thumb landed sets the elevator (the thumb defines its own centre;
+`throwDistance` points = full throw, pulled down for nose up; `invertedPitch`
+flips the sense and awaits a setting); the right half is reserved for the gun.
+The throttle is always open, so `PlaneInput.power` is always true from the
+controls. On macOS, ↓/↑ stand in for the thumb, same sense.
 
 ## Planned
 
 Not built. See [ROADMAP.md](ROADMAP.md) for order and [docs/design.md](docs/design.md)
 for the reasoning.
 
-- **Landing** with an approach window and an assisted touchdown; three failure
+- **Landing**: align on the field's approach angle, descending, cross the
+  threshold, and the assist throttles back, flares and rolls out; three failure
   grades (bounce, broken undercarriage, crash); a small bonus for a landing
   flown inside the window without the assist.
+- **Livery picker**: the player's own colours and emblem, saved and carried
+  into Duckfight; a front-view drawing for the middle of the roll; a flapping
+  scarf.
 - **The strip**: noise terrain, horizontal wraparound (a torus), parallax
   silhouettes, fields on flat ground, sky by hour; wind as the cloud layer's
   speed, so one direction is faster than the other.
