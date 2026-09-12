@@ -39,11 +39,36 @@ final class FlightModelTests: XCTestCase {
     }
 
     func testShallowClimbIsSustained() {
-        let start = PlaneState(x: 0, y: 100, heading: 0.35, speed: 40)
+        let start = PlaneState(x: 0, y: 100, heading: 0.2, speed: 40)
         let s = run(start, PlaneInput(pitch: 0, power: true), ticks: 900)
         XCTAssertGreaterThan(s.speed, model.tuning.stallSpeed + 5)
-        XCTAssertEqual(s.heading, 0.35, accuracy: 1e-9, "no stall, so the heading holds")
-        XCTAssertGreaterThan(s.y, 200)
+        XCTAssertEqual(s.heading, 0.2, accuracy: 1e-9, "no stall, so the heading holds")
+        XCTAssertGreaterThan(s.y, 150)
+    }
+
+    func testVerticalClimbStallsAndFlipsOverSoon() {
+        // Pull up from cruise to straight up, let go, and hold it there: the
+        // plane must run out of speed, break, and be pointing below level
+        // within two seconds and well inside a screen height (about 75 m).
+        var s = PlaneState(x: 0, y: 0, heading: 0, speed: 40)
+        while s.heading < .pi / 2 { s = model.advance(s, input: PlaneInput(pitch: 1, power: true)) }
+        let top = s.y
+        var ticks = 0
+        while s.heading > 0 && ticks < 120 {
+            s = model.advance(s, input: PlaneInput(pitch: 0, power: true))
+            ticks += 1
+        }
+        XCTAssertLessThan(s.heading, 0, "should have flipped nose down within 2 s")
+        XCTAssertLessThan(s.y - top, 40, "should not climb far past vertical")
+        XCTAssertLessThan(s.speed, model.tuning.stallSpeed, "it flipped because it stalled")
+    }
+
+    func testStallBreakIsDecisiveBelowTheBand() {
+        let t = model.tuning
+        let start = PlaneState(x: 0, y: 200, heading: .pi / 2, speed: t.stallSpeed - t.stallBand)
+        let s = run(start, .idle, ticks: 30)
+        // Half a second at the full drop rate: the nose has moved by about that much.
+        XCTAssertEqual(.pi / 2 - s.heading, t.stallDropRate * 0.5, accuracy: 0.15)
     }
 
     func testSteepClimbBleedsToAStall() {

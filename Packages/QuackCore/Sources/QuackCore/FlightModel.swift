@@ -36,11 +36,15 @@ public struct FlightModel: Sendable {
         if input.power { accel += t.thrust }
         p.speed = max(0, p.speed + accel * dt)
 
-        // Stall: too slow to fly, the nose falls toward straight down.
+        // Stall: too slow to fly, the nose falls toward straight down, reaching
+        // the full drop rate a band below stall speed so the break is decisive.
         if p.speed < t.stallSpeed {
             let down = -Double.pi / 2
-            let toward = FlightModel.shortestTurn(from: p.heading, to: down)
-            let fall = (1 - p.speed / t.stallSpeed) * t.pitchRate * dt
+            var toward = FlightModel.shortestTurn(from: p.heading, to: down)
+            // Straight up is a tie; a plane noses over forward, it does not tail-slide.
+            if toward > .pi - 1e-9 { toward = -.pi }
+            let depth = min(1, (t.stallSpeed - p.speed) / t.stallBand)
+            let fall = depth * t.stallDropRate * dt
             p.heading = FlightModel.wrap(p.heading + min(abs(toward), fall) * (toward < 0 ? -1 : 1))
         }
 
