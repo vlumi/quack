@@ -24,7 +24,7 @@ turn around, as it was in Sopwith.
 make            # list targets
 make test       # QuackCore logic tests (no Xcode project needed)
 make run-iphone # build + launch on an iPhone simulator (DEVICE="17 Pro")
-make run-mac    # build + launch the Mac app (↑/↓ elevator)
+make run-mac    # build + launch the Mac app (↓ nose up, ↑ nose down)
 make lint       # SwiftLint + swift-format, strict, as CI runs them
 ```
 

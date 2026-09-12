@@ -20,6 +20,8 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   pleasure and a stall is a lesson, not a punishment. Expose the dials in a
   debug overlay if that speeds it up (Skid's Tuning panel is the precedent).
 - [ ] Decide the throw distance and response curve for the pitch drag.
+- [ ] A setting to invert the pitch sense (the controls have the flag; the
+  UI does not exist yet).
 - [ ] Decide: is the plane fun to fly? **If not, stop here.**
 
 ## 0.2 — Landing

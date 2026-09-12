@@ -10,13 +10,17 @@ import SwiftUI
 final class ThumbControls {
     /// Points of drag for full elevator.
     var throwDistance: CGFloat = 80
+    /// Aircraft convention by default: pull the thumb (or ↓) toward you and the
+    /// nose comes up. Flipping this is a planned setting; the seam is here.
+    var invertedPitch = false
 
     private var pitchTouch: (id: ObjectIdentifier, origin: CGPoint)?
     private var pitch: Double = 0
     private var keyPitch: Double = 0
 
     var input: PlaneInput {
-        PlaneInput(pitch: pitch != 0 ? pitch : keyPitch, power: true)
+        let raw = pitch != 0 ? pitch : keyPitch
+        return PlaneInput(pitch: invertedPitch ? -raw : raw, power: true)
     }
 
     #if os(iOS)
@@ -29,7 +33,8 @@ final class ThumbControls {
     func moved(_ touch: UITouch, in scene: SKScene) {
         guard let pt = pitchTouch, pt.id == ObjectIdentifier(touch) else { return }
         let p = touch.location(in: scene.view)
-        // Screen y grows downward; dragging the thumb down pulls the nose up.
+        // Screen y grows downward; dragging the thumb down (stick back) pulls
+        // the nose up.
         pitch = Double(min(1, max(-1, (p.y - pt.origin.y) / throwDistance)))
     }
 
@@ -44,8 +49,9 @@ final class ThumbControls {
     func keyboard(_ press: KeyPress) {
         let down = press.phase == .down
         switch press.key {
-        case .upArrow: keyPitch = down ? 1 : (keyPitch > 0 ? 0 : keyPitch)
-        case .downArrow: keyPitch = down ? -1 : (keyPitch < 0 ? 0 : keyPitch)
+        // Same sense as the thumb: ↓ is stick back, nose up.
+        case .downArrow: keyPitch = down ? 1 : (keyPitch > 0 ? 0 : keyPitch)
+        case .upArrow: keyPitch = down ? -1 : (keyPitch < 0 ? 0 : keyPitch)
         default: break
         }
     }

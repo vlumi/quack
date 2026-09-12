@@ -31,7 +31,10 @@ the property to keep: **few inputs, endless technique, nothing to author.**
 
 - **Left thumb, vertical drag = elevators.** Distance from where the thumb
   landed sets the pitch rate; the thumb defines its own centre each time.
-  A small drag is a gentle climb, a full drag pulls a loop.
+  A small drag is a gentle climb, a full drag pulls a loop. Aircraft
+  convention: pull the thumb toward you (down) and the nose comes up, and ↓
+  on the Mac does the same. Some players will want it the other way, so an
+  invert option is planned; the flag already exists in the controls.
 - **Release = auto-upright.** The plane rolls to the nearer way up, so
   half-loop-and-release is the turn.
 - **Right thumb: the gun, when it comes.** The throttle is open for the whole

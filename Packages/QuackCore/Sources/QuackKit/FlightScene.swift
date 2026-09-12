@@ -127,7 +127,7 @@ public final class FlightScene: SKScene {
     #endif
 
     #if os(macOS)
-    /// Keyboard stands in for the thumb: ↑/↓ elevator.
+    /// Keyboard stands in for the thumb: ↓ nose up, ↑ nose down.
     public func keyboard(_ press: KeyPress) {
         controls.keyboard(press)
     }

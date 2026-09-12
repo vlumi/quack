@@ -53,9 +53,10 @@ scene sets each frame from the plane's attitude against a fixed sun. When the
 sim flips `inverted`, the scene rolls the drawing through edge-on over a
 quarter second. `ThumbControls`: left half of the screen, a vertical drag from
 wherever the thumb landed sets the elevator (the thumb defines its own centre;
-`throwDistance` points = full throw); the right half is reserved for the gun.
+`throwDistance` points = full throw, pulled down for nose up; `invertedPitch`
+flips the sense and awaits a setting); the right half is reserved for the gun.
 The throttle is always open, so `PlaneInput.power` is always true from the
-controls. On macOS, ↑/↓ stand in for the thumb.
+controls. On macOS, ↓/↑ stand in for the thumb, same sense.
 
 ## Planned
 
