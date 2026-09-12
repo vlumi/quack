@@ -1,0 +1,108 @@
+name: Quack
+
+options:
+  bundleIdPrefix: fi.misaki
+  deploymentTarget:
+    iOS: "16.0"
+    macOS: "14.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+
+packages:
+  QuackCore:
+    path: Packages/QuackCore
+
+# One Universal Purchase: both targets share PRODUCT_BUNDLE_IDENTIFIER
+# fi.misaki.quack (registered on App Store Connect for iOS and macOS).
+targets:
+  Quack-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/iOS
+      - path: Sources/Shared
+    entitlements:
+      path: Sources/iOS/Quack.entitlements
+    info:
+      path: Sources/iOS/Info.plist
+      properties:
+        CFBundleDisplayName: Quack Express
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        ITSAppUsesNonExemptEncryption: false
+        LSApplicationCategoryType: public.app-category.action-games
+        # Nearby dogfight (Duckfight) arrives in milestone 6; the Bonjour names
+        # are declared now so the plist never has to change for it. Both
+        # spellings are required or iOS 14+ silently refuses to browse.
+        NSLocalNetworkUsageDescription:
+          Quack Express finds other players' devices nearby for a Duckfight.
+          Nothing leaves your local network.
+        NSBonjourServices:
+          - _quack-fight._tcp
+          - _quack-fight._udp
+        UILaunchScreen: {}
+        # Landscape only: the strip scrolls sideways and the thumbs sit at the
+        # bottom corners. Both landscape directions so iPad multitasking is happy.
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIRequiresFullScreen: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: fi.misaki.quack
+        PRODUCT_NAME: Quack Express
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Team committed on purpose (not a secret): the release lane archives
+        # headlessly with automatic signing and needs it in the project.
+        DEVELOPMENT_TEAM: U84DT7P75P
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - package: QuackCore
+        product: QuackKit
+    scheme:
+      configVariants: []
+
+  Quack-macOS:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/macOS
+      - path: Sources/Shared
+    entitlements:
+      path: Sources/macOS/Quack.entitlements
+    info:
+      path: Sources/macOS/Info.plist
+      properties:
+        CFBundleDisplayName: Quack Express
+        CFBundleName: Quack Express
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        ITSAppUsesNonExemptEncryption: false
+        LSApplicationCategoryType: public.app-category.action-games
+        LSMinimumSystemVersion: "14.0"
+        NSHighResolutionCapable: true
+        NSLocalNetworkUsageDescription:
+          Quack Express finds other players' devices nearby for a Duckfight.
+          Nothing leaves your local network.
+        NSBonjourServices:
+          - _quack-fight._tcp
+          - _quack-fight._udp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: fi.misaki.quack
+        PRODUCT_NAME: Quack Express
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        DEVELOPMENT_TEAM: U84DT7P75P
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - package: QuackCore
+        product: QuackKit
+    scheme:
+      configVariants: []
