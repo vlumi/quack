@@ -20,7 +20,7 @@ public final class FlightScene: SKScene {
     private let balloonLayer = SKNode()
     private let bulletLayer = SKNode()
     private var balloonNodes: [SKNode] = []
-    private var bulletNodes: [SKShapeNode] = []
+    private var bulletNodes: [SKNode] = []
     private let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let clockLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let controls = ThumbControls()
@@ -156,9 +156,7 @@ public final class FlightScene: SKScene {
             FlightScene.burst(balloonNodes[i])
         }
         while bulletNodes.count < practice.bullets.count {
-            let n = SKShapeNode(rect: CGRect(x: -0.6 * scale, y: -1, width: 1.2 * scale, height: 2))
-            n.fillColor = SKColor(red: 1, green: 0.93, blue: 0.6, alpha: 1)
-            n.strokeColor = .clear
+            let n = FlightScene.tracerNode(scale: scale)
             bulletLayer.addChild(n)
             bulletNodes.append(n)
         }
@@ -168,6 +166,9 @@ public final class FlightScene: SKScene {
                 n.isHidden = false
                 n.position = CGPoint(x: b.x * scale, y: b.y * scale)
                 n.zRotation = atan2(b.vy, b.vx)
+                // The trail grows to full length over the first tenth of a second,
+                // so a fresh round does not wear a tail back through the nose.
+                n.children.first?.xScale = CGFloat(min(1, b.age * 10))
             } else {
                 n.isHidden = true
             }
@@ -241,6 +242,30 @@ public final class FlightScene: SKScene {
         shine.fillColor = SKColor(white: 1, alpha: 0.5)
         shine.strokeColor = .clear
         for c in [string, body, knot, shine] { n.addChild(c) }
+        return n
+    }
+
+    /// A round: a dark slug with a warm tracer trail tapering behind it, so it
+    /// reads against the sky. The trail is the first child, scaled by age.
+    private static func tracerNode(scale: CGFloat) -> SKNode {
+        let n = SKNode()
+        let trail = SKShapeNode(
+            path: {
+                let p = CGMutablePath()
+                p.addLines(between: [
+                    CGPoint(x: 0, y: 1.6), CGPoint(x: -4 * scale, y: 0), CGPoint(x: 0, y: -1.6),
+                ])
+                p.closeSubpath()
+                return p
+            }())
+        trail.fillColor = SKColor(red: 1, green: 0.8, blue: 0.4, alpha: 0.85)
+        trail.strokeColor = .clear
+        let slug = SKShapeNode(circleOfRadius: 2.2)
+        slug.fillColor = SKColor(white: 0.12, alpha: 1)
+        slug.strokeColor = SKColor(red: 1, green: 0.9, blue: 0.6, alpha: 1)
+        slug.lineWidth = 1
+        n.addChild(trail)
+        n.addChild(slug)
         return n
     }
 
