@@ -43,24 +43,42 @@ of the display's refresh rate.
   turn (the Sopwith rule).
 - `Livery` — the paint on a plane: body, wing and trim colours plus a fin
   emblem (roundel, star, chequer). Pure data, `Codable`, with three built-ins.
+- `GunTuning`, `Bullet` — the gun on the hump: rounds leave the muzzle at the
+  plane's speed plus a muzzle speed, fly straight, and expire.
+- `Practice` — the balloon run: a seeded field of balloons (`SeededRNG`,
+  SplitMix64), the plane, the rounds, and a clock that starts at the first
+  input and stops at the last pop. Balloons pop by round or by collision.
+  Deterministic, so the same inputs give the same run.
 
 The numbers and shapes here are a starting point to be flown and replaced.
 
 ## The scene
 
-`FlightScene` (SpriteKit) draws a ground line with distance ticks and the
-plane, camera following sideways always and upward once the plane would leave
-the top of the view. Touching the ground resets the flight (milestone 1 has no
-landing). `PlaneArt` builds the biplane from a `Livery` as filled and stroked
-paths (wings from one airfoil function), plus a gloss layer whose alpha the
-scene sets each frame from the plane's attitude against a fixed sun. When the
-sim flips `inverted`, the scene rolls the drawing through edge-on over a
-quarter second. `ThumbControls`: left half of the screen, a vertical drag from
-wherever the thumb landed sets the elevator (the thumb defines its own centre;
+`FlightScene` (SpriteKit) runs the balloon run: a ground line with distance
+ticks, the plane, the balloons, the rounds and a two-line clock, camera
+following sideways always and upward once the plane would leave the top of the
+view. Touching the ground puts the plane back at the start height; the field
+and the clock stay. When the run is done, the next pull of the trigger starts
+the next one with the next seed.
+
+`PlaneNode` is the biplane as a rig built from a `Livery` (`PlaneBuilder`
+holds the paths and paints, wings from one airfoil function). Every part
+knows its height above the fuselage axis and its depth toward the camera, so
+a `roll` angle projects each part to where it belongs: side-view parts squash
+about their own line, wings and tailplane (`Planform`) are re-drawn from their
+projected corners with a mild perspective and cropped where they pass behind
+the body, struts are lines between the wings' projected corners on both sides,
+and the pilot is a sphere at head height. At 0 it is the side view, at π the
+same mirrored, which is the sim's `inverted`; the scene eases between them
+over a third of a second, top toward the camera both ways. A gloss layer's
+alpha follows the plane's attitude against a fixed sun.
+
+`ThumbControls`: left half of the screen, a vertical drag from wherever the
+thumb landed sets the elevator (the thumb defines its own centre;
 `throwDistance` points = full throw, pulled down for nose up; `invertedPitch`
-flips the sense and awaits a setting); the right half is reserved for the gun.
-The throttle is always open, so `PlaneInput.power` is always true from the
-controls. On macOS, ↓/↑ stand in for the thumb, same sense.
+flips the sense and awaits a setting); right half, holding fires. The throttle
+is always open, so `PlaneInput.power` is always true from the controls. On
+macOS, ↓/↑ and space stand in for the thumbs.
 
 ## Planned
 
@@ -72,8 +90,8 @@ for the reasoning.
   grades (bounce, broken undercarriage, crash); a small bonus for a landing
   flown inside the window without the assist.
 - **Livery picker**: the player's own colours and emblem, saved and carried
-  into Duckfight; a front-view drawing for the middle of the roll; a flapping
-  scarf.
+  into Duckfight; a flapping scarf.
+- **Ammunition** bought at the field, and something that shoots back.
 - **The strip**: noise terrain, horizontal wraparound (a torus), parallax
   silhouettes, fields on flat ground, sky by hour; wind as the cloud layer's
   speed, so one direction is faster than the other.

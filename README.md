@@ -7,7 +7,8 @@ you. Two inputs: drag to pitch, tap to shoot. The throttle stays open, so speed
 is flown with the stick — and a half loop with the elevator released is how you
 turn around, as it was in Sopwith.
 
-**Status: pre-alpha, milestone 1 (feel).** Nothing is proven yet; see
+**Status: pre-alpha, milestone 1 (feel).** What exists is the balloon run:
+pop a dozen balloons as fast as you can. Nothing is proven yet; see
 [ROADMAP.md](ROADMAP.md).
 
 - Play modes planned: the courier campaign, **Duckfight** (2–4 players nearby),
@@ -24,7 +25,7 @@ turn around, as it was in Sopwith.
 make            # list targets
 make test       # QuackCore logic tests (no Xcode project needed)
 make run-iphone # build + launch on an iPhone simulator (DEVICE="17 Pro")
-make run-mac    # build + launch the Mac app (↓ nose up, ↑ nose down)
+make run-mac    # build + launch the Mac app (↓ nose up, ↑ nose down, space fires)
 make lint       # SwiftLint + swift-format, strict, as CI runs them
 ```
 

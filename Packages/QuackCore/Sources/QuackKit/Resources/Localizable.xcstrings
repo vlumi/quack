@@ -1,0 +1,31 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld balloons left" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : { "stringUnit" : { "state" : "translated", "value" : "%lld balloon left" } },
+              "other" : { "stringUnit" : { "state" : "translated", "value" : "%lld balloons left" } }
+            }
+          }
+        }
+      }
+    },
+    "%@ s" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ s" } }
+      }
+    },
+    "All popped in %@ s. Fire to go again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "All popped in %@ s. Fire to go again." } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -12,7 +12,7 @@ public struct GameView: View {
         let scene = self.scene
         let view = SpriteView(scene: scene, preferredFramesPerSecond: 60).ignoresSafeArea()
         #if os(macOS)
-        // Keyboard stands in for the thumb on the Mac: ↓ nose up, ↑ nose down.
+        // Keyboard stands in for the thumbs on the Mac: ↓ nose up, ↑ nose down, space fires.
         return view.focusable().focusEffectDisabled()
             .onKeyPress(phases: [.down, .up]) { press in
                 scene.keyboard(press)
