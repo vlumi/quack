@@ -36,15 +36,16 @@ public struct FlightModel: Sendable {
         if input.power { accel += t.thrust }
         p.speed = max(0, p.speed + accel * dt)
 
-        // Stall: too slow to fly, the nose falls toward straight down, reaching
-        // the full drop rate a band below stall speed so the break is decisive.
-        if p.speed < t.stallSpeed {
+        // Stall: too slow to fly. The plane sinks at once and the nose falls
+        // toward straight down, both reaching full strength a band below stall
+        // speed so the break is decisive and fading as airspeed returns.
+        let stallDepth = max(0, min(1, (t.stallSpeed - p.speed) / t.stallBand))
+        if stallDepth > 0 {
             let down = -Double.pi / 2
             var toward = FlightModel.shortestTurn(from: p.heading, to: down)
             // Straight up is a tie; a plane noses over forward, it does not tail-slide.
             if toward > .pi - 1e-9 { toward = -.pi }
-            let depth = min(1, (t.stallSpeed - p.speed) / t.stallBand)
-            let fall = depth * t.stallDropRate * dt
+            let fall = stallDepth * t.stallDropRate * dt
             p.heading = FlightModel.wrap(p.heading + min(abs(toward), fall) * (toward < 0 ? -1 : 1))
         }
 
@@ -58,10 +59,11 @@ public struct FlightModel: Sendable {
         }
 
         // Lift deficit: slower than cruise, the wing carries less and the plane
-        // sinks, so a glide loses height even with the nose level.
+        // sinks, so a glide loses height even with the nose level. Stalled, it
+        // mushes down on top of that.
         let deficit = 1 - min(1, p.speed / t.cruiseSpeed)
         p.x += p.vx * dt
-        p.y += p.vy * dt - deficit * t.liftDeficitSink * dt
+        p.y += p.vy * dt - (deficit * t.liftDeficitSink + stallDepth * t.stallSink) * dt
         return p
     }
 

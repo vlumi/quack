@@ -20,6 +20,10 @@ public struct FlightTuning: Equatable, Sendable {
     public var stallBand: Double = 4
     /// Radians per second the nose falls toward straight down in a full stall.
     public var stallDropRate: Double = 4
+    /// Metres per second a fully stalled plane sinks, whatever way it points,
+    /// on top of the lift deficit. It is there before the nose goes and fades
+    /// as airspeed comes back.
+    public var stallSink: Double = 14
     /// Metres per second the plane sinks at zero airspeed from lost lift; scales
     /// down to nothing at cruise, so a powered level plane holds its height.
     public var liftDeficitSink: Double = 6

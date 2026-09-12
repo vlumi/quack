@@ -63,6 +63,25 @@ final class FlightModelTests: XCTestCase {
         XCTAssertLessThan(s.speed, model.tuning.stallSpeed, "it flipped because it stalled")
     }
 
+    func testStallSinksBeforeTheNoseGoesAndStopsWhenSpeedReturns() {
+        let t = model.tuning
+        // Level and fully stalled: one second later the plane is well below
+        // where it started, more than the slow-glide lift deficit accounts for.
+        let stalled = PlaneState(x: 0, y: 200, heading: 0, speed: t.stallSpeed - t.stallBand)
+        let after = model.advance(stalled, input: .idle)
+        XCTAssertLessThan(
+            after.y - stalled.y, -0.8 * t.stallSink * FlightModel.dt, "sinks on tick one")
+        XCTAssertEqual(
+            after.heading, stalled.heading, accuracy: 0.1, "before the nose has gone far")
+        let s = run(stalled, .idle, ticks: 60)
+        XCTAssertLessThan(s.y, 200 - 10)
+        // Just above stall speed the only sink is the lift deficit.
+        let flying = PlaneState(x: 0, y: 200, heading: 0, speed: t.stallSpeed + 1)
+        let f = run(flying, PlaneInput(pitch: 0, power: true), ticks: 60)
+        XCTAssertGreaterThan(f.y, 200 - 5)
+        XCTAssertEqual(f.heading, 0, accuracy: 1e-9)
+    }
+
     func testStallBreakIsDecisiveBelowTheBand() {
         let t = model.tuning
         let start = PlaneState(x: 0, y: 200, heading: .pi / 2, speed: t.stallSpeed - t.stallBand)
