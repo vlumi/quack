@@ -16,7 +16,11 @@ let package = Package(
     ],
     targets: [
         .target(name: "QuackCore"),
-        .target(name: "QuackKit", dependencies: ["QuackCore"]),
+        .target(
+            name: "QuackKit",
+            dependencies: ["QuackCore"],
+            resources: [.process("Resources/Localizable.xcstrings")]
+        ),
         .testTarget(name: "QuackCoreTests", dependencies: ["QuackCore"]),
     ]
 )

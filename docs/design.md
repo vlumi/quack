@@ -37,8 +37,8 @@ the property to keep: **few inputs, endless technique, nothing to author.**
   invert option is planned; the flag already exists in the controls.
 - **Release = auto-upright.** The plane rolls to the nearer way up, so
   half-loop-and-release is the turn.
-- **Right thumb: the gun, when it comes.** The throttle is open for the whole
-  flight. The first flights of milestone 1 (2026-09-12) showed a hold-to-fly
+- **Right thumb: the gun.** Hold to fire the Vickers on the hump; rounds
+  leave along the heading. The throttle is open for the whole flight. The first flights of milestone 1 (2026-09-12) showed a hold-to-fly
   button muddied the one question being asked, and a courier at full chat is
   the era's default anyway.
 - **Energy model underneath**: constant thrust against drag that grows with
@@ -54,6 +54,15 @@ the property to keep: **few inputs, endless technique, nothing to author.**
   and AI pilots can still cut the engine. **Guns and bombs**, when they come,
   ride on the free thumb. If that ever feels wrong, the war era is its own
   game, not a mode.
+
+## The balloon run
+
+The first thing to do with a gun, and the milestone-1 feel test with a score:
+a dozen balloons scattered ahead of the start, pop them all as fast as you
+can, by gun or by flying into them. The clock starts at the first input and
+stops at the last pop, and the next pull of the trigger deals a new field.
+Every field comes from a seed, so a run can be replayed and compared. It is a
+practice mode first and, with a shared seed, a Daily Drop later.
 
 ## Landing
 
@@ -128,9 +137,11 @@ flying helmet behind a windscreen. It is drawn from a **livery**, three colours
 and an emblem on the fin, so every company, rival and Duckfight opponent is a
 data change; the player's own livery and emblem become a picker later. The
 finish has enamel gloss that catches the sun by attitude, so it sweeps through
-a loop and vanishes inverted. When the plane rights itself the drawing rolls
-through edge-on; a front view for the middle of that roll, and a flapping
-scarf, are later details.
+a loop and vanishes inverted. When the plane rights itself the drawing rolls,
+top toward the camera, drawn part by part with each surface at its real height
+and a mild perspective, so the far wing tucks behind the body and the near one
+crosses in front. A flat squash was tried first and looked like paper. A
+flapping scarf is a later detail.
 
 ## Name
 

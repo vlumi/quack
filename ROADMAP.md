@@ -16,6 +16,8 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   with the elevators.
 - [x] Decide the plane: a cartoon Camel drawn from a livery, the duck at the
   stick. Liveries and an emblem picker come later; the seam is in.
+- [x] The roll: a part-by-part projection, top toward the camera.
+- [x] The gun, and the balloon run to use it on.
 - [ ] Fly it. Tune `FlightTuning` on a device until the half-loop turn is a
   pleasure and a stall is a lesson, not a punishment. Expose the dials in a
   debug overlay if that speeds it up (Skid's Tuning panel is the precedent).

@@ -25,5 +25,8 @@ plus hold-for-power feel as good as Sopwith's two keys?
 - Repo scaffold: XcodeGen project with iOS and macOS targets under one bundle id, the QuackCore package with a placeholder flight model and tests, QuackKit with a SpriteKit scene, the Makefile and release lane from the sibling games, CI.
 - The plane: a cartoon biplane with the duck at the stick, drawn from a livery (three colours and a fin emblem) so companies and rivals are data. It rolls through edge-on when it rights itself, and its gloss catches the sun by attitude.
 - Flight model: constant thrust against drag, balancing at cruise. Dives gain speed, shallow climbs hold, steep ones stall.
+- The gun: a Vickers on the hump, hold the right thumb (space on the Mac) to fire; rounds fly straight along the heading and expire.
+- The balloon run: a dozen seeded balloons ahead of the start, pop them all by gun or by ramming, clock from first input to last pop, fire again for a new field.
+- The roll: when the plane rights itself the drawing now rolls in fake 3-D, top toward the camera, each surface at its real height with a mild perspective, instead of a flat squash.
 - A real stall: gravity in the speed exchange is much stronger, so a plane pointed straight up runs out of speed within a screen height, breaks decisively and noses over forward. A stalled plane sinks before the nose goes and keeps sinking until airspeed returns. A loop from cruise still makes it round.
 - Throttle open for the whole flight; the right thumb is free for the gun. The camera now follows climbs. On the Mac, ↓ pulls the nose up and ↑ pushes it down, the same sense as the thumb drag; an invert option is prepared.

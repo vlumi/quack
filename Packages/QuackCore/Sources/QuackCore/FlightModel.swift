@@ -5,7 +5,7 @@ import Foundation
 /// with the square of speed, gravity trades speed for height, and the wing
 /// stops flying below the stall speed. Milestone 1 is about replacing these
 /// numbers with what feels right on a device. See ARCHITECTURE.md.
-public struct FlightModel: Sendable {
+public struct FlightModel: Equatable, Sendable {
     public static let tickRate: Double = 60
     public static let dt: Double = 1 / tickRate
 

@@ -2,11 +2,11 @@ import QuackCore
 import SpriteKit
 import SwiftUI
 
-/// Two inputs at most, each doing one thing. Left half of the screen: a
-/// vertical drag from wherever the thumb landed sets the elevator, the thumb
-/// defining its own centre. Right half: reserved for the gun. The throttle is
-/// open for the whole flight (see docs/design.md), so `power` is always on;
-/// the sim keeps the input for the landing assist and AI pilots.
+/// Two inputs, each doing one thing. Left half of the screen: a vertical drag
+/// from wherever the thumb landed sets the elevator, the thumb defining its
+/// own centre. Right half: holding fires the gun. The throttle is open for the
+/// whole flight (see docs/design.md), so `power` is always on; the sim keeps
+/// the input for the landing assist and AI pilots.
 final class ThumbControls {
     /// Points of drag for full elevator.
     var throwDistance: CGFloat = 80
@@ -15,19 +15,26 @@ final class ThumbControls {
     var invertedPitch = false
 
     private var pitchTouch: (id: ObjectIdentifier, origin: CGPoint)?
+    private var fireTouches = Set<ObjectIdentifier>()
     private var pitch: Double = 0
     private var keyPitch: Double = 0
+    private var keyFire = false
 
     var input: PlaneInput {
         let raw = pitch != 0 ? pitch : keyPitch
-        return PlaneInput(pitch: invertedPitch ? -raw : raw, power: true)
+        return PlaneInput(
+            pitch: invertedPitch ? -raw : raw, power: true, fire: !fireTouches.isEmpty || keyFire)
     }
 
     #if os(iOS)
     func began(_ touch: UITouch, in scene: SKScene) {
         let p = touch.location(in: scene.view)
-        guard p.x < (scene.view?.bounds.width ?? 0) / 2, pitchTouch == nil else { return }
-        pitchTouch = (ObjectIdentifier(touch), p)
+        let id = ObjectIdentifier(touch)
+        if p.x < (scene.view?.bounds.width ?? 0) / 2 {
+            if pitchTouch == nil { pitchTouch = (id, p) }
+        } else {
+            fireTouches.insert(id)
+        }
     }
 
     func moved(_ touch: UITouch, in scene: SKScene) {
@@ -39,9 +46,12 @@ final class ThumbControls {
     }
 
     func ended(_ touch: UITouch) {
-        guard pitchTouch?.id == ObjectIdentifier(touch) else { return }
-        pitchTouch = nil
-        pitch = 0
+        let id = ObjectIdentifier(touch)
+        if pitchTouch?.id == id {
+            pitchTouch = nil
+            pitch = 0
+        }
+        fireTouches.remove(id)
     }
     #endif
 
@@ -52,6 +62,7 @@ final class ThumbControls {
         // Same sense as the thumb: ↓ is stick back, nose up.
         case .downArrow: keyPitch = down ? 1 : (keyPitch > 0 ? 0 : keyPitch)
         case .upArrow: keyPitch = down ? -1 : (keyPitch < 0 ? 0 : keyPitch)
+        case .space: keyFire = down
         default: break
         }
     }
