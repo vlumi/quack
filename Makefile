@@ -1,4 +1,4 @@
-# Quack — command-line build/run/test, so you never have to open Xcode.
+# Quack — command-line build/run/test/lint, so you never have to open Xcode.
 #
 # The Scripts/*.sh do the actual work (one job each); this Makefile wires up the
 # dependencies (e.g. the Xcode project is regenerated only when project.yml or
@@ -54,6 +54,17 @@ build-ios: Quack.xcodeproj  ## Build the iOS app (simulator)
 .PHONY: test
 test:  ## Run the package logic tests (no Xcode project needed)
 	@Scripts/test.sh
+
+.PHONY: lint
+lint:  ## SwiftLint + swift-format, both strict (as CI runs them)
+	@swiftlint lint --strict
+	@swift format lint --strict --recursive --configuration .swift-format \
+		Packages/QuackCore/Sources Packages/QuackCore/Tests Sources
+
+.PHONY: format
+format:  ## Rewrite sources with swift-format
+	@swift format --in-place --recursive --configuration .swift-format \
+		Packages/QuackCore/Sources Packages/QuackCore/Tests Sources
 
 .PHONY: clean
 clean:  ## Remove the generated project + local build output
