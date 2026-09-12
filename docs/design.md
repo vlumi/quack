@@ -27,7 +27,10 @@ the property to keep: **few inputs, endless technique, nothing to author.**
 - **Everyone sees the same world.** A fixed 16:9 box, 70 m tall, the iPhone
   SE's shape because it is the narrowest phone; every other screen and the
   Mac window letterbox it in a dark frame. Seeing further sideways would be
-  an advantage in a Daily Drop or a Duckfight, so nobody gets to.
+  an advantage in a Daily Drop or a Duckfight, so nobody gets to. What lies
+  outside the box is pointed at from its edge: a chevron for each balloon
+  (later, each threat), bolder and bigger the nearer it is, because a pilot
+  sees further than the screen, just not as clearly.
 - **Don't take it seriously.** A duck flies the plane. Modes are called
   Duckfight and Daily Drop.
 

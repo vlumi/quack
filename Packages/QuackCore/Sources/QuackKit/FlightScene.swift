@@ -30,6 +30,9 @@ public final class FlightScene: SKScene {
     private let bulletLayer = SKNode()
     private var balloonNodes: [SKNode] = []
     private var bulletNodes: [SKNode] = []
+    /// One chevron per balloon, on the edge of the box when the balloon is off it.
+    private let markerLayer = SKNode()
+    private var markerNodes: [SKShapeNode] = []
     private let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let clockLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let controls = ThumbControls()
@@ -67,6 +70,8 @@ public final class FlightScene: SKScene {
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
         world.addChild(planeNode)
+        markerLayer.zPosition = 50
+        addChild(markerLayer)
         groundNode.strokeColor = SKColor(red: 0.25, green: 0.45, blue: 0.2, alpha: 1)
         groundNode.lineWidth = 0.5 * scale
         for label in [countLabel, clockLabel] {
@@ -97,6 +102,12 @@ public final class FlightScene: SKScene {
             n.position = CGPoint(x: b.x * scale, y: b.y * scale)
             balloonLayer.addChild(n)
             return n
+        }
+        markerNodes.forEach { $0.removeFromParent() }
+        markerNodes = practice.balloons.indices.map { i in
+            let m = SceneArt.markerNode(scale: scale, colour: FlightScene.balloonColours[i % 6])
+            markerLayer.addChild(m)
+            return m
         }
         rollShown = 0
         rollStart = nil
@@ -185,7 +196,64 @@ public final class FlightScene: SKScene {
         cameraY += (target2 - cameraY) * 0.12
         world.position = CGPoint(x: -planeNode.position.x, y: -cameraY)
         redrawGround()
+        updateMarkers()
         updateHUD()
+    }
+
+    // MARK: Edge markers
+
+    /// The pilot can see further than the box. A balloon outside it shows as a
+    /// chevron on the edge, on the line from the plane to the balloon, bolder
+    /// and bigger the nearer it is.
+    private func updateMarkers() {
+        let inset: CGFloat = 30
+        let left = -size.width / 2 + inset, right = size.width / 2 - inset
+        let bottom = -size.height * anchorPoint.y + inset,
+            top = size.height * (1 - anchorPoint.y) - inset
+        let plane = practice.plane
+        let pp = CGPoint(x: 0, y: planeNode.position.y - cameraY)
+        for (i, b) in practice.balloons.enumerated() {
+            let m = markerNodes[i]
+            let sp = CGPoint(x: world.position.x + b.x * scale, y: world.position.y + b.y * scale)
+            let onScreen = (left...right).contains(sp.x) && (bottom...top).contains(sp.y)
+            if b.popped || onScreen {
+                m.isHidden = true
+                continue
+            }
+            m.isHidden = false
+            let dx = sp.x - pp.x, dy = sp.y - pp.y
+            let tx = dx > 0 ? (right - pp.x) / dx : dx < 0 ? (left - pp.x) / dx : .infinity
+            let ty = dy > 0 ? (top - pp.y) / dy : dy < 0 ? (bottom - pp.y) / dy : .infinity
+            let t = max(0, min(tx, ty))
+            m.position = CGPoint(x: pp.x + dx * t, y: pp.y + dy * t)
+            m.zRotation = atan2(dy, dx)
+            let metres = hypot(b.x - plane.x, b.y - plane.y)
+            let near = max(0, min(1, 1 - (metres - 60) / 400))
+            m.alpha = 0.35 + 0.65 * near
+            m.setScale(0.6 + 0.4 * near)
+        }
+    }
+
+    // MARK: HUD
+
+    private func layoutHUD() {
+        let left = -size.width / 2 + 24
+        let top = size.height * 0.7 - 24
+        countLabel.position = CGPoint(x: left, y: top)
+        clockLabel.position = CGPoint(x: left, y: top - 40)
+    }
+
+    private func updateHUD() {
+        let seconds = practice.elapsed.formatted(.number.precision(.fractionLength(1)))
+        if practice.isFinished {
+            countLabel.text = String(
+                localized: "All popped in \(seconds) s. Fire to go again.", bundle: .module)
+            clockLabel.text = ""
+        } else {
+            countLabel.text = String(
+                localized: "\(practice.remaining) balloons left", bundle: .module)
+            clockLabel.text = String(localized: "\(seconds) s", bundle: .module)
+        }
     }
 
     private func redrawGround() {

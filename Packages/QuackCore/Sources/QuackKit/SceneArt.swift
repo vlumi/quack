@@ -73,4 +73,20 @@ enum SceneArt {
         n.addChild(slug)
         return n
     }
+
+    static func markerNode(scale: CGFloat, colour: SKColor) -> SKShapeNode {
+        let u = scale * 0.22
+        let p = CGMutablePath()
+        p.addLines(between: [
+            CGPoint(x: 7 * u, y: 0), CGPoint(x: -5 * u, y: 5 * u), CGPoint(x: -2.5 * u, y: 0),
+            CGPoint(x: -5 * u, y: -5 * u),
+        ])
+        p.closeSubpath()
+        let m = SKShapeNode(path: p)
+        m.fillColor = colour
+        m.strokeColor = SKColor(white: 0.12, alpha: 1)
+        m.lineWidth = u * 0.8
+        m.lineJoin = .round
+        return m
+    }
 }
