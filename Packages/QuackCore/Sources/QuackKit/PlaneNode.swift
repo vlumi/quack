@@ -195,6 +195,8 @@ public final class PlaneNode: SKNode {
         let nearZ: CGFloat = c >= 0 ? 70 : -70
         p.nearStruts.path = b.struts(z: nearZ, c: c, sn: sn)
         p.farStruts.path = b.struts(z: -nearZ, c: c, sn: sn)
+        // The gloss lies on the top surfaces, so it rolls with them (and under, inverted).
+        p.gloss.yScale = c
         p.gloss.alpha = c * c
     }
 }
