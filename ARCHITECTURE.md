@@ -28,13 +28,17 @@ of the display's refresh rate.
 - `PlaneInput` — elevator in -1…1 and power on/off. Plane-relative.
 - `PlaneState` — position, heading (radians, anticlockwise from +x), speed,
   and `inverted`, which says which way the cockpit faces relative to flight.
-- `FlightTuning` — every dial in one struct: gravity, thrust, cruise and
-  stall speeds, lift-deficit sink, pitch rate. Drag is derived so that thrust
-  and drag cancel at cruise.
+- `FlightTuning` — every dial in one struct: gravity (well above Earth's, so
+  a vertical climb stops within a screen), thrust, cruise and stall speeds,
+  the stall band, drop rate and sink, lift-deficit sink, pitch rate. Drag is derived
+  so that thrust and drag cancel at cruise.
 - `FlightModel` — pitch rotates the heading; thrust pushes and drag grows with
   the square of speed; the vertical component of gravity trades speed for
   height, so a dive gains speed past cruise, a shallow climb holds, a steep one
-  bleeds to a stall; below stall the nose falls; **with the elevator released
+  bleeds to a stall; below stall the plane sinks at once and the nose falls
+  toward straight down, both at full strength a band below stall speed and
+  fading as airspeed returns, and a plane pointed straight up noses over
+  forward; **with the elevator released
   the plane rolls to the nearer way up**, so a half loop and release is the
   turn (the Sopwith rule).
 - `Livery` — the paint on a plane: body, wing and trim colours plus a fin
