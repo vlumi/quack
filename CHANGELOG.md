@@ -27,6 +27,8 @@ plus hold-for-power feel as good as Sopwith's two keys?
 - Flight model: constant thrust against drag, balancing at cruise. Dives gain speed, shallow climbs hold, steep ones stall.
 - The gun: a Vickers on the hump, hold the right thumb (space on the Mac) to fire; rounds fly straight along the heading and expire.
 - Rounds are drawn as dark slugs with a warm tracer trail, so they read against the sky.
+- Everyone sees the same world: a fixed 16:9 box 70 m tall, letterboxed on other screen shapes; the Mac window keeps the box inside a dark frame at any size.
+- Balloons outside the box show as chevrons on its edge, bolder and bigger the nearer they are.
 - The balloon run: a dozen seeded balloons ahead of the start, pop them all by gun or by ramming, clock from first input to last pop, fire again for a new field.
 - The roll: when the plane rights itself the drawing now rolls in fake 3-D, top toward the camera, each surface at its real height with a mild perspective, instead of a flat squash.
 - A real stall: gravity in the speed exchange is much stronger, so a plane pointed straight up runs out of speed within a screen height, breaks decisively and noses over forward. A stalled plane sinks before the nose goes and keeps sinking until airspeed returns. A loop from cruise still makes it round.

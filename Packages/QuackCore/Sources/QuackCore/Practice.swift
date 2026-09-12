@@ -33,7 +33,7 @@ public struct Practice: Equatable, Sendable {
     /// Metres from the plane's centre that count as a ram.
     public var planeRadius: Double = 1.6
     /// Where a flight begins and restarts.
-    public static let start = PlaneState(x: 0, y: 60, heading: 0, speed: 40)
+    public static let start = PlaneState(x: 0, y: 40, heading: 0, speed: 40)
 
     public init(seed: UInt64, balloons count: Int = 12) {
         self.seed = seed

@@ -7,7 +7,16 @@ import SwiftUI
 /// `PlaneInput`; this scene only draws the state and turns touches and keys
 /// into that input. Simulation runs at the model's fixed timestep, decoupled
 /// from the frame rate, so feel does not change with the display.
+///
+/// Everyone sees the same world: a fixed 16:9 box, `worldHeight` metres tall,
+/// letterboxed on any screen of another shape. Seeing further sideways would
+/// be an advantage, so nobody gets to.
 public final class FlightScene: SKScene {
+    /// The box, in scene units; 16:9, the iPhone SE's shape, the narrowest phone.
+    public static let boxSize = CGSize(width: 1280, height: 720)
+    /// Metres of world visible top to bottom.
+    public static let worldHeight: CGFloat = 70
+
     private var practice = Practice(seed: 1)
     private var run: UInt64 = 1
     private var input = PlaneInput.idle
@@ -21,6 +30,9 @@ public final class FlightScene: SKScene {
     private let bulletLayer = SKNode()
     private var balloonNodes: [SKNode] = []
     private var bulletNodes: [SKNode] = []
+    /// One chevron per balloon, on the edge of the box when the balloon is off it.
+    private let markerLayer = SKNode()
+    private var markerNodes: [SKShapeNode] = []
     private let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let clockLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let controls = ThumbControls()
@@ -34,8 +46,8 @@ public final class FlightScene: SKScene {
     /// How long the plane takes to roll when it rights itself.
     private let rollDuration: TimeInterval = 0.35
 
-    /// Points per metre.
-    private let scale: CGFloat = 6
+    /// Scene units per metre.
+    private let scale: CGFloat = FlightScene.boxSize.height / FlightScene.worldHeight
     /// Where the sun is, for the gloss: up and a little ahead.
     private let sun = CGVector(dx: 0.33, dy: 0.94)
     private static let balloonColours: [SKColor] = [
@@ -49,8 +61,8 @@ public final class FlightScene: SKScene {
 
     public override init() {
         planeNode = PlaneNode(livery: .courier, pointsPerMetre: scale)
-        super.init(size: CGSize(width: 800, height: 450))
-        scaleMode = .resizeFill
+        super.init(size: FlightScene.boxSize)
+        scaleMode = .aspectFit
         backgroundColor = SKColor(red: 0.55, green: 0.72, blue: 0.9, alpha: 1)
         anchorPoint = CGPoint(x: 0.5, y: 0.3)
         addChild(world)
@@ -58,10 +70,12 @@ public final class FlightScene: SKScene {
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
         world.addChild(planeNode)
+        markerLayer.zPosition = 50
+        addChild(markerLayer)
         groundNode.strokeColor = SKColor(red: 0.25, green: 0.45, blue: 0.2, alpha: 1)
-        groundNode.lineWidth = 3
+        groundNode.lineWidth = 0.5 * scale
         for label in [countLabel, clockLabel] {
-            label.fontSize = 22
+            label.fontSize = 30
             label.fontColor = SKColor(white: 0.12, alpha: 1)
             label.horizontalAlignmentMode = .left
             label.verticalAlignmentMode = .top
@@ -79,19 +93,21 @@ public final class FlightScene: SKScene {
         redrawGround()
     }
 
-    public override func didChangeSize(_ oldSize: CGSize) {
-        layoutHUD()
-    }
-
     private func startRun() {
         practice = Practice(seed: run)
         balloonNodes.forEach { $0.removeFromParent() }
         balloonNodes = practice.balloons.enumerated().map { i, b in
-            let n = FlightScene.balloonNode(
+            let n = SceneArt.balloonNode(
                 radius: CGFloat(b.radius) * scale, colour: FlightScene.balloonColours[i % 6])
             n.position = CGPoint(x: b.x * scale, y: b.y * scale)
             balloonLayer.addChild(n)
             return n
+        }
+        markerNodes.forEach { $0.removeFromParent() }
+        markerNodes = practice.balloons.indices.map { i in
+            let m = SceneArt.markerNode(scale: scale, colour: FlightScene.balloonColours[i % 6])
+            markerLayer.addChild(m)
+            return m
         }
         rollShown = 0
         rollStart = nil
@@ -153,10 +169,10 @@ public final class FlightScene: SKScene {
         // Balloons that popped this frame burst; rounds are re-laid each frame.
         for (i, b) in practice.balloons.enumerated() where b.popped && balloonNodes[i].parent != nil
         {
-            FlightScene.burst(balloonNodes[i])
+            SceneArt.burst(balloonNodes[i])
         }
         while bulletNodes.count < practice.bullets.count {
-            let n = FlightScene.tracerNode(scale: scale)
+            let n = SceneArt.tracerNode(scale: scale)
             bulletLayer.addChild(n)
             bulletNodes.append(n)
         }
@@ -180,16 +196,51 @@ public final class FlightScene: SKScene {
         cameraY += (target2 - cameraY) * 0.12
         world.position = CGPoint(x: -planeNode.position.x, y: -cameraY)
         redrawGround()
+        updateMarkers()
         updateHUD()
+    }
+
+    // MARK: Edge markers
+
+    /// The pilot can see further than the box. A balloon outside it shows as a
+    /// chevron on the edge, on the line from the plane to the balloon, bolder
+    /// and bigger the nearer it is.
+    private func updateMarkers() {
+        let inset: CGFloat = 30
+        let left = -size.width / 2 + inset, right = size.width / 2 - inset
+        let bottom = -size.height * anchorPoint.y + inset,
+            top = size.height * (1 - anchorPoint.y) - inset
+        let plane = practice.plane
+        let pp = CGPoint(x: 0, y: planeNode.position.y - cameraY)
+        for (i, b) in practice.balloons.enumerated() {
+            let m = markerNodes[i]
+            let sp = CGPoint(x: world.position.x + b.x * scale, y: world.position.y + b.y * scale)
+            let onScreen = (left...right).contains(sp.x) && (bottom...top).contains(sp.y)
+            if b.popped || onScreen {
+                m.isHidden = true
+                continue
+            }
+            m.isHidden = false
+            let dx = sp.x - pp.x, dy = sp.y - pp.y
+            let tx = dx > 0 ? (right - pp.x) / dx : dx < 0 ? (left - pp.x) / dx : .infinity
+            let ty = dy > 0 ? (top - pp.y) / dy : dy < 0 ? (bottom - pp.y) / dy : .infinity
+            let t = max(0, min(tx, ty))
+            m.position = CGPoint(x: pp.x + dx * t, y: pp.y + dy * t)
+            m.zRotation = atan2(dy, dx)
+            let metres = hypot(b.x - plane.x, b.y - plane.y)
+            let near = max(0, min(1, 1 - (metres - 60) / 400))
+            m.alpha = 0.35 + 0.65 * near
+            m.setScale(0.6 + 0.4 * near)
+        }
     }
 
     // MARK: HUD
 
     private func layoutHUD() {
-        let left = -size.width / 2 + 16
-        let top = size.height * 0.7 - 16
+        let left = -size.width / 2 + 24
+        let top = size.height * 0.7 - 24
         countLabel.position = CGPoint(x: left, y: top)
-        clockLabel.position = CGPoint(x: left, y: top - 30)
+        clockLabel.position = CGPoint(x: left, y: top - 40)
     }
 
     private func updateHUD() {
@@ -205,78 +256,6 @@ public final class FlightScene: SKScene {
         }
     }
 
-    // MARK: Balloons
-
-    private static func balloonNode(radius r: CGFloat, colour: SKColor) -> SKNode {
-        let n = SKNode()
-        let body = SKShapeNode(
-            ellipseIn: CGRect(x: -r, y: -r * 1.15, width: 2 * r, height: 2.3 * r))
-        body.fillColor = colour
-        body.strokeColor = SKColor(white: 0.12, alpha: 1)
-        body.lineWidth = 2
-        let knot = SKShapeNode(
-            path: {
-                let p = CGMutablePath()
-                p.addLines(between: [
-                    CGPoint(x: -r * 0.2, y: -r * 1.35), CGPoint(x: r * 0.2, y: -r * 1.35),
-                    CGPoint(x: 0, y: -r * 1.1),
-                ])
-                p.closeSubpath()
-                return p
-            }())
-        knot.fillColor = colour
-        knot.strokeColor = SKColor(white: 0.12, alpha: 1)
-        knot.lineWidth = 1.5
-        let string = SKShapeNode(
-            path: {
-                let p = CGMutablePath()
-                p.move(to: CGPoint(x: 0, y: -r * 1.35))
-                p.addQuadCurve(
-                    to: CGPoint(x: r * 0.3, y: -r * 3), control: CGPoint(x: -r * 0.5, y: -r * 2.2))
-                return p
-            }())
-        string.strokeColor = SKColor(white: 0.12, alpha: 0.8)
-        string.lineWidth = 1.5
-        let shine = SKShapeNode(
-            ellipseIn: CGRect(x: -r * 0.55, y: r * 0.25, width: r * 0.35, height: r * 0.5))
-        shine.fillColor = SKColor(white: 1, alpha: 0.5)
-        shine.strokeColor = .clear
-        for c in [string, body, knot, shine] { n.addChild(c) }
-        return n
-    }
-
-    /// A round: a dark slug with a warm tracer trail tapering behind it, so it
-    /// reads against the sky. The trail is the first child, scaled by age.
-    private static func tracerNode(scale: CGFloat) -> SKNode {
-        let n = SKNode()
-        let trail = SKShapeNode(
-            path: {
-                let p = CGMutablePath()
-                p.addLines(between: [
-                    CGPoint(x: 0, y: 1.6), CGPoint(x: -4 * scale, y: 0), CGPoint(x: 0, y: -1.6),
-                ])
-                p.closeSubpath()
-                return p
-            }())
-        trail.fillColor = SKColor(red: 1, green: 0.8, blue: 0.4, alpha: 0.85)
-        trail.strokeColor = .clear
-        let slug = SKShapeNode(circleOfRadius: 2.2)
-        slug.fillColor = SKColor(white: 0.12, alpha: 1)
-        slug.strokeColor = SKColor(red: 1, green: 0.9, blue: 0.6, alpha: 1)
-        slug.lineWidth = 1
-        n.addChild(trail)
-        n.addChild(slug)
-        return n
-    }
-
-    private static func burst(_ n: SKNode) {
-        n.run(
-            .sequence([
-                .group([.scale(to: 1.5, duration: 0.12), .fadeOut(withDuration: 0.12)]),
-                .removeFromParent(),
-            ]))
-    }
-
     private func redrawGround() {
         let half = size.width
         let x0 = planeNode.position.x - half
@@ -288,7 +267,7 @@ public final class FlightScene: SKScene {
         var x = (x0 / step).rounded(.down) * step
         while x < x0 + 2 * half {
             path.move(to: CGPoint(x: x, y: 0))
-            path.addLine(to: CGPoint(x: x, y: -8))
+            path.addLine(to: CGPoint(x: x, y: -1.3 * scale))
             x += step
         }
         groundNode.path = path

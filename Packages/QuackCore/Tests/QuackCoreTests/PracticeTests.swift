@@ -20,7 +20,7 @@ final class PracticeTests: XCTestCase {
     func testClockStartsOnFirstInputAndStopsOnLastPop() {
         var p = Practice(seed: 1, balloons: 1)
         // Just under the line of fire, so the first round misses and the plane rams it.
-        p.balloons[0] = Balloon(x: 60, y: 57, radius: 3)
+        p.balloons[0] = Balloon(x: 60, y: Practice.start.y - 3, radius: 3)
         for _ in 0..<30 { p.advance(input: .idle) }
         XCTAssertNil(p.startedAt)
         XCTAssertEqual(p.elapsed, 0)
@@ -53,7 +53,7 @@ final class PracticeTests: XCTestCase {
 
     func testBulletPopsBalloonAhead() {
         var p = Practice(seed: 1, balloons: 1)
-        p.balloons[0] = Balloon(x: 90, y: 60, radius: 3)
+        p.balloons[0] = Balloon(x: 90, y: Practice.start.y, radius: 3)
         let held = PlaneInput(power: true, fire: true)
         var ticks = 0
         while p.remaining == 1 && ticks < 90 {
