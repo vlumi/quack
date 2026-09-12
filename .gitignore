@@ -1,0 +1,19 @@
+# Generated Xcode project (XcodeGen owns it; never committed)
+*.xcodeproj
+
+# Build output
+.build/
+.build-xcode/
+.build*/
+DerivedData/
+
+# Editor / OS
+.vscode/
+.DS_Store
+
+# SwiftPM per-user state
+.swiftpm/
+
+# Release lane output + local ASC credentials
+dist/
+Scripts/.asc-config
