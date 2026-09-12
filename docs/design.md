@@ -24,6 +24,10 @@ the property to keep: **few inputs, endless technique, nothing to author.**
   hides behind physics. This game turns on a half loop and needs the input to
   be where the thumb is. Two thumbs also map to two keys, which puts the Mac
   back in.
+- **Everyone sees the same world.** A fixed 16:9 box, 70 m tall, the iPhone
+  SE's shape because it is the narrowest phone; every other screen and the
+  Mac window letterbox it in a dark frame. Seeing further sideways would be
+  an advantage in a Daily Drop or a Duckfight, so nobody gets to.
 - **Don't take it seriously.** A duck flies the plane. Modes are called
   Duckfight and Daily Drop.
 

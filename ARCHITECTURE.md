@@ -54,10 +54,12 @@ The numbers and shapes here are a starting point to be flown and replaced.
 
 ## The scene
 
-`FlightScene` (SpriteKit) runs the balloon run: a ground line with distance
-ticks, the plane, the balloons, the rounds and a two-line clock, camera
-following sideways always and upward once the plane would leave the top of the
-view. Touching the ground puts the plane back at the start height; the field
+`FlightScene` (SpriteKit) is a fixed 1280 × 720 box showing 70 m of world
+top to bottom, aspect-fit into whatever screen or window it gets (the Mac
+window keeps a 16:9 game area inside a dark frame; on iOS the letterbox bars
+stay touch surface). It runs the balloon run: a ground line with distance
+ticks, the plane, the balloons, the rounds, a two-line clock; camera following sideways always and upward once
+the plane would leave the top of the view. Touching the ground puts the plane back at the start height; the field
 and the clock stay. When the run is done, the next pull of the trigger starts
 the next one with the next seed.
 
