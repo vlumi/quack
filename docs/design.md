@@ -34,28 +34,35 @@ the property to keep: **few inputs, endless technique, nothing to author.**
   A small drag is a gentle climb, a full drag pulls a loop.
 - **Release = auto-upright.** The plane rolls to the nearer way up, so
   half-loop-and-release is the turn.
-- **Right thumb, hold = power, release = glide.** Period-authentic: engines
-  were throttled back to idle on approach. Gives the mental model "let go,
-  glide, flare".
-- **Energy model underneath**: diving gains speed, climbing bleeds it, the
-  engine only holds cruise. Without it, slowing down for a short field is
-  impossible; with it, the approach is flown with the elevators.
+- **Right thumb: the gun, when it comes.** The throttle is open for the whole
+  flight. The first flights of milestone 1 (2026-09-12) showed a hold-to-fly
+  button muddied the one question being asked, and a courier at full chat is
+  the era's default anyway.
+- **Energy model underneath**: constant thrust against drag that grows with
+  the square of speed, balancing at cruise. Diving gains speed, a shallow
+  climb holds it, a steep one bleeds to a stall. Speed is managed with the
+  elevators, which is what makes the approach a skill.
 - **Rejected:** a two-axis virtual stick (vertical pitch, horizontal throttle)
   — closest to Sopwith's keys, but a third thing for the thumb to get right,
-  and the easy-to-learn rule wins. **Guns and bombs**, when they come, ride on
-  a tap of a thumb already in use, or fire automatically while powered with a
-  target ahead. If that ever feels wrong, the war era is its own game, not a
-  mode.
+  and the easy-to-learn rule wins. **Hold-for-power, release-to-glide** —
+  period-authentic and it gave the approach a throttle, but it was a second
+  thing to hold during the feel test, and every lifted thumb made the plane
+  feel engineless; the sim keeps `power` in its input so the landing assist
+  and AI pilots can still cut the engine. **Guns and bombs**, when they come,
+  ride on the free thumb. If that ever feels wrong, the war era is its own
+  game, not a mode.
 
 ## Landing
 
-The approach is the test, the touchdown is automatic. Crossing the field
-threshold below a speed limit, inside a pitch window, and descending hands the
-plane to the assist, which rolls it out. Outside the window: bounce, broken
-undercarriage or crash, by how far off. The window is the difficulty dial
-(wide early, narrow later; wind and slope make a good approach harder). A
-landing flown inside the window without needing the assist earns a small
-bonus: mastery rewarded, not required.
+The approach is the test, the touchdown is automatic. Align the plane on the
+field's approach angle, descending, and cross the threshold: the assist takes
+over, throttles back, flares and rolls out. With the throttle always open the
+window has no speed dimension, only angle and descent, which keeps it an
+elevator skill. Outside the window: bounce, broken undercarriage or crash, by
+how far off. The window is the difficulty dial (wide early, narrow later; wind
+and slope make a good approach harder). A landing flown inside the window
+without needing the assist earns a small bonus: mastery rewarded, not
+required.
 
 ## The world
 
@@ -74,8 +81,8 @@ bonus: mastery rewarded, not required.
   time. Distance, terrain and wind decide how tempting each is.
 - **Mailbags don't care how you fly; passengers do.** Aerobatics with a
   passenger cut the fare. Two contract types, two ways to fly.
-- **Fuel drains only while powered**, so gliding is free and rushing costs.
-  Refuelling costs money and a stop.
+- **Fuel is a range clock**: it drains as long as the engine runs, which is
+  always. Refuelling costs money and a stop.
 - Fares buy a bigger tank, a stronger engine, a second seat.
 - **Hazards as economics, not activity.** AA guns threaten routes; dodging
   costs time, shooting them costs ammunition bought at the field. The courier
@@ -105,10 +112,22 @@ same generator.
 
 ## Graphics
 
-Layered terrain silhouettes with parallax, stacked-rectangle buildings, a
-line-art biplane, smoke and explosion particles, a sky gradient for the hour.
-Fully procedural, and it looks intentional because the original looked like
-that too. The one drawn asset is the icon: a duck in a flying cap.
+Layered terrain silhouettes with parallax, stacked-rectangle buildings, smoke
+and explosion particles, a sky gradient for the hour. Fully procedural, and it
+looks intentional because the original looked like that too. The one drawn
+asset is the icon: a duck in a flying cap.
+
+The plane is a cartoon Camel, chosen over line art, a silhouette and an 8-bit
+sprite (2026-09-12) for being recognisable at a glance rather than correct for
+the era: a fat fuselage, a rounded cowl, wide staggered airfoil wings with
+leaning struts and cross wires, a swept fin, and the duck in a fleece-rimmed
+flying helmet behind a windscreen. It is drawn from a **livery**, three colours
+and an emblem on the fin, so every company, rival and Duckfight opponent is a
+data change; the player's own livery and emblem become a picker later. The
+finish has enamel gloss that catches the sun by attitude, so it sweeps through
+a loop and vanishes inverted. When the plane rights itself the drawing rolls
+through edge-on; a front view for the middle of that roll, and a flapping
+scarf, are later details.
 
 ## Name
 

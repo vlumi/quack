@@ -26,6 +26,32 @@ final class FlightModelTests: XCTestCase {
         XCTAssertGreaterThan(s.x, 350)
     }
 
+    func testEngineAcceleratesToCruiseFromSlow() {
+        let start = PlaneState(x: 0, y: 100, heading: 0, speed: 20)
+        let s = run(start, PlaneInput(pitch: 0, power: true), ticks: 1200)
+        XCTAssertEqual(s.speed, model.tuning.cruiseSpeed, accuracy: 1)
+    }
+
+    func testDiveGainsSpeedPastCruise() {
+        let start = PlaneState(x: 0, y: 500, heading: -0.5, speed: 40)
+        let s = run(start, PlaneInput(pitch: 0, power: true), ticks: 300)
+        XCTAssertGreaterThan(s.speed, model.tuning.cruiseSpeed + 5)
+    }
+
+    func testShallowClimbIsSustained() {
+        let start = PlaneState(x: 0, y: 100, heading: 0.35, speed: 40)
+        let s = run(start, PlaneInput(pitch: 0, power: true), ticks: 900)
+        XCTAssertGreaterThan(s.speed, model.tuning.stallSpeed + 5)
+        XCTAssertEqual(s.heading, 0.35, accuracy: 1e-9, "no stall, so the heading holds")
+        XCTAssertGreaterThan(s.y, 200)
+    }
+
+    func testSteepClimbBleedsToAStall() {
+        let start = PlaneState(x: 0, y: 100, heading: 1.2, speed: 40)
+        let s = run(start, PlaneInput(pitch: 0, power: true), ticks: 1200)
+        XCTAssertLessThan(s.heading, 0.5, "the nose should have dropped")
+    }
+
     func testPullingUpTurnsAndBleedsSpeed() {
         let start = PlaneState(x: 0, y: 100, heading: 0, speed: 40)
         let s = run(start, PlaneInput(pitch: 1, power: true), ticks: 20)
@@ -57,9 +83,15 @@ final class FlightModelTests: XCTestCase {
         while abs(FlightModel.shortestTurn(from: s.heading, to: .pi)) > 0.1 {
             s = model.advance(s, input: pull)
         }
+        XCTAssertGreaterThan(s.speed, model.tuning.stallSpeed, "a loop from cruise must not stall")
         s = run(s, PlaneInput(pitch: 0, power: true), ticks: 5)
         XCTAssertLessThan(cos(s.heading), 0, "flying left")
         XCTAssertTrue(s.inverted)
+    }
+
+    func testDragIsSetSoThrustBalancesAtCruise() {
+        let t = model.tuning
+        XCTAssertEqual(t.drag * t.cruiseSpeed * t.cruiseSpeed, t.thrust, accuracy: 1e-12)
     }
 
     func testInputClamps() {

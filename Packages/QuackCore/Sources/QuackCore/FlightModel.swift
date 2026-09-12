@@ -1,10 +1,10 @@
 import Foundation
 
 /// The aeroplane's physics, hand-written and deterministic: same inputs at a
-/// fixed timestep give the same state, bit for bit. This is the milestone-1
-/// placeholder — it flies, turns, stalls and glides so the controls can be
-/// felt on a device — and the whole point of milestone 1 is to replace its
-/// numbers and shapes with what feels right. See ARCHITECTURE.md "Planned".
+/// fixed timestep give the same state, bit for bit. Thrust pushes, drag grows
+/// with the square of speed, gravity trades speed for height, and the wing
+/// stops flying below the stall speed. Milestone 1 is about replacing these
+/// numbers with what feels right on a device. See ARCHITECTURE.md.
 public struct FlightModel: Sendable {
     public static let tickRate: Double = 60
     public static let dt: Double = 1 / tickRate
@@ -15,9 +15,10 @@ public struct FlightModel: Sendable {
         self.tuning = tuning
     }
 
-    /// One fixed step. Pitch rotates the heading; power holds cruise speed;
-    /// climbing bleeds speed and diving gains it; below stall the nose drops;
-    /// with the elevator released the plane rolls to the nearer way up.
+    /// One fixed step. Pitch rotates the heading; thrust and drag settle at
+    /// cruise in level flight; climbing bleeds speed and diving gains it;
+    /// below stall the nose drops; with the elevator released the plane rolls
+    /// to the nearer way up.
     public func advance(
         _ s: PlaneState, input: PlaneInput, dt: Double = FlightModel.dt
     ) -> PlaneState {
@@ -30,15 +31,10 @@ public struct FlightModel: Sendable {
         p.heading += input.pitch * t.pitchRate * sense * dt
         p.heading = FlightModel.wrap(p.heading)
 
-        // Energy: the vertical component of flight trades speed for height.
-        let climb = sin(p.heading)
-        p.speed -= climb * t.gravity * t.energyExchange * dt
-        if input.power {
-            p.speed += (t.cruiseSpeed - p.speed) * t.engineResponse * dt
-        } else {
-            p.speed -= p.speed * t.glideDrag * dt
-        }
-        p.speed = max(0, p.speed)
+        // Energy: thrust minus drag minus the vertical component of gravity.
+        var accel = -t.drag * p.speed * p.speed - sin(p.heading) * t.gravity
+        if input.power { accel += t.thrust }
+        p.speed = max(0, p.speed + accel * dt)
 
         // Stall: too slow to fly, the nose falls toward straight down.
         if p.speed < t.stallSpeed {

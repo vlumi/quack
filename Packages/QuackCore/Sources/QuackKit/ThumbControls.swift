@@ -2,32 +2,28 @@ import QuackCore
 import SpriteKit
 import SwiftUI
 
-/// Two inputs, each doing one thing. Left half of the screen: a vertical drag
-/// from wherever the thumb landed sets the elevator, the thumb defining its
-/// own centre. Right half: holding is power, releasing is glide. Nothing else.
+/// Two inputs at most, each doing one thing. Left half of the screen: a
+/// vertical drag from wherever the thumb landed sets the elevator, the thumb
+/// defining its own centre. Right half: reserved for the gun. The throttle is
+/// open for the whole flight (see docs/design.md), so `power` is always on;
+/// the sim keeps the input for the landing assist and AI pilots.
 final class ThumbControls {
     /// Points of drag for full elevator.
     var throwDistance: CGFloat = 80
 
     private var pitchTouch: (id: ObjectIdentifier, origin: CGPoint)?
-    private var powerTouches = Set<ObjectIdentifier>()
     private var pitch: Double = 0
     private var keyPitch: Double = 0
-    private var keyPower = false
 
     var input: PlaneInput {
-        PlaneInput(pitch: pitch != 0 ? pitch : keyPitch, power: !powerTouches.isEmpty || keyPower)
+        PlaneInput(pitch: pitch != 0 ? pitch : keyPitch, power: true)
     }
 
     #if os(iOS)
     func began(_ touch: UITouch, in scene: SKScene) {
         let p = touch.location(in: scene.view)
-        let id = ObjectIdentifier(touch)
-        if p.x < (scene.view?.bounds.width ?? 0) / 2 {
-            if pitchTouch == nil { pitchTouch = (id, p) }
-        } else {
-            powerTouches.insert(id)
-        }
+        guard p.x < (scene.view?.bounds.width ?? 0) / 2, pitchTouch == nil else { return }
+        pitchTouch = (ObjectIdentifier(touch), p)
     }
 
     func moved(_ touch: UITouch, in scene: SKScene) {
@@ -38,12 +34,9 @@ final class ThumbControls {
     }
 
     func ended(_ touch: UITouch) {
-        let id = ObjectIdentifier(touch)
-        if pitchTouch?.id == id {
-            pitchTouch = nil
-            pitch = 0
-        }
-        powerTouches.remove(id)
+        guard pitchTouch?.id == ObjectIdentifier(touch) else { return }
+        pitchTouch = nil
+        pitch = 0
     }
     #endif
 
@@ -53,7 +46,6 @@ final class ThumbControls {
         switch press.key {
         case .upArrow: keyPitch = down ? 1 : (keyPitch > 0 ? 0 : keyPitch)
         case .downArrow: keyPitch = down ? -1 : (keyPitch < 0 ? 0 : keyPitch)
-        case .space: keyPower = down
         default: break
         }
     }

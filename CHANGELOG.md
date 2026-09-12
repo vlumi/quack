@@ -23,3 +23,6 @@ plus hold-for-power feel as good as Sopwith's two keys?
 ### Unreleased (next build)
 
 - Repo scaffold: XcodeGen project with iOS and macOS targets under one bundle id, the QuackCore package with a placeholder flight model and tests, QuackKit with a SpriteKit scene, the Makefile and release lane from the sibling games, CI.
+- The plane: a cartoon biplane with the duck at the stick, drawn from a livery (three colours and a fin emblem) so companies and rivals are data. It rolls through edge-on when it rights itself, and its gloss catches the sun by attitude.
+- Flight model: constant thrust against drag, balancing at cruise. Dives gain speed, shallow climbs hold, steep ones stall.
+- Throttle open for the whole flight; the right thumb is free for the gun. The camera now follows climbs. On the Mac, ↑/↓ only.

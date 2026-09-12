@@ -2,7 +2,7 @@ import QuackCore
 import SpriteKit
 import SwiftUI
 
-/// A ground line, a plane, two thumbs. Everything the sim needs comes through
+/// A ground line, a plane, a thumb. Everything the sim needs comes through
 /// `PlaneInput`; this scene only draws the state and turns touches and keys
 /// into that input. Simulation runs at the model's fixed timestep, decoupled
 /// from the frame rate, so feel does not change with the display.
@@ -14,14 +14,23 @@ public final class FlightScene: SKScene {
     private var lastTime: TimeInterval?
 
     private let world = SKNode()
-    private let planeNode = SKShapeNode()
+    private let planeNode = SKNode()
+    private let gloss: SKNode
     private let groundNode = SKShapeNode()
     private let controls = ThumbControls()
+    private var shownInverted = false
+    private var cameraY: CGFloat = 0
 
     /// Points per metre.
     private let scale: CGFloat = 6
+    /// Where the sun is, for the gloss: up and a little ahead.
+    private let sun = CGVector(dx: 0.33, dy: 0.94)
+    /// How long the plane takes to roll when it rights itself.
+    private let rollDuration: TimeInterval = 0.25
 
     public override init() {
+        let art = PlaneArt.make(livery: .courier, pointsPerMetre: scale)
+        gloss = art.gloss
         super.init(size: CGSize(width: 800, height: 450))
         scaleMode = .resizeFill
         backgroundColor = SKColor(red: 0.55, green: 0.72, blue: 0.9, alpha: 1)
@@ -29,10 +38,7 @@ public final class FlightScene: SKScene {
         addChild(world)
         world.addChild(groundNode)
         world.addChild(planeNode)
-        planeNode.path = FlightScene.planePath()
-        planeNode.strokeColor = SKColor(white: 0.12, alpha: 1)
-        planeNode.lineWidth = 2
-        planeNode.lineJoin = .round
+        planeNode.addChild(art.node)
         groundNode.strokeColor = SKColor(red: 0.25, green: 0.45, blue: 0.2, alpha: 1)
         groundNode.lineWidth = 3
     }
@@ -64,8 +70,25 @@ public final class FlightScene: SKScene {
     private func render() {
         planeNode.position = CGPoint(x: plane.x * scale, y: plane.y * scale)
         planeNode.zRotation = CGFloat(plane.heading)
-        planeNode.yScale = plane.inverted ? -1 : 1
-        world.position = CGPoint(x: -planeNode.position.x, y: 0)
+        if plane.inverted != shownInverted {
+            // The sim flips instantly; the drawing rolls through edge-on.
+            shownInverted = plane.inverted
+            planeNode.removeAction(forKey: "roll")
+            planeNode.run(
+                SKAction.scaleY(to: plane.inverted ? -1 : 1, duration: rollDuration),
+                withKey: "roll")
+        }
+        // Gloss: the top surface catches the sun in proportion to how squarely
+        // it faces it, so it sweeps during a loop and vanishes inverted.
+        let up = CGVector(dx: -sin(plane.heading), dy: cos(plane.heading))
+        let facing = (up.dx * sun.dx + up.dy * sun.dy) * (plane.inverted ? -1 : 1)
+        gloss.alpha = max(0, facing) * max(0, facing)
+
+        // Camera: follows sideways always, and upward once the plane would leave
+        // the top 40% of the view, easing so a loop does not yank the ground.
+        let target = max(0, planeNode.position.y - size.height * 0.4)
+        cameraY += (target - cameraY) * 0.12
+        world.position = CGPoint(x: -planeNode.position.x, y: -cameraY)
         redrawGround()
     }
 
@@ -86,26 +109,6 @@ public final class FlightScene: SKScene {
         groundNode.path = path
     }
 
-    /// Side view of a biplane in a few strokes: fuselage, two wings, tail, prop.
-    private static func planePath() -> CGPath {
-        let p = CGMutablePath()
-        p.move(to: CGPoint(x: -14, y: 0))
-        p.addLine(to: CGPoint(x: 14, y: 0))
-        p.move(to: CGPoint(x: -4, y: 6))
-        p.addLine(to: CGPoint(x: 6, y: 6))
-        p.move(to: CGPoint(x: -4, y: -5))
-        p.addLine(to: CGPoint(x: 6, y: -5))
-        p.move(to: CGPoint(x: -2, y: 6))
-        p.addLine(to: CGPoint(x: -2, y: -5))
-        p.move(to: CGPoint(x: 4, y: 6))
-        p.addLine(to: CGPoint(x: 4, y: -5))
-        p.move(to: CGPoint(x: -14, y: 0))
-        p.addLine(to: CGPoint(x: -14, y: 6))
-        p.move(to: CGPoint(x: 14, y: -4))
-        p.addLine(to: CGPoint(x: 14, y: 4))
-        return p
-    }
-
     // MARK: Input
 
     #if os(iOS)
@@ -124,7 +127,7 @@ public final class FlightScene: SKScene {
     #endif
 
     #if os(macOS)
-    /// Keyboard stands in for the two thumbs: ↑/↓ elevator, space power.
+    /// Keyboard stands in for the thumb: ↑/↓ elevator.
     public func keyboard(_ press: KeyPress) {
         controls.keyboard(press)
     }
