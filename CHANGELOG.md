@@ -22,6 +22,7 @@ plus hold-for-power feel as good as Sopwith's two keys?
 
 ### Unreleased (next build)
 
+- A placeholder app icon: the plane climbing over the strip, drawn by the game's own rig. The duck in a flying cap comes with 1.0.
 ### build 1 — 2026-09-13
 
 - Repo scaffold: XcodeGen project with iOS and macOS targets under one bundle id, the QuackCore package with a placeholder flight model and tests, QuackKit with a SpriteKit scene, the Makefile and release lane from the sibling games, CI.
