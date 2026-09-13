@@ -35,6 +35,11 @@ public final class FlightScene: SKScene {
     private var markerNodes: [SKShapeNode] = []
     private let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let clockLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+    /// Cockpit gauges, top right: airspeed with the stall range in red, and altitude.
+    private let speedDial: Dial
+    private let altitudeDial = Dial(radius: 44, maximum: 150, majorEvery: 50)
+    private let speedLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+    private let altitudeLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let controls: ThumbControls
     private var cameraY: CGFloat = 0
     private var wasFiring = false
@@ -63,6 +68,8 @@ public final class FlightScene: SKScene {
     public init(overlay: ThumbOverlayState) {
         planeNode = PlaneNode(livery: .courier, pointsPerMetre: scale)
         controls = ThumbControls(overlay: overlay)
+        let stall = CGFloat(practice.model.tuning.stallSpeed * 3.6)
+        speedDial = Dial(radius: 44, maximum: 240, majorEvery: 60, redBelow: stall)
         super.init(size: FlightScene.boxSize)
         scaleMode = .aspectFit
         backgroundColor = SKColor(red: 0.55, green: 0.72, blue: 0.9, alpha: 1)
@@ -83,6 +90,18 @@ public final class FlightScene: SKScene {
             label.verticalAlignmentMode = .top
             label.zPosition = 100
             addChild(label)
+        }
+        for label in [speedLabel, altitudeLabel] {
+            label.fontSize = 20
+            label.fontColor = SKColor(white: 0.12, alpha: 1)
+            label.horizontalAlignmentMode = .center
+            label.verticalAlignmentMode = .top
+            label.zPosition = 100
+            addChild(label)
+        }
+        for dial in [speedDial, altitudeDial] {
+            dial.zPosition = 100
+            addChild(dial)
         }
         startRun()
     }
@@ -227,7 +246,14 @@ public final class FlightScene: SKScene {
             let tx = dx > 0 ? (right - pp.x) / dx : dx < 0 ? (left - pp.x) / dx : .infinity
             let ty = dy > 0 ? (top - pp.y) / dy : dy < 0 ? (bottom - pp.y) / dy : .infinity
             let t = max(0, min(tx, ty))
-            m.position = CGPoint(x: pp.x + dx * t, y: pp.y + dy * t)
+            var at = CGPoint(x: pp.x + dx * t, y: pp.y + dy * t)
+            // Keep clear of the gauges in the top-right corner: slide along the
+            // edge the marker is on until it is out from under them.
+            let gauges = CGRect(x: right - 250, y: top - 150, width: 300, height: 200)
+            if gauges.contains(at) {
+                if tx < ty { at.y = min(at.y, gauges.minY) } else { at.x = min(at.x, gauges.minX) }
+            }
+            m.position = at
             m.zRotation = atan2(dy, dx)
             let metres = hypot(b.x - plane.x, b.y - plane.y)
             let near = max(0, min(1, 1 - (metres - 60) / 400))
@@ -243,9 +269,21 @@ public final class FlightScene: SKScene {
         let top = size.height * 0.7 - 24
         countLabel.position = CGPoint(x: left, y: top)
         clockLabel.position = CGPoint(x: left, y: top - 40)
+        let right = size.width / 2 - 24
+        altitudeDial.position = CGPoint(x: right - 44, y: top - 44)
+        speedDial.position = CGPoint(x: right - 44 - 112, y: top - 44)
+        altitudeLabel.position = CGPoint(
+            x: altitudeDial.position.x, y: altitudeDial.position.y - 52)
+        speedLabel.position = CGPoint(x: speedDial.position.x, y: speedDial.position.y - 52)
     }
 
     private func updateHUD() {
+        let kmh = Int((practice.plane.speed * 3.6).rounded())
+        let metres = Int(practice.plane.y.rounded())
+        speedDial.value = CGFloat(kmh)
+        altitudeDial.value = CGFloat(metres)
+        speedLabel.text = String(localized: "\(kmh) km/h", bundle: .module)
+        altitudeLabel.text = String(localized: "\(metres) m", bundle: .module)
         let seconds = practice.elapsed.formatted(.number.precision(.fractionLength(1)))
         if practice.isFinished {
             countLabel.text = String(

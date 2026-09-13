@@ -14,6 +14,18 @@
         }
       }
     },
+    "%lld km/h" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld km/h" } }
+      }
+    },
+    "%lld m" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld m" } }
+      }
+    },
     "%@ s" : {
       "extractionState" : "manual",
       "localizations" : {

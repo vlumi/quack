@@ -58,7 +58,9 @@ The numbers and shapes here are a starting point to be flown and replaced.
 top to bottom, aspect-fit into whatever screen or window it gets (the Mac
 window keeps a 16:9 game area inside a dark frame; on iOS the letterbox bars
 stay touch surface). It runs the balloon run: a ground line with distance
-ticks, the plane, the balloons, the rounds, a two-line clock, and a chevron on
+ticks, the plane, the balloons, the rounds, a two-line clock, two cockpit
+gauges top right (`Dial`: airspeed with the stall range in red, and altitude),
+and a chevron on
 the box's edge for each balloon outside it, on the line from the plane, bolder
 and bigger the nearer it is; camera following sideways always and upward once
 the plane would leave the top of the view. Touching the ground puts the plane back at the start height; the field
