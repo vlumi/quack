@@ -5,9 +5,14 @@ import SwiftUI
 /// letterboxed in a dark frame on any other shape of screen or window.
 /// Milestone 1 has no menus — the app opens straight into the air.
 public struct GameView: View {
-    @State private var scene = FlightScene()
+    @StateObject private var overlay = ThumbOverlayState()
+    @State private var scene: FlightScene
 
-    public init() {}
+    public init() {
+        let overlay = ThumbOverlayState()
+        _overlay = StateObject(wrappedValue: overlay)
+        _scene = State(initialValue: FlightScene(overlay: overlay))
+    }
 
     public var body: some View {
         let scene = self.scene
@@ -26,8 +31,10 @@ public struct GameView: View {
             return .handled
         }
         #else
-        // Full bleed: the scene letterboxes itself and the bars stay touch surface.
+        // Full bleed: the scene letterboxes itself and the bars stay touch
+        // surface. The thumb pads draw over everything, bars included.
         return view.ignoresSafeArea().background(frame.ignoresSafeArea())
+            .overlay(ThumbOverlay(state: overlay).ignoresSafeArea())
         #endif
     }
 }

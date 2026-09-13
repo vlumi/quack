@@ -79,10 +79,16 @@ alpha follows the plane's attitude against a fixed sun.
 
 `ThumbControls`: left half of the screen, a vertical drag from wherever the
 thumb landed sets the elevator (the thumb defines its own centre;
-`throwDistance` points = full throw, pulled down for nose up; `invertedPitch`
-flips the sense and awaits a setting); right half, holding fires. The throttle
-is always open, so `PlaneInput.power` is always true from the controls. On
-macOS, ↓/↑ and space stand in for the thumbs.
+`throwDistance` points = full throw, pulled down for nose up, and the throw
+toward a screen edge shrinks to the room there, never below `minimumThrow`;
+`invertedPitch` flips the sense and awaits a setting); right half, holding
+fires. The throttle is always open, so `PlaneInput.power` is always true from
+the controls. Every touch event also writes `ThumbOverlayState`, which
+`ThumbOverlay` (a SwiftUI canvas over the whole screen, bars included, that
+takes no touches) draws as the pitch pad and the trigger: floating to where
+the thumb landed, dimmed at rest, track, centre, bar and knob, chevrons lit by
+the elevator's sense. On macOS, ↓/↑ and space stand in for the thumbs and there
+is no overlay.
 
 ## Planned
 

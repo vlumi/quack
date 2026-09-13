@@ -35,7 +35,7 @@ public final class FlightScene: SKScene {
     private var markerNodes: [SKShapeNode] = []
     private let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let clockLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
-    private let controls = ThumbControls()
+    private let controls: ThumbControls
     private var cameraY: CGFloat = 0
     private var wasFiring = false
 
@@ -59,8 +59,10 @@ public final class FlightScene: SKScene {
         SKColor(red: 0.6, green: 0.3, blue: 0.7, alpha: 1),
     ]
 
-    public override init() {
+    /// The thumb overlay draws from `overlay`, which the controls keep current.
+    public init(overlay: ThumbOverlayState) {
         planeNode = PlaneNode(livery: .courier, pointsPerMetre: scale)
+        controls = ThumbControls(overlay: overlay)
         super.init(size: FlightScene.boxSize)
         scaleMode = .aspectFit
         backgroundColor = SKColor(red: 0.55, green: 0.72, blue: 0.9, alpha: 1)

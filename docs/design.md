@@ -42,6 +42,16 @@ the property to keep: **few inputs, endless technique, nothing to author.**
   convention: pull the thumb toward you (down) and the nose comes up, and ↓
   on the Mac does the same. Some players will want it the other way, so an
   invert option is planned; the flag already exists in the controls.
+- **The pads are drawn, translucent, over the game.** Skid Jam's precedent:
+  a pad floats to where the thumb lands and stays, dimmed, where it left it,
+  so a new player sees where to press before pressing, and a playing one can
+  read how much elevator is in (a bar from the centre to the knob, the
+  nose-up chevron lit). Not dedicated areas with nothing in them: the world
+  shows through, and the pads sit over the letterbox bars too. Near the
+  screen's edge the throw in that direction shrinks to the room there, so
+  full elevator is always reachable from wherever the thumb landed; the
+  track shows the real range. The first phone flights (2026-09-13) had
+  trouble pulling up reliably with no visual clue why.
 - **Release = auto-upright.** The plane rolls to the nearer way up, so
   half-loop-and-release is the turn.
 - **Right thumb: the gun.** Hold to fire the Vickers on the hump; rounds
