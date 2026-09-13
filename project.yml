@@ -21,6 +21,7 @@ targets:
     sources:
       - path: Sources/iOS
       - path: Sources/Shared
+    # XcodeGen writes the entitlements file from these; never edit the file.
     entitlements:
       path: Sources/iOS/Quack.entitlements
     info:
@@ -78,8 +79,19 @@ targets:
     sources:
       - path: Sources/macOS
       - path: Sources/Shared
+    # XcodeGen writes the entitlements file from these; never edit the file.
     entitlements:
       path: Sources/macOS/Quack.entitlements
+      properties:
+        # The Mac App Store requires App Sandbox; App Store Connect refuses a
+        # package without it.
+        com.apple.security.app-sandbox: true
+        # Duckfight (MultipeerConnectivity/Bonjour, milestone 6): the sandbox
+        # needs both directions to advertise and browse on the local network.
+        # Declared with the Bonjour services above so neither has to change
+        # when it lands.
+        com.apple.security.network.client: true
+        com.apple.security.network.server: true
     info:
       path: Sources/macOS/Info.plist
       properties:
