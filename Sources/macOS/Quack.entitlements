@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict/>
+<dict>
+	<!-- The Mac App Store requires App Sandbox; App Store Connect refuses a
+	     package without it. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<!-- Duckfight (MultipeerConnectivity/Bonjour, milestone 6): the sandbox
+	     needs both directions to advertise and browse on the local network.
+	     Declared with the Bonjour services in Info.plist so neither has to
+	     change when it lands. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.network.server</key>
+	<true/>
+</dict>
 </plist>
