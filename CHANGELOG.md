@@ -22,6 +22,8 @@ plus hold-for-power feel as good as Sopwith's two keys?
 
 ### Unreleased (next build)
 
+### build 3 — 2026-09-14
+
 - Both thumbs work at once: holding the trigger no longer locks out the elevator, or the other way round.
 
 ### build 2 — 2026-09-14
