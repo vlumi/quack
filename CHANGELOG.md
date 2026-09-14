@@ -25,6 +25,7 @@ plus hold-for-power feel as good as Sopwith's two keys?
 - Two cockpit gauges top right: airspeed in km/h with the stall range in red, and altitude in metres.
 - Thumb pads drawn over the game: a pitch track and a trigger ring that float to where the thumbs land and stay, dimmed, where they left them; the bar and knob show how much elevator is in. Near a screen edge the throw shrinks to the room there, so full elevator is always reachable.
 - A placeholder app icon: the plane climbing over the strip, drawn by the game's own rig. The duck in a flying cap comes with 1.0.
+
 ### build 1 — 2026-09-13
 
 - Repo scaffold: XcodeGen project with iOS and macOS targets under one bundle id, the QuackCore package with a placeholder flight model and tests, QuackKit with a SpriteKit scene, the Makefile and release lane from the sibling games, CI.

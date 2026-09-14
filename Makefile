@@ -56,10 +56,11 @@ test:  ## Run the package logic tests (no Xcode project needed)
 	@Scripts/test.sh
 
 .PHONY: lint
-lint:  ## SwiftLint + swift-format, both strict (as CI runs them)
+lint:  ## SwiftLint + swift-format (strict) + markdownlint, as CI runs them
 	@swiftlint lint --strict
 	@swift format lint --strict --recursive --configuration .swift-format \
 		Packages/QuackCore/Sources Packages/QuackCore/Tests Sources
+	@Scripts/lint-markdown.sh
 
 .PHONY: format
 format:  ## Rewrite sources with swift-format
