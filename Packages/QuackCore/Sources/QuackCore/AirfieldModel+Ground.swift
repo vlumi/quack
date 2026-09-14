@@ -57,12 +57,22 @@ extension AirfieldModel {
         _ s: inout PlaneState, _ phase: inout FlightPhase, steps: [TaxiStep], thenTakeoff: Bool,
         dt: Double
     ) {
-        guard let step = steps.first else {
-            phase = thenTakeoff ? .takeoffRoll : .parked(repair: 0)
-            return
-        }
-        var rest = Array(steps.dropFirst())
+        var rest = steps
         s.y = landing.gearHeight
+        if !rest.isEmpty {
+            advance(rest.removeFirst(), &s, rest: &rest, dt: dt)
+        }
+        // The plan is done when nothing is left, including a plan that was empty to begin with.
+        phase =
+            rest.isEmpty
+            ? (thenTakeoff ? .takeoffRoll : .parked(repair: 0))
+            : .taxiing(steps: rest, thenTakeoff: thenTakeoff)
+    }
+
+    /// One tick of one taxi step; a step that is not finished goes back on the front of `rest`.
+    private func advance(
+        _ step: TaxiStep, _ s: inout PlaneState, rest: inout [TaxiStep], dt: Double
+    ) {
         switch step {
         case .turn(let elapsed):
             s.speed = 0
@@ -86,10 +96,6 @@ extension AirfieldModel {
                 rest.insert(step, at: 0)
             }
         }
-        phase =
-            rest.isEmpty
-            ? (thenTakeoff ? .takeoffRoll : .parked(repair: 0))
-            : .taxiing(steps: rest, thenTakeoff: thenTakeoff)
     }
 
     func recover(
