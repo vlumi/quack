@@ -43,6 +43,12 @@ of the display's refresh rate.
   turn (the Sopwith rule).
 - `Livery` — the paint on a plane: body, wing and trim colours plus a fin
   emblem (roundel, star, chequer). Pure data, `Codable`, with three built-ins.
+- `Tuning` — every dial the tuning panel exposes in one value: `FlightTuning`,
+  `GunTuning`, the thumb throw, invert pitch and roll time. `TuningDial.all` is
+  the panel's catalog (id, section, key path, range, step). Stored as an
+  id-to-number dictionary, so a stored set survives dials being added or
+  renamed; `report()` is the Copy button's text, with defaults beside changed
+  values.
 - `GunTuning`, `Bullet` — the gun on the hump: rounds leave the muzzle at the
   plane's speed plus a muzzle speed, fly straight, and expire.
 - `Practice` — the balloon run: a seeded field of balloons (`SeededRNG`,
@@ -78,6 +84,18 @@ and the pilot is a sphere at head height. At 0 it is the side view, at π the
 same mirrored, which is the sim's `inverted`; the scene eases between them
 over a third of a second, top toward the camera both ways. A gloss layer's
 alpha follows the plane's attitude against a fixed sun.
+
+**The tuning panel** (`TuningPanel`, behind `QUACK_TUNING`, on unless
+`QUACK_NO_TUNING=1`): shaking the phone (UIKit's own shake, via `UIWindow`) or
+Debug › Tuning Panel (⌥⌘T, `TuningCommands`) on the Mac posts one
+notification, and `GameView` toggles a sheet of sliders over the game. The
+flight pauses while it is up. `TuningStore` keeps the values in UserDefaults and
+publishes every change, which `GameView` hands to `FlightScene.tuning`; the
+scene applies it to the sim, the gun, the controls, the roll and the stall arc
+on the airspeed gauge at once and to every new run. The `-quack-tuning` launch
+argument opens it, since a simulator cannot be shaken from the command line.
+Without the flag there is no shake hook, no menu and no panel, and stored values
+are ignored.
 
 `ThumbControls`: left half of the screen, a vertical drag from wherever the
 thumb landed sets the elevator (the thumb defines its own centre;
