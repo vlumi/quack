@@ -27,14 +27,16 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   the switch; players need it somewhere they will look).
 - [ ] Decide: is the plane fun to fly? **If not, stop here.**
 
-## 0.2 — Landing
+## 0.2 — Landing (in progress)
 
-- [ ] One field on the ground line. Approach window: heading inside the
-  approach angle band, descending, over the threshold → the assist takes
-  over, throttles back, flares and rolls out. Outside the window: bounce /
-  broken undercarriage / crash by how far off.
-- [ ] The window as the difficulty dial; a small bonus for a hand-flown
-  landing inside it.
+- [x] One field on the ground line, drawn with its approach window. Descend
+  inside the window → the assist flares, touches down and rolls out; a hard
+  pull aborts it. Outside it: touchdown / bounce / broken undercarriage /
+  crash by how steep. Takeoff from parked. The balloon run starts and ends on
+  the field.
+- [ ] Fly it and tune the window on a device (the Landing section of the
+  tuning panel).
+- [ ] A small bonus for a hand-flown landing inside the window.
 
 ## 0.3 — The strip
 

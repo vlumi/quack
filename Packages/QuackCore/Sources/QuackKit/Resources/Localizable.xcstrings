@@ -57,13 +57,46 @@
         }
       }
     },
-    "All popped in %@ s. Fire to go again." : {
+    "All popped: land to stop the clock" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All popped in %@ s. Fire to go again."
+            "value" : "All popped: land to stop the clock"
+          }
+        }
+      }
+    },
+    "Approach angle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approach angle"
+          }
+        }
+      }
+    },
+    "Approach band" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approach band"
+          }
+        }
+      }
+    },
+    "Assist height" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assist height"
           }
         }
       }
@@ -75,6 +108,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Back"
+          }
+        }
+      }
+    },
+    "Bounce margin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bounce margin"
+          }
+        }
+      }
+    },
+    "Bounced" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bounced"
+          }
+        }
+      }
+    },
+    "Braking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Braking"
+          }
+        }
+      }
+    },
+    "Broken undercarriage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Broken undercarriage"
           }
         }
       }
@@ -119,6 +196,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copy"
+          }
+        }
+      }
+    },
+    "Crashed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crashed"
           }
         }
       }
@@ -211,6 +299,28 @@
         }
       }
     },
+    "Landed in %@ s. Fire to go again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landed in %@ s. Fire to go again."
+          }
+        }
+      }
+    },
+    "Landing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landing"
+          }
+        }
+      }
+    },
     "Minimum throw" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -251,6 +361,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pitch rate"
+          }
+        }
+      }
+    },
+    "Pull up to take off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pull up to take off"
+          }
+        }
+      }
+    },
+    "Repair time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repair time"
+          }
+        }
+      }
+    },
+    "Repairing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repairing"
           }
         }
       }
@@ -361,6 +504,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thrust"
+          }
+        }
+      }
+    },
+    "Touchdown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touchdown"
           }
         }
       }

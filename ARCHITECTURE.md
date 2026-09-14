@@ -43,6 +43,18 @@ of the display's refresh rate.
   turn (the Sopwith rule).
 - `Livery` — the paint on a plane: body, wing and trim colours plus a fin
   emblem (roundel, star, chequer). Pure data, `Codable`, with three built-ins.
+- `AirfieldModel` — everything where the plane meets the ground, wrapping
+  `FlightModel`, which only knows the air. An `Airfield` is a stretch of
+  ground; `LandingTuning` its dials; `FlightPhase` is flying, approach
+  (assist), rollout, parked, takeoff roll or wrecked, and each step returns a
+  `FlightEvent` when something happens. The assist engages on the approach
+  angle ± band, below the engage height, with the path meeting the ground where
+  there is room to stop, and flies a kinematic glide, flare and braking
+  rollout; a hard pull aborts it. Unassisted contact is graded by path angle:
+  touchdown, bounce, broken undercarriage (a repair delay), or crash (a wreck
+  delay, then back at the parking spot). Parked, a pull starts the takeoff
+  roll toward the longer side of the field; lift-off needs rotate speed and the
+  stick back; the field's end is a crash.
 - `Tuning` — every dial the tuning panel exposes in one value: `FlightTuning`,
   `GunTuning`, the thumb throw, invert pitch and roll time. `TuningDial.all` is
   the panel's catalog (id, section, key path, range, step). Stored as an
@@ -51,14 +63,23 @@ of the display's refresh rate.
   values.
 - `GunTuning`, `Bullet` — the gun on the hump: rounds leave the muzzle at the
   plane's speed plus a muzzle speed, fly straight, and expire.
-- `Practice` — the balloon run: a seeded field of balloons (`SeededRNG`,
-  SplitMix64), the plane, the rounds, and a clock that starts at the first
-  input and stops at the last pop. Balloons pop by round or by collision.
-  Deterministic, so the same inputs give the same run.
+- `Practice` — the balloon run: a seeded set of balloons (`SeededRNG`,
+  SplitMix64), the plane parked on `Practice.airfield`, the rounds, and a clock
+  that starts at the first input and stops when the plane is parked after the
+  last pop. Balloons pop by round or by collision. Deterministic, so the same
+  inputs give the same run.
 
 The numbers and shapes here are a starting point to be flown and replaced.
 
 ## The scene
+
+The field is drawn by `SceneArt`: a tan strip in the ground line with
+threshold bars and a windsock, and the approach window as a faint wedge from
+each end with the approach angle dashed, redrawn when the landing dials change.
+The status line under the title says what the plane is doing (pull up to take
+off, landing, repairing, land to stop the clock) and flashes touchdowns,
+bounces, breaks and crashes; a wrecked plane blinks. A white chevron points to
+the field when it is off screen.
 
 `FlightScene` (SpriteKit) is a fixed 1280 × 720 box showing 70 m of world
 top to bottom, aspect-fit into whatever screen or window it gets (the Mac
@@ -115,10 +136,8 @@ is no overlay.
 Not built. See [ROADMAP.md](ROADMAP.md) for order and [docs/design.md](docs/design.md)
 for the reasoning.
 
-- **Landing**: align on the field's approach angle, descending, cross the
-  threshold, and the assist throttles back, flares and rolls out; three failure
-  grades (bounce, broken undercarriage, crash); a small bonus for a landing
-  flown inside the window without the assist.
+- **The hand-flown landing bonus**: a landing inside the window without the
+  assist earns a little.
 - **Livery picker**: the player's own colours and emblem, saved and carried
   into Duckfight; a flapping scarf.
 - **Ammunition** bought at the field, and something that shoots back.

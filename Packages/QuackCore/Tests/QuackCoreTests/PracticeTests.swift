@@ -17,28 +17,47 @@ final class PracticeTests: XCTestCase {
         }
     }
 
-    func testClockStartsOnFirstInputAndStopsOnLastPop() {
-        var p = Practice(seed: 1, balloons: 1)
-        // Just under the line of fire, so the first round misses and the plane rams it.
-        p.balloons[0] = Balloon(x: 60, y: Practice.start.y - 3, radius: 3)
+    /// A run already in the air, level at cruise, for tests about the gun and the balloons.
+    private func airborne(seed: UInt64 = 1, balloons: Int = 1) -> Practice {
+        var p = Practice(seed: seed, balloons: balloons)
+        p.plane = PlaneState(x: 0, y: 40, heading: 0, speed: 40)
+        p.phase = .flying
+        return p
+    }
+
+    func testRunStartsParkedOnTheField() {
+        let p = Practice(seed: 1)
+        XCTAssertEqual(p.phase, .parked(repair: 0))
+        XCTAssertTrue(Practice.airfield.contains(p.plane.x))
+        XCTAssertEqual(p.plane.y, p.model.landing.gearHeight)
+        XCTAssertEqual(p.plane.speed, 0)
+    }
+
+    func testClockStartsOnFirstInputAndStopsOnlyWhenParkedAfterTheLastPop() {
+        var p = airborne()
+        // Just under the line of fire, so the plane rams it rather than a round.
+        p.balloons[0] = Balloon(x: 60, y: 37, radius: 3)
         for _ in 0..<30 { p.advance(input: .idle) }
         XCTAssertNil(p.startedAt)
         XCTAssertEqual(p.elapsed, 0)
         p.advance(input: PlaneInput(power: true, fire: true))
         XCTAssertNotNil(p.startedAt)
-        // Flying level at about 40 m/s, the plane rams the balloon at x = 60 in about a second.
         for _ in 0..<120 { p.advance(input: PlaneInput(power: true)) }
-        XCTAssertTrue(p.isFinished)
         XCTAssertEqual(p.remaining, 0)
+        XCTAssertFalse(p.isFinished, "popping the last balloon is not the finish; landing is")
+        XCTAssertTrue(p.needsToLand)
+        p.phase = .parked(repair: 0)
+        p.plane = p.model.parkingSpot
+        p.advance(input: .idle)
+        XCTAssertTrue(p.isFinished)
+        XCTAssertFalse(p.needsToLand)
         let frozen = p.elapsed
-        for _ in 0..<60 { p.advance(input: PlaneInput(power: true)) }
+        for _ in 0..<60 { p.advance(input: .idle) }
         XCTAssertEqual(p.elapsed, frozen)
-        XCTAssertGreaterThan(frozen, 0.5)
-        XCTAssertLessThan(frozen, 1.5)
     }
 
     func testTriggerFiresAtTheIntervalAndRoundsLeaveTheMuzzle() throws {
-        var p = Practice(seed: 1, balloons: 0)
+        var p = airborne(balloons: 0)
         p.balloons = []
         let held = PlaneInput(power: true, fire: true)
         for _ in 0..<30 { p.advance(input: held) }
@@ -52,8 +71,8 @@ final class PracticeTests: XCTestCase {
     }
 
     func testBulletPopsBalloonAhead() {
-        var p = Practice(seed: 1, balloons: 1)
-        p.balloons[0] = Balloon(x: 90, y: Practice.start.y, radius: 3)
+        var p = airborne()
+        p.balloons[0] = Balloon(x: 90, y: 40, radius: 3)
         let held = PlaneInput(power: true, fire: true)
         var ticks = 0
         while p.remaining == 1 && ticks < 90 {
@@ -86,16 +105,20 @@ final class PracticeTests: XCTestCase {
         XCTAssertEqual(a, b)
     }
 
-    func testResetKeepsTheFieldAndTheClock() {
+    func testACrashPutsThePlaneBackOnTheFieldAndKeepsTheBalloonsAndTheClock() {
         var p = Practice(seed: 3)
         p.advance(input: PlaneInput(pitch: 1, power: true, fire: true))
         let started = p.startedAt
-        p.plane.y = -1
-        p.resetPlane()
-        XCTAssertEqual(p.plane.y, Practice.start.y)
+        p.plane = PlaneState(x: -300, y: 2, heading: -0.5, speed: 40)
+        p.phase = .flying
+        p.advance(input: .idle)
+        XCTAssertEqual(p.lastEvent, .crash)
+        XCTAssertTrue(p.bullets.isEmpty)
+        for _ in 0..<Int(p.model.landing.wreckTime * 60) + 2 { p.advance(input: .idle) }
+        XCTAssertEqual(p.phase, .parked(repair: 0))
+        XCTAssertEqual(p.plane, p.model.parkingSpot)
         XCTAssertEqual(p.startedAt, started)
         XCTAssertEqual(p.balloons.count, 12)
-        XCTAssertTrue(p.bullets.isEmpty)
     }
 
     func testSeededRNGIsReproducibleAndInUnitRange() {
