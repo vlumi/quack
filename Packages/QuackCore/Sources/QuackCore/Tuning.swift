@@ -137,8 +137,12 @@ public struct TuningDial: Identifiable {
             range: 1...12, step: 1,
             decimals: 0),
         TuningDial(
-            id: "landing.engageHeight", section: .landing, keyPath: \.landing.engageHeight,
-            range: 5...40, step: 1,
+            id: "landing.coneLength", section: .landing, keyPath: \.landing.coneLength,
+            range: 15...150, step: 5,
+            decimals: 0),
+        TuningDial(
+            id: "landing.diveLimit", section: .landing, keyPath: \.landing.diveLimit, range: 5...60,
+            step: 5,
             decimals: 0),
         TuningDial(
             id: "landing.bounceMargin", section: .landing, keyPath: \.landing.bounceMargin,

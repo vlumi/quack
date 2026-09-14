@@ -146,28 +146,38 @@ enum SceneArt {
         return n
     }
 
-    /// The approach window drawn in the sky: a faint wedge rising from each end
-    /// of the field at the approach angle ± the band, with the angle itself dashed.
-    static func glideSlopes(_ field: Airfield, landing: LandingTuning, scale: CGFloat) -> SKNode {
+    /// The approach cone drawn in the sky over each end of the field, the exact
+    /// region where the assist can take over: floor, ceiling and the low throat
+    /// over the threshold, with the approach angle dashed along its middle.
+    static func approachCones(_ model: AirfieldModel, scale: CGFloat) -> SKNode {
         let n = SKNode()
-        let reach: CGFloat = 220 * scale
-        let a = CGFloat(landing.approachAngle) * .pi / 180
-        let b = CGFloat(landing.approachBand) * .pi / 180
-        for (origin, outward) in [
-            (CGFloat(field.start) * scale, CGFloat(-1)), (CGFloat(field.end) * scale, 1),
-        ] {
-            let wedge = CGMutablePath()
-            wedge.move(to: CGPoint(x: origin, y: 0))
-            wedge.addLine(to: CGPoint(x: origin + outward * reach, y: reach * tan(max(0, a - b))))
-            wedge.addLine(to: CGPoint(x: origin + outward * reach, y: reach * tan(a + b)))
-            wedge.closeSubpath()
-            let fill = SKShapeNode(path: wedge)
-            fill.fillColor = SKColor(white: 1, alpha: 0.13)
-            fill.strokeColor = .clear
+        let landing = model.landing
+        let a = landing.approachAngle * .pi / 180
+        let b = landing.approachBand * .pi / 180
+        let field = model.airfield
+        for (end, outwardSign) in [(field.start, -1.0), (field.end, 1.0)] {
+            func point(_ outward: Double, _ height: Double) -> CGPoint {
+                CGPoint(x: (end + outwardSign * outward) * scale, y: height * scale)
+            }
+            let samples = stride(from: -landing.throatLength, through: landing.coneLength, by: 1)
+                .map { $0 }
+            let cone = CGMutablePath()
+            cone.move(to: point(samples[0], model.coneFloor(outward: samples[0], a: a, b: b)))
+            for o in samples.dropFirst() {
+                cone.addLine(to: point(o, model.coneFloor(outward: o, a: a, b: b)))
+            }
+            for o in samples.reversed() {
+                cone.addLine(to: point(o, model.coneCeiling(along: max(0, o), a: a, b: b)))
+            }
+            cone.closeSubpath()
+            let fill = SKShapeNode(path: cone)
+            fill.fillColor = SKColor(white: 1, alpha: 0.14)
+            fill.strokeColor = SKColor(white: 1, alpha: 0.3)
+            fill.lineWidth = 0.15 * scale
             n.addChild(fill)
             let centre = CGMutablePath()
-            centre.move(to: CGPoint(x: origin, y: 0))
-            centre.addLine(to: CGPoint(x: origin + outward * reach, y: reach * tan(a)))
+            centre.move(to: point(0, 0))
+            centre.addLine(to: point(landing.coneLength, landing.coneLength * tan(a)))
             let dashed = SKShapeNode(
                 path: centre.copy(dashingWithPhase: 0, lengths: [2 * scale, 2 * scale]))
             dashed.strokeColor = SKColor(white: 1, alpha: 0.45)

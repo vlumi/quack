@@ -133,7 +133,7 @@ public final class FlightScene: SKScene {
         fieldNode.removeAllChildren()
         fieldNode.addChild(SceneArt.airfieldNode(field, scale: scale))
         glideSlopeNode.removeAllChildren()
-        glideSlopeNode.addChild(SceneArt.glideSlopes(field, landing: tuning.landing, scale: scale))
+        glideSlopeNode.addChild(SceneArt.approachCones(practice.model, scale: scale))
     }
 
     private func startRun() {

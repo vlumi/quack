@@ -19,13 +19,23 @@ public struct Airfield: Equatable, Sendable {
 /// The dials for landing and taking off. Angles are in degrees below the
 /// horizon, because that is how they are tuned and read.
 public struct LandingTuning: Equatable, Sendable {
-    /// The glide path the assist flies down, degrees below the horizon.
+    /// The centre line of the approach cone, degrees above the ground from the
+    /// field's end.
     public var approachAngle: Double = 8
-    /// How far off the approach angle, either way, still engages the assist:
-    /// the difficulty dial.
-    public var approachBand: Double = 5
-    /// Metres above the ground below which the assist can take over.
-    public var engageHeight: Double = 15
+    /// The cone's half-width in degrees: its edges rise at the approach angle
+    /// ± this. The difficulty dial.
+    public var approachBand: Double = 6
+    /// Metres the cone reaches out from the end of the field.
+    public var coneLength: Double = 50
+    /// Past the end the cone keeps a throat this tall, reaching this far over
+    /// the field, so a low plane crossing the threshold still counts.
+    public var throatHeight: Double = 3
+    public var throatLength: Double = 10
+    /// Entering the cone, the path may rise this many degrees and still engage:
+    /// level flight is enough, a climb is not.
+    public var noseUpLimit: Double = 3
+    /// …and dive at most this steeply.
+    public var diveLimit: Double = 30
     /// Degrees steeper than the band that still only bounce; the same again
     /// breaks the undercarriage; steeper than that is a crash.
     public var bounceMargin: Double = 6
@@ -34,9 +44,6 @@ public struct LandingTuning: Equatable, Sendable {
     public var braking: Double = 25
     /// Metres per second squared on the takeoff roll, exaggerated the same way.
     public var takeoffAcceleration: Double = 15
-    /// Metres past either end of where the path may point and still engage;
-    /// the assist bends the glide onto the field from there.
-    public var reach: Double = 25
     /// Seconds a broken undercarriage keeps the plane on the ground.
     public var repairTime: Double = 3
     /// Seconds a wreck stays on screen before the plane is back on the field.
@@ -55,6 +62,9 @@ public enum FlightPhase: Equatable, Sendable {
     case flying
     /// The assist is flying the approach, down to `aim` on the field.
     case approach(aim: Double)
+    /// Hand flown after pulling out of an approach: the assist stays off until
+    /// the plane has left the cone.
+    case goAround
     /// On the ground after touchdown, braking to a stop; `repair` is what the
     /// stop will cost if the undercarriage broke.
     case rollout(repair: Double)
@@ -68,7 +78,7 @@ public enum FlightPhase: Equatable, Sendable {
     public var isOnGround: Bool {
         switch self {
         case .rollout, .parked, .takeoffRoll: return true
-        case .flying, .approach, .wrecked: return false
+        case .flying, .approach, .goAround, .wrecked: return false
         }
     }
 }
@@ -128,21 +138,8 @@ public struct AirfieldModel: Equatable, Sendable {
         dt: Double = FlightModel.dt
     ) -> FlightEvent? {
         switch phase {
-        case .flying:
-            s = flight.advance(s, input: input, dt: dt)
-            if s.y <= landing.gearHeight { return touchGround(&s, &phase) }
-            if let aim = engagement(s) {
-                phase = .approach(aim: aim)
-                return .assistEngaged
-            }
-            return nil
-        case .approach(let aim):
-            if abs(input.pitch) >= landing.abortPitch {
-                phase = .flying
-                s = flight.advance(s, input: input, dt: dt)
-                return .assistAborted
-            }
-            return flyApproach(&s, &phase, aim: aim, dt: dt)
+        case .flying, .approach, .goAround:
+            return advanceInAir(&s, &phase, input: input, dt: dt)
         case .rollout(let repair):
             return roll(&s, &phase, repair: repair, dt: dt)
         case .parked(let repair):
@@ -153,6 +150,31 @@ public struct AirfieldModel: Equatable, Sendable {
         case .wrecked(let remaining):
             return recover(&s, &phase, remaining: remaining, dt: dt)
         }
+    }
+
+    /// Hand flown, assisted, or going around.
+    private func advanceInAir(
+        _ s: inout PlaneState, _ phase: inout FlightPhase, input: PlaneInput, dt: Double
+    ) -> FlightEvent? {
+        if case .approach(let aim) = phase {
+            guard abs(input.pitch) >= landing.abortPitch else {
+                return flyApproach(&s, &phase, aim: aim, dt: dt)
+            }
+            phase = .goAround
+            s = flight.advance(s, input: input, dt: dt)
+            return .assistAborted
+        }
+        s = flight.advance(s, input: input, dt: dt)
+        if s.y <= landing.gearHeight { return touchGround(&s, &phase) }
+        if phase == .goAround {
+            if !inCone(s) { phase = .flying }
+            return nil
+        }
+        if let aim = engagement(s) {
+            phase = .approach(aim: aim)
+            return .assistEngaged
+        }
+        return nil
     }
 
     /// Parked: wait out any repair, then a pull on the stick starts the roll,
@@ -187,28 +209,61 @@ public struct AirfieldModel: Equatable, Sendable {
 
     // MARK: The approach
 
-    /// The touchdown point the assist will fly to, if the plane is in the window:
-    /// upright, descending on the approach angle ± band, below the engage height,
-    /// with its path meeting the ground no more than `reach` from where a landing
-    /// still has room to stop. The aim is that point, moved onto the field.
-    private func engagement(_ s: PlaneState) -> Double? {
+    /// Whether the plane is inside the approach cone at the end of the field it
+    /// is flying toward: a wedge rising from that end at the approach angle
+    /// ± band, `coneLength` long, with a low throat over the threshold.
+    public func inCone(_ s: PlaneState) -> Bool {
         let height = s.y - landing.gearHeight
+        let outward = s.direction > 0 ? airfield.start - s.x : s.x - airfield.end
+        guard height > 0, outward >= -landing.throatLength, outward <= landing.coneLength else {
+            return false
+        }
+        let a = radians(landing.approachAngle)
+        let b = radians(landing.approachBand)
+        let along = max(0, outward)
+        return height <= coneCeiling(along: along, a: a, b: b)
+            && height >= coneFloor(outward: outward, a: a, b: b)
+    }
+
+    /// The cone's top at `along` metres out from the end.
+    public func coneCeiling(along: Double, a: Double, b: Double) -> Double {
+        max(landing.throatHeight, along * tan(a + b))
+    }
+
+    /// The cone's floor at `outward` metres from the end: the lower edge, or
+    /// high enough for a flare to carry the plane onto the field, whichever is
+    /// higher. Below it the assist would put the plane down short.
+    public func coneFloor(outward: Double, a: Double, b: Double) -> Double {
+        let along = max(0, outward)
+        let flareFloor = min(flareHeight, max(0, outward + 2) * tan(radians(4)))
+        return max(along * tan(max(radians(1.5), a - b)), flareFloor)
+    }
+
+    /// The touchdown point the assist will fly to, if it can take over: the plane
+    /// is in the cone, upright, not climbing and not diving past the limit. It
+    /// aims just past the threshold, or as close to it as it can reach without
+    /// diving steeper than the cone, and only if that still leaves room to stop.
+    private func engagement(_ s: PlaneState) -> Double? {
         let gamma = s.pathAngle
-        let wanted = -radians(landing.approachAngle)
-        guard s.upright, height > 0, height <= landing.engageHeight, gamma < 0,
-            abs(gamma - wanted) <= radians(landing.approachBand)
+        guard s.upright, gamma <= radians(landing.noseUpLimit),
+            gamma >= -radians(landing.diveLimit), inCone(s)
         else { return nil }
-        let projected = s.x + s.direction * height / tan(-gamma)
-        let zone = aimZone(direction: s.direction)
-        guard zone.upperBound >= zone.lowerBound,
-            projected >= zone.lowerBound - landing.reach,
-            projected <= zone.upperBound + landing.reach
-        else { return nil }
-        let aim = min(max(projected, zone.lowerBound), zone.upperBound)
-        // Only if the assist can get there without diving steeper than it flies.
-        let togo = s.direction * (aim - s.direction * flareLength - s.x)
-        guard togo > 0, atan2(height - flareHeight, togo) <= -steepestGlide else { return nil }
-        return aim
+        let dir = s.direction
+        let height = s.y - landing.gearHeight
+        let near = dir > 0 ? airfield.start : airfield.end
+        let earliest = near + dir * 5
+        let reachable =
+            s.x + dir * (flareLength + max(0, height - flareHeight) / tan(-steepestGlide))
+        let aim = dir > 0 ? max(earliest, reachable) : min(earliest, reachable)
+        // And its longest float, after pulling out of any dive, gliding at the
+        // shallowest and then flaring, must reach the field.
+        let outward = dir > 0 ? airfield.start - s.x : s.x - airfield.end
+        let usable = height - s.speed * gamma * gamma / (2 * pullOutRate)
+        let float =
+            max(0, usable - flareHeight) / tan(radians(1)) + max(0, min(usable, flareHeight))
+            / tan(radians(4))
+        guard outward + 2 <= float else { return nil }
+        return aimZone(direction: dir).contains(aim) ? aim : nil
     }
 
     /// The steepest glide the assist will fly, as a (negative) path angle.
@@ -226,6 +281,10 @@ public struct AirfieldModel: Equatable, Sendable {
 
     /// Metres to brake to a stop from landing speed.
     private var stoppingDistance: Double { landingSpeed * landingSpeed / (2 * landing.braking) }
+
+    /// Radians per second the assist turns the path: quick, so a plane that dived
+    /// into the cone is levelled before it meets the ground.
+    private let pullOutRate = 5.0
 
     /// Metres the flare carries the plane past where the glide would have met the ground.
     private let flareLength = 13.0
@@ -249,8 +308,9 @@ public struct AirfieldModel: Equatable, Sendable {
             target = -radians(4)
         }
         var gamma = s.pathAngle
-        gamma += max(-2 * dt, min(2 * dt, target - gamma))
-        s.speed += max(-8 * dt, min(8 * dt, landingSpeed - s.speed))
+        gamma += max(-pullOutRate * dt, min(pullOutRate * dt, target - gamma))
+        // Hard, like the braking: a plane that dived into the cone still lands at landing speed.
+        s.speed += max(-20 * dt, min(20 * dt, landingSpeed - s.speed))
         s.heading = FlightModel.wrap(dir > 0 ? gamma : .pi - gamma)
         s.inverted = dir < 0
         s.x += dir * cos(gamma) * s.speed * dt

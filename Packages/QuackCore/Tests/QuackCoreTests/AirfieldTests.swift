@@ -95,8 +95,25 @@ final class AirfieldTests: XCTestCase {
 
     // MARK: Landing with the assist
 
-    func testAnApproachInTheWindowIsLandedByTheAssistAndStopsOnTheField() {
-        var s = descending(x: -60, height: 14, degrees: 8)
+    func testTheConeIsAWedgeOverEachEndWithAThroat() {
+        let right = { (x: Double, h: Double) in
+            PlaneState(x: x, y: self.gear + h, heading: 0, speed: 30)
+        }
+        let left = { (x: Double, h: Double) in
+            PlaneState(x: x, y: self.gear + h, heading: .pi, speed: 30, inverted: true)
+        }
+        XCTAssertTrue(model.inCone(right(-30, 5)), "out 30 m, between floor and ceiling")
+        XCTAssertFalse(model.inCone(right(-30, 12)), "above the ceiling")
+        XCTAssertFalse(model.inCone(right(-30, 0.5)), "below the floor")
+        XCTAssertFalse(model.inCone(right(-60, 5)), "beyond the cone's length")
+        XCTAssertTrue(model.inCone(right(5, 2)), "in the throat over the threshold")
+        XCTAssertFalse(model.inCone(right(20, 2)), "past the throat")
+        XCTAssertTrue(model.inCone(left(190, 5)), "the other end, flying the other way")
+        XCTAssertFalse(model.inCone(left(-30, 5)), "the right place, flying away from the field")
+    }
+
+    func testAPlaneThatEntersTheConeIsLandedByTheAssistAndStopsOnTheField() {
+        var s = descending(x: -40, height: 6, degrees: 8)
         var phase = FlightPhase.flying
         let events = fly(&s, &phase, seconds: 20) { _, p in p == .parked(repair: 0) }
         XCTAssertEqual(events, [.assistEngaged, .touchdown, .parked])
@@ -107,7 +124,7 @@ final class AirfieldTests: XCTestCase {
     }
 
     func testTheSameFromTheOtherEnd() {
-        var s = descending(x: 220, height: 14, degrees: 8, leftward: true)
+        var s = descending(x: 200, height: 6, degrees: 8, leftward: true)
         var phase = FlightPhase.flying
         let events = fly(&s, &phase, seconds: 20) { _, p in p == .parked(repair: 0) }
         XCTAssertEqual(events, [.assistEngaged, .touchdown, .parked])
@@ -116,45 +133,20 @@ final class AirfieldTests: XCTestCase {
         XCTAssertTrue(s.upright)
     }
 
-    func testPullingHardHandsTheLandingBack() {
-        var s = descending(x: -60, height: 14, degrees: 8)
-        var phase = FlightPhase.flying
-        fly(&s, &phase, seconds: 1) { _, p in
-            if case .approach = p { return true }
-            return false
-        }
-        guard case .approach = phase else { return XCTFail("the assist did not engage") }
-        XCTAssertEqual(
-            model.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true)), .assistAborted)
-        XCTAssertEqual(phase, .flying)
-    }
-
-    func testTheAssistDoesNotEngageOutsideTheWindow() {
-        // Too shallow, too high, overshooting the field, or upside down. Upside
-        // down needs the elevator held, or the plane rights itself on release.
-        let held = PlaneInput(pitch: -0.1, power: true)
-        let inverted = PlaneState(x: -60, y: gear + 14, heading: -0.14, speed: 30, inverted: true)
-        struct Case {
-            let name: String
-            let plane: PlaneState
-            var input = PlaneInput.idle
-        }
-        let cases = [
-            Case(name: "shallow", plane: descending(x: -60, height: 14, degrees: 1)),
-            Case(name: "high", plane: descending(x: -200, height: 40, degrees: 8)),
-            Case(name: "long", plane: descending(x: 100, height: 14, degrees: 8)),
-            Case(name: "inverted", plane: inverted, input: held),
-        ]
-        for c in cases {
-            var s = c.plane
+    func testEnteringLevelOrDivingIsEnough() {
+        for degrees in [0.0, 3, 20] {
+            var s = descending(x: -30, height: 4, degrees: degrees)
             var phase = FlightPhase.flying
-            XCTAssertNil(model.advance(&s, &phase, input: c.input), c.name)
-            XCTAssertEqual(phase, .flying, c.name)
+            XCTAssertEqual(
+                model.advance(&s, &phase, input: .idle), .assistEngaged, "\(degrees)° down")
+            let events = fly(&s, &phase, seconds: 20) { _, p in p == .parked(repair: 0) }
+            XCTAssertEqual(events, [.touchdown, .parked], "\(degrees)° down")
+            XCTAssertTrue(field.contains(s.x), "\(degrees)° down")
         }
     }
 
     func testTheAssistTouchesDownWhereItAimed() {
-        var s = descending(x: -40, height: 12, degrees: 9)
+        var s = descending(x: -40, height: 6, degrees: 9)
         var phase = FlightPhase.flying
         var aim = Double.nan
         var touchdown = Double.nan
@@ -167,13 +159,55 @@ final class AirfieldTests: XCTestCase {
         XCTAssertEqual(touchdown, aim, accuracy: 3)
     }
 
-    func testTheAssistDoesNotEngageWhenTheAimNeedsADive() {
-        // Low and close to the far part of the field: the aim is on the field,
-        // but reaching it would need a far steeper glide than the assist flies.
-        var s = descending(x: 130, height: 5, degrees: 13)
+    func testPullingHardHandsTheLandingBackUntilThePlaneLeavesTheCone() {
+        var s = descending(x: -40, height: 6, degrees: 8)
         var phase = FlightPhase.flying
+        XCTAssertEqual(model.advance(&s, &phase, input: .idle), .assistEngaged)
+        XCTAssertEqual(
+            model.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true)), .assistAborted)
+        XCTAssertEqual(phase, .goAround)
+        // Level again, still in the cone: the assist stays off.
+        s.heading = 0
+        XCTAssertNil(model.advance(&s, &phase, input: .idle))
+        XCTAssertEqual(phase, .goAround)
+        // Out of the cone, it is armed again.
+        s = PlaneState(x: -100, y: gear + 30, heading: 0, speed: 30)
         XCTAssertNil(model.advance(&s, &phase, input: .idle))
         XCTAssertEqual(phase, .flying)
+        XCTAssertFalse(FlightPhase.goAround.isOnGround)
+    }
+
+    func testTheAssistStaysOffOutsideTheConeOrItsAttitude() {
+        // Climbing, diving past the limit, or upside down (held, or it rights itself).
+        let held = PlaneInput(pitch: -0.1, power: true)
+        struct Case {
+            let name: String
+            let plane: PlaneState
+            var input = PlaneInput.idle
+        }
+        let cases = [
+            Case(name: "above the cone", plane: descending(x: -30, height: 20, degrees: 8)),
+            Case(name: "beyond the cone", plane: descending(x: -80, height: 5, degrees: 8)),
+            Case(name: "climbing", plane: descending(x: -30, height: 5, degrees: -10)),
+            Case(name: "diving past the limit", plane: descending(x: -30, height: 5, degrees: 45)),
+            Case(
+                name: "inverted",
+                plane: PlaneState(x: -30, y: gear + 5, heading: -0.1, speed: 30, inverted: true),
+                input: held),
+        ]
+        for c in cases {
+            var s = c.plane
+            var phase = FlightPhase.flying
+            XCTAssertNil(model.advance(&s, &phase, input: c.input), c.name)
+            XCTAssertEqual(phase, .flying, c.name)
+        }
+    }
+
+    func testTheAssistStaysOffWhenItWouldPutThePlaneDownShort() {
+        // Skimming the grass just short of the field: a flare could not carry it on.
+        var s = PlaneState(x: -9, y: gear + 0.9, heading: -0.3, speed: 45)
+        var phase = FlightPhase.flying
+        XCTAssertNotEqual(model.advance(&s, &phase, input: .idle), .assistEngaged)
     }
 
     func testTheRunsShortFieldTakesATakeoffAndALandingFromEitherEnd() {
@@ -195,12 +229,11 @@ final class AirfieldTests: XCTestCase {
         XCTAssertLessThan(s.x, field.end - 10, "lifts off with field to spare")
 
         for leftward in [false, true] {
-            let g = 8 * Double.pi / 180
-            let meet = leftward ? field.end - 20 : field.start + 20
             let dir: Double = leftward ? -1 : 1
+            let near = leftward ? field.end : field.start
+            // Level, 4 m up, 30 m out: in the cone.
             var p = PlaneState(
-                x: meet - dir * 12 / tan(g), y: gear + 12, heading: leftward ? .pi + g : -g,
-                speed: 30,
+                x: near - dir * 30, y: gear + 4, heading: leftward ? .pi : 0, speed: 35,
                 inverted: leftward)
             var ph = FlightPhase.flying
             var ev: [FlightEvent] = []

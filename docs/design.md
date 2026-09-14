@@ -83,18 +83,25 @@ practice mode first and, with a shared seed, a Daily Drop later.
 
 ## Landing
 
-The approach is the test, the touchdown is automatic. Descend on the field's
-approach angle, inside its band, low enough, and with the path meeting the
-ground where there is still room to stop: the assist takes over, flares,
-touches down and brakes to a stop. With the throttle always open the window
-has no speed dimension, only angle, height and aim, which keeps it an elevator
-skill. Pulling hard before the flare takes the landing back, so a balloon near
-the field is still fair game.
+The approach is the test, the touchdown is automatic. Fly into the **cone**
+over the end of the field, the right way up, heading for the field, not
+climbing and not diving steeply, and the assist takes over: it glides down,
+flares, touches down and brakes to a stop. Level flight into the cone is
+enough. The skill is getting there low and pointed the right way, with the
+elevator, and the throttle always open.
 
-The window is drawn: a faint wedge rises from each end of the field at the
-approach angle ± the band, with the angle itself dashed, so it can be flown
-into on sight rather than learned by crashing. The window is the difficulty
-dial (wide early, narrow later; wind and slope make a good approach harder).
+Pulling hard hands the landing back, and the assist then leaves the plane
+alone until it has left the cone, so a go-around or a balloon near the field
+is still the pilot's. A first version asked for the plane's path to be within
+a few degrees of the approach angle when it arrived; flying it, that was too
+fussy for a moment the assist is about to take over anyway.
+
+The cone is drawn, exactly: a short wedge rising from each end of the field at
+the approach angle ± its width, 50 m out, with a low throat just over the
+threshold and the angle itself dashed. Its floor rises near the field to what
+a flare can carry onto it, so a plane skimming the grass short of the field is
+not grabbed only to be put down on the grass. The cone is the difficulty dial
+(wide early, narrow later; wind and slope make a good approach harder).
 
 Reaching the ground without the assist is graded by how steep: shallow enough
 is a hand-flown touchdown; a little steeper bounces back into the air; steeper
@@ -110,11 +117,10 @@ once it is fast enough and the stick is back. Running off the end is a crash.
 **The field fits on the screen.** A real strip for a Camel would run off both
 sides of the view, and a field you cannot see is a field you cannot aim at. So
 it is short (60 m, about half the view), and braking and the takeoff roll are
-exaggerated to fit it, the same way the stall is. The assist does not fly a
-fixed glide: it aims at the touchdown point the plane's path was heading for,
-moved onto the field, and bends the glide onto it within the band, so it
-touches down where the pilot was aiming and stops before the far end. It only
-takes over when that point can be reached without diving.
+exaggerated to fit it, the same way the stall is. The assist aims just past
+the threshold, or at the nearest point it can reach without diving steeper than
+the cone, pulls out of any dive quickly, and only takes over if that still
+leaves room to stop.
 
 A landing flown inside the window without the assist earns a small bonus:
 mastery rewarded, not required. Not built yet.
