@@ -83,15 +83,36 @@ practice mode first and, with a shared seed, a Daily Drop later.
 
 ## Landing
 
-The approach is the test, the touchdown is automatic. Align the plane on the
-field's approach angle, descending, and cross the threshold: the assist takes
-over, throttles back, flares and rolls out. With the throttle always open the
-window has no speed dimension, only angle and descent, which keeps it an
-elevator skill. Outside the window: bounce, broken undercarriage or crash, by
-how far off. The window is the difficulty dial (wide early, narrow later; wind
-and slope make a good approach harder). A landing flown inside the window
-without needing the assist earns a small bonus: mastery rewarded, not
-required.
+The approach is the test, the touchdown is automatic. Descend on the field's
+approach angle, inside its band, low enough, and with the path meeting the
+ground where there is still room to stop: the assist takes over, flares,
+touches down and brakes to a stop. With the throttle always open the window
+has no speed dimension, only angle, height and aim, which keeps it an elevator
+skill. Pulling hard before the flare takes the landing back, so a balloon near
+the field is still fair game.
+
+The window is drawn: a faint wedge rises from each end of the field at the
+approach angle ± the band, with the angle itself dashed, so it can be flown
+into on sight rather than learned by crashing. The window is the difficulty
+dial (wide early, narrow later; wind and slope make a good approach harder).
+
+Reaching the ground without the assist is graded by how steep: shallow enough
+is a hand-flown touchdown; a little steeper bounces back into the air; steeper
+still breaks the undercarriage, which rolls out and then keeps the plane on
+the ground for a repair; steeper than that, upside down, or off the field is a
+crash, and the plane is back at the start of the field after a moment. The
+clock does not stop for any of it.
+
+Taking off is the other half: parked, pull up and the plane rolls with the
+throttle open, turned to face the longer side of the field, and lifts off
+once it is fast enough and the stick is back. Running off the end is a crash.
+
+A landing flown inside the window without the assist earns a small bonus:
+mastery rewarded, not required. Not built yet.
+
+In the balloon run the field is the start and the finish: take off, pop them
+all, land again. The clock stops when the plane is parked after the last pop,
+so the turn back and the approach are part of the time.
 
 ## The world
 

@@ -15,12 +15,22 @@ followed by its list items (no prose between), so the release script can promote
 it with a one-line edit — and keep it UNIQUE in the file (the script promotes
 the first match).
 
+## [0.2.0]
+
+**Milestone 2 — landing.** One field on the ground line: take off from it, and
+land back on it by flying the approach angle.
+
+### Unreleased (next build)
+
+- The field: the balloon run now starts parked on a strip with a windsock. Pull up to roll and take off; the run ends when you land again after the last pop.
+- Landing: descend inside the approach window, drawn as a faint wedge from each end of the field, and the assist flares, touches down and brakes to a stop. Pull hard to take it back.
+- Missed windows are graded by how steep: a bounce, a broken undercarriage that keeps you down for a repair, or a crash that puts you back at the start of the field. Touching the ground off the field is a crash.
+- A Landing section on the tuning panel: approach angle, band, assist height, bounce margin, braking and repair time. A white chevron points to the field when it is off screen.
+
 ## [0.1.0]
 
 **Milestone 1 — feel.** A plane, a ground line, two thumbs. Does drag-pitch
 with the throttle open feel as good as Sopwith's two keys?
-
-### Unreleased (next build)
 
 ### build 4 — 2026-09-14
 

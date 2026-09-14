@@ -14,12 +14,16 @@ public struct Balloon: Equatable, Sendable {
     }
 }
 
-/// The balloon run: pop every balloon as fast as you can, by gun or by
-/// collision. The clock starts at the first input and stops at the last pop.
-/// Deterministic: the field comes from the seed and the sim is fixed-step, so
-/// the same inputs give the same run.
+/// The balloon run: take off from the field, pop every balloon by gun or by
+/// collision, and land again. The clock starts at the first input and stops
+/// when the plane is parked after the last pop. Deterministic: the balloons
+/// come from the seed and the sim is fixed-step, so the same inputs give the
+/// same run.
 public struct Practice: Equatable, Sendable {
     public var plane: PlaneState
+    public var phase: FlightPhase
+    /// What happened on the last tick, for the scene to show.
+    public var lastEvent: FlightEvent?
     public var bullets: [Bullet] = []
     public var balloons: [Balloon]
     public var time: Double = 0
@@ -28,16 +32,17 @@ public struct Practice: Equatable, Sendable {
     public var gunCooldown: Double = 0
     public let seed: UInt64
 
-    public var model = FlightModel()
+    public var model = AirfieldModel(airfield: Practice.airfield)
     public var gun = GunTuning()
     /// Metres from the plane's centre that count as a ram.
     public var planeRadius: Double = 1.6
-    /// Where a flight begins and restarts.
-    public static let start = PlaneState(x: 0, y: 40, heading: 0, speed: 40)
+    /// The field the run starts and ends on, just behind the balloons.
+    public static let airfield = Airfield(start: -40, length: 160)
 
     public init(seed: UInt64, balloons count: Int = 12) {
         self.seed = seed
-        plane = Practice.start
+        plane = model.parkingSpot
+        phase = .parked(repair: 0)
         balloons = Practice.field(seed: seed, count: count)
     }
 
@@ -72,7 +77,11 @@ public struct Practice: Equatable, Sendable {
     public mutating func advance(input: PlaneInput, dt: Double = FlightModel.dt) {
         time += dt
         if startedAt == nil && input.isActive && !isFinished { startedAt = time }
-        plane = model.advance(plane, input: input, dt: dt)
+        lastEvent = model.advance(&plane, &phase, input: input, dt: dt)
+        if case .wrecked = phase {
+            bullets.removeAll()
+            return
+        }
 
         gunCooldown = max(0, gunCooldown - dt)
         if input.fire && gunCooldown == 0 {
@@ -108,13 +117,16 @@ public struct Practice: Equatable, Sendable {
         }
         bullets.removeAll { $0.age >= gun.bulletLife || $0.y < 0 }
 
-        if finishedAt == nil, startedAt != nil, remaining == 0 { finishedAt = time }
+        if finishedAt == nil, startedAt != nil, remaining == 0, case .parked = phase {
+            finishedAt = time
+        }
     }
 
-    /// Back to the start line after hitting the ground; the balloons and the clock stay.
-    public mutating func resetPlane() {
-        plane = PlaneState(x: plane.x, y: Practice.start.y, heading: 0, speed: Practice.start.speed)
-        bullets.removeAll()
+    /// Popped everything and still to land.
+    public var needsToLand: Bool {
+        guard remaining == 0, !isFinished else { return false }
+        if case .parked = phase { return false }
+        return true
     }
 
     private static func dist2(_ ax: Double, _ ay: Double, _ bx: Double, _ by: Double) -> Double {

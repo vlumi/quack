@@ -6,6 +6,7 @@ import Foundation
 /// values can become the next defaults.
 public struct Tuning: Equatable, Sendable {
     public var flight = FlightTuning()
+    public var landing = LandingTuning()
     public var gun = GunTuning()
     /// Points of thumb drag for full elevator, at most.
     public var throwDistance: Double = 80
@@ -74,6 +75,7 @@ public struct Tuning: Equatable, Sendable {
 public enum TuningSection: String, CaseIterable, Sendable {
     case flight
     case stall
+    case landing
     case controls
     case gun
     case feel
@@ -124,6 +126,29 @@ public struct TuningDial: Identifiable {
         TuningDial(
             id: "stall.sink", section: .stall, keyPath: \.flight.stallSink, range: 0...30, step: 1,
             decimals: 0),
+        TuningDial(
+            id: "landing.approachAngle", section: .landing, keyPath: \.landing.approachAngle,
+            range: 2...20, step: 1,
+            decimals: 0),
+        TuningDial(
+            id: "landing.approachBand", section: .landing, keyPath: \.landing.approachBand,
+            range: 1...12, step: 1,
+            decimals: 0),
+        TuningDial(
+            id: "landing.engageHeight", section: .landing, keyPath: \.landing.engageHeight,
+            range: 5...40, step: 1,
+            decimals: 0),
+        TuningDial(
+            id: "landing.bounceMargin", section: .landing, keyPath: \.landing.bounceMargin,
+            range: 1...15, step: 1,
+            decimals: 0),
+        TuningDial(
+            id: "landing.braking", section: .landing, keyPath: \.landing.braking, range: 4...30,
+            step: 1, decimals: 0),
+        TuningDial(
+            id: "landing.repairTime", section: .landing, keyPath: \.landing.repairTime,
+            range: 0...10, step: 0.5,
+            decimals: 1),
         TuningDial(
             id: "controls.throwDistance", section: .controls, keyPath: \.throwDistance,
             range: 30...160, step: 5, decimals: 0),
