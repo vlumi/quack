@@ -46,11 +46,14 @@ of the display's refresh rate.
 - `AirfieldModel` — everything where the plane meets the ground, wrapping
   `FlightModel`, which only knows the air. An `Airfield` is a stretch of
   ground; `LandingTuning` its dials; `FlightPhase` is flying, approach
-  (assist), rollout, parked, takeoff roll or wrecked, and each step returns a
-  `FlightEvent` when something happens. The assist engages on the approach
-  angle ± band, below the engage height, with the path meeting the ground where
-  there is room to stop, and flies a kinematic glide, flare and braking
-  rollout; a hard pull aborts it. Unassisted contact is graded by path angle:
+  (assist, carrying its aim point), rollout, parked, takeoff roll or wrecked,
+  and each step returns a `FlightEvent` when something happens. The assist
+  engages on the approach angle ± band, below the engage height, when the path
+  meets the ground within `reach` of the zone that leaves room to stop, and the
+  aim point (that meeting point, moved into the zone) can be reached without
+  diving steeper than the band; it flies a kinematic glide at the aim, flares
+  and brakes to a stop. A hard pull aborts it. Braking and the takeoff roll are
+  exaggerated so a landing and a takeoff fit the short field. Unassisted contact is graded by path angle:
   touchdown, bounce, broken undercarriage (a repair delay), or crash (a wreck
   delay, then back at the parking spot). Parked, a pull starts the takeoff
   roll toward the longer side of the field; lift-off needs rotate speed and the

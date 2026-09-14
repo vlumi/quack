@@ -106,7 +106,7 @@ extension FlightScene {
         for (i, b) in practice.balloons.enumerated() {
             place(markerNodes[i], at: b.x, b.y, hidden: b.popped, from: plane)
         }
-        let field = Practice.airfield
+        let field = practice.model.airfield
         let nearest = min(max(plane.x, field.start), field.end)
         place(fieldMarker, at: nearest, 0, hidden: false, from: plane)
     }

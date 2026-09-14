@@ -22,10 +22,10 @@ land back on it by flying the approach angle.
 
 ### Unreleased (next build)
 
-- The field: the balloon run now starts parked on a strip with a windsock. Pull up to roll and take off; the run ends when you land again after the last pop.
-- Landing: descend inside the approach window, drawn as a faint wedge from each end of the field, and the assist flares, touches down and brakes to a stop. Pull hard to take it back.
+- The field: the balloon run now starts parked on a 60 m strip, short enough to see end to end. Pull up to roll and take off; the run ends when you land again after the last pop.
+- Landing: descend inside the approach window, drawn as a faint wedge from each end of the field, and the assist lands where your path was aiming: it flares, touches down and brakes hard to a stop on the field. Pull hard to take it back.
 - Missed windows are graded by how steep: a bounce, a broken undercarriage that keeps you down for a repair, or a crash that puts you back at the start of the field. Touching the ground off the field is a crash.
-- A Landing section on the tuning panel: approach angle, band, assist height, bounce margin, braking and repair time. A white chevron points to the field when it is off screen.
+- A Landing section on the tuning panel: approach angle, band, assist height, bounce margin, braking, takeoff push, field length and repair time. A white chevron points to the field when it is off screen.
 
 ## [0.1.0]
 

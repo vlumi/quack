@@ -7,6 +7,8 @@ import Foundation
 public struct Tuning: Equatable, Sendable {
     public var flight = FlightTuning()
     public var landing = LandingTuning()
+    /// Metres of field in the balloon run.
+    public var fieldLength: Double = Practice.airfield.length
     public var gun = GunTuning()
     /// Points of thumb drag for full elevator, at most.
     public var throwDistance: Double = 80
@@ -143,8 +145,16 @@ public struct TuningDial: Identifiable {
             range: 1...15, step: 1,
             decimals: 0),
         TuningDial(
-            id: "landing.braking", section: .landing, keyPath: \.landing.braking, range: 4...30,
+            id: "landing.braking", section: .landing, keyPath: \.landing.braking, range: 4...60,
             step: 1, decimals: 0),
+        TuningDial(
+            id: "landing.takeoffAcceleration", section: .landing,
+            keyPath: \.landing.takeoffAcceleration,
+            range: 4...40, step: 1, decimals: 0),
+        TuningDial(
+            id: "landing.fieldLength", section: .landing, keyPath: \.fieldLength, range: 30...200,
+            step: 5,
+            decimals: 0),
         TuningDial(
             id: "landing.repairTime", section: .landing, keyPath: \.landing.repairTime,
             range: 0...10, step: 0.5,

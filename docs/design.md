@@ -107,6 +107,15 @@ Taking off is the other half: parked, pull up and the plane rolls with the
 throttle open, turned to face the longer side of the field, and lifts off
 once it is fast enough and the stick is back. Running off the end is a crash.
 
+**The field fits on the screen.** A real strip for a Camel would run off both
+sides of the view, and a field you cannot see is a field you cannot aim at. So
+it is short (60 m, about half the view), and braking and the takeoff roll are
+exaggerated to fit it, the same way the stall is. The assist does not fly a
+fixed glide: it aims at the touchdown point the plane's path was heading for,
+moved onto the field, and bends the glide onto it within the band, so it
+touches down where the pilot was aiming and stops before the far end. It only
+takes over when that point can be reached without diving.
+
 A landing flown inside the window without the assist earns a small bonus:
 mastery rewarded, not required. Not built yet.
 

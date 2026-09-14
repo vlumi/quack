@@ -244,6 +244,17 @@
         }
       }
     },
+    "Field length" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Field length"
+          }
+        }
+      }
+    },
     "Fire interval" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -482,6 +493,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stall speed"
+          }
+        }
+      }
+    },
+    "Takeoff push" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takeoff push"
           }
         }
       }

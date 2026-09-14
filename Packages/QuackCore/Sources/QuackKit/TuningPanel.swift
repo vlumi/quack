@@ -218,6 +218,8 @@ struct TuningPanel: View {
         case "landing.engageHeight": return Text("Assist height", bundle: .module)
         case "landing.bounceMargin": return Text("Bounce margin", bundle: .module)
         case "landing.braking": return Text("Braking", bundle: .module)
+        case "landing.takeoffAcceleration": return Text("Takeoff push", bundle: .module)
+        case "landing.fieldLength": return Text("Field length", bundle: .module)
         case "landing.repairTime": return Text("Repair time", bundle: .module)
         case "controls.throwDistance": return Text("Throw", bundle: .module)
         case "controls.minimumThrow": return Text("Minimum throw", bundle: .module)

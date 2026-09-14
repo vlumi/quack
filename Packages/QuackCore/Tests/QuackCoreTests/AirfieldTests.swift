@@ -119,8 +119,11 @@ final class AirfieldTests: XCTestCase {
     func testPullingHardHandsTheLandingBack() {
         var s = descending(x: -60, height: 14, degrees: 8)
         var phase = FlightPhase.flying
-        fly(&s, &phase, seconds: 1) { _, p in p == .approach }
-        XCTAssertEqual(phase, .approach)
+        fly(&s, &phase, seconds: 1) { _, p in
+            if case .approach = p { return true }
+            return false
+        }
+        guard case .approach = phase else { return XCTFail("the assist did not engage") }
         XCTAssertEqual(
             model.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true)), .assistAborted)
         XCTAssertEqual(phase, .flying)
@@ -147,6 +150,70 @@ final class AirfieldTests: XCTestCase {
             var phase = FlightPhase.flying
             XCTAssertNil(model.advance(&s, &phase, input: c.input), c.name)
             XCTAssertEqual(phase, .flying, c.name)
+        }
+    }
+
+    func testTheAssistTouchesDownWhereItAimed() {
+        var s = descending(x: -40, height: 12, degrees: 9)
+        var phase = FlightPhase.flying
+        var aim = Double.nan
+        var touchdown = Double.nan
+        fly(&s, &phase, seconds: 20) { s, p in
+            if case .approach(let a) = p, aim.isNaN { aim = a }
+            if case .rollout = p, touchdown.isNaN { touchdown = s.x }
+            return p == .parked(repair: 0)
+        }
+        XCTAssertFalse(aim.isNaN, "engaged")
+        XCTAssertEqual(touchdown, aim, accuracy: 3)
+    }
+
+    func testTheAssistDoesNotEngageWhenTheAimNeedsADive() {
+        // Low and close to the far part of the field: the aim is on the field,
+        // but reaching it would need a far steeper glide than the assist flies.
+        var s = descending(x: 130, height: 5, degrees: 13)
+        var phase = FlightPhase.flying
+        XCTAssertNil(model.advance(&s, &phase, input: .idle))
+        XCTAssertEqual(phase, .flying)
+    }
+
+    func testTheRunsShortFieldTakesATakeoffAndALandingFromEitherEnd() {
+        let short = AirfieldModel(airfield: Practice.airfield)
+        let field = short.airfield
+        XCTAssertLessThanOrEqual(
+            field.length, 62, "fits in half the screen's width, seen from its middle")
+
+        var s = short.parkingSpot
+        var phase = FlightPhase.parked(repair: 0)
+        var events: [FlightEvent] = []
+        for _ in 0..<600 {
+            if let e = short.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true)) {
+                events.append(e)
+            }
+            if phase == .flying { break }
+        }
+        XCTAssertEqual(events, [.liftoff])
+        XCTAssertLessThan(s.x, field.end - 10, "lifts off with field to spare")
+
+        for leftward in [false, true] {
+            let g = 8 * Double.pi / 180
+            let meet = leftward ? field.end - 20 : field.start + 20
+            let dir: Double = leftward ? -1 : 1
+            var p = PlaneState(
+                x: meet - dir * 12 / tan(g), y: gear + 12, heading: leftward ? .pi + g : -g,
+                speed: 30,
+                inverted: leftward)
+            var ph = FlightPhase.flying
+            var ev: [FlightEvent] = []
+            var touchdown = Double.nan
+            for _ in 0..<1200 {
+                if let e = short.advance(&p, &ph, input: .idle) {
+                    ev.append(e)
+                    if e == .touchdown { touchdown = p.x }
+                }
+                if ph == .parked(repair: 0) { break }
+            }
+            XCTAssertEqual(ev, [.assistEngaged, .touchdown, .parked], "leftward \(leftward)")
+            XCTAssertTrue(field.contains(touchdown) && field.contains(p.x), "leftward \(leftward)")
         }
     }
 
@@ -225,7 +292,7 @@ final class AirfieldTests: XCTestCase {
         XCTAssertFalse(FlightPhase.wrecked(remaining: 1).isOnGround)
         XCTAssertTrue(
             FlightPhase.takeoffRoll.isOnGround && FlightPhase.parked(repair: 0).isOnGround)
-        XCTAssertFalse(FlightPhase.approach.isOnGround)
+        XCTAssertFalse(FlightPhase.approach(aim: 0).isOnGround)
     }
 
     func testLandingIsDeterministic() {

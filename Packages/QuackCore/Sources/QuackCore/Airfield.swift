@@ -29,8 +29,14 @@ public struct LandingTuning: Equatable, Sendable {
     /// Degrees steeper than the band that still only bounce; the same again
     /// breaks the undercarriage; steeper than that is a crash.
     public var bounceMargin: Double = 6
-    /// Metres per second squared of braking on the rollout.
-    public var braking: Double = 10
+    /// Metres per second squared of braking on the rollout. Far harder than a
+    /// real biplane's, so a landing fits on a field that fits on the screen.
+    public var braking: Double = 25
+    /// Metres per second squared on the takeoff roll, exaggerated the same way.
+    public var takeoffAcceleration: Double = 15
+    /// Metres past either end of where the path may point and still engage;
+    /// the assist bends the glide onto the field from there.
+    public var reach: Double = 25
     /// Seconds a broken undercarriage keeps the plane on the ground.
     public var repairTime: Double = 3
     /// Seconds a wreck stays on screen before the plane is back on the field.
@@ -47,8 +53,8 @@ public struct LandingTuning: Equatable, Sendable {
 public enum FlightPhase: Equatable, Sendable {
     /// Hand flown, in the air.
     case flying
-    /// The assist is flying the approach.
-    case approach
+    /// The assist is flying the approach, down to `aim` on the field.
+    case approach(aim: Double)
     /// On the ground after touchdown, braking to a stop; `repair` is what the
     /// stop will cost if the undercarriage broke.
     case rollout(repair: Double)
@@ -110,7 +116,7 @@ public struct AirfieldModel: Equatable, Sendable {
 
     /// Where a plane waits at the start and comes back to after a crash.
     public var parkingSpot: PlaneState {
-        PlaneState(x: airfield.start + 12, y: landing.gearHeight, heading: 0, speed: 0)
+        PlaneState(x: airfield.start + 6, y: landing.gearHeight, heading: 0, speed: 0)
     }
 
     /// Speed at which a plane on the takeoff roll can lift off.
@@ -125,18 +131,18 @@ public struct AirfieldModel: Equatable, Sendable {
         case .flying:
             s = flight.advance(s, input: input, dt: dt)
             if s.y <= landing.gearHeight { return touchGround(&s, &phase) }
-            if shouldEngage(s) {
-                phase = .approach
+            if let aim = engagement(s) {
+                phase = .approach(aim: aim)
                 return .assistEngaged
             }
             return nil
-        case .approach:
+        case .approach(let aim):
             if abs(input.pitch) >= landing.abortPitch {
                 phase = .flying
                 s = flight.advance(s, input: input, dt: dt)
                 return .assistAborted
             }
-            return flyApproach(&s, &phase, dt: dt)
+            return flyApproach(&s, &phase, aim: aim, dt: dt)
         case .rollout(let repair):
             return roll(&s, &phase, repair: repair, dt: dt)
         case .parked(let repair):
@@ -181,44 +187,71 @@ public struct AirfieldModel: Equatable, Sendable {
 
     // MARK: The approach
 
-    private func shouldEngage(_ s: PlaneState) -> Bool {
+    /// The touchdown point the assist will fly to, if the plane is in the window:
+    /// upright, descending on the approach angle ± band, below the engage height,
+    /// with its path meeting the ground no more than `reach` from where a landing
+    /// still has room to stop. The aim is that point, moved onto the field.
+    private func engagement(_ s: PlaneState) -> Double? {
         let height = s.y - landing.gearHeight
         let gamma = s.pathAngle
         let wanted = -radians(landing.approachAngle)
         guard s.upright, height > 0, height <= landing.engageHeight, gamma < 0,
             abs(gamma - wanted) <= radians(landing.approachBand)
-        else { return false }
-        // Where the path meets the ground must leave room to stop on the field.
-        let touchdown = s.x + s.direction * height / tan(-gamma)
-        let room = rolloutRoom
-        return s.direction > 0
-            ? touchdown >= airfield.start && touchdown <= airfield.end - room
-            : touchdown <= airfield.end && touchdown >= airfield.start + room
+        else { return nil }
+        let projected = s.x + s.direction * height / tan(-gamma)
+        let zone = aimZone(direction: s.direction)
+        guard zone.upperBound >= zone.lowerBound,
+            projected >= zone.lowerBound - landing.reach,
+            projected <= zone.upperBound + landing.reach
+        else { return nil }
+        let aim = min(max(projected, zone.lowerBound), zone.upperBound)
+        // Only if the assist can get there without diving steeper than it flies.
+        let togo = s.direction * (aim - s.direction * flareLength - s.x)
+        guard togo > 0, atan2(height - flareHeight, togo) <= -steepestGlide else { return nil }
+        return aim
     }
 
-    /// Metres a plane needs to stop from a touchdown at landing speed.
-    private var rolloutRoom: Double {
-        let v = landingSpeed
-        return v * v / (2 * landing.braking) + 5
+    /// The steepest glide the assist will fly, as a (negative) path angle.
+    private var steepestGlide: Double { -radians(landing.approachAngle + landing.approachBand + 2) }
+
+    /// Where a touchdown leaves room to flare and stop before the far end.
+    private func aimZone(direction: Double) -> ClosedRange<Double> {
+        let room = stoppingDistance + 5
+        return direction > 0
+            ? (airfield.start + 5)...(airfield.end - room)
+            : (airfield.start + room)...(airfield.end - 5)
     }
 
     private var landingSpeed: Double { flight.tuning.stallSpeed * 1.2 }
 
-    /// The assist flies a kinematic glide down the approach angle, easing the
-    /// speed toward landing speed and flaring in the last few metres.
-    private func flyApproach(_ s: inout PlaneState, _ phase: inout FlightPhase, dt: Double)
+    /// Metres to brake to a stop from landing speed.
+    private var stoppingDistance: Double { landingSpeed * landingSpeed / (2 * landing.braking) }
+
+    /// Metres the flare carries the plane past where the glide would have met the ground.
+    private let flareLength = 13.0
+    private let flareHeight = 0.8
+
+    /// The assist flies a kinematic glide at the aim point, a flare's length
+    /// short of it, then flares in the last metre and eases to landing speed.
+    private func flyApproach(
+        _ s: inout PlaneState, _ phase: inout FlightPhase, aim: Double, dt: Double
+    )
         -> FlightEvent?
     {
         let height = s.y - landing.gearHeight
-        let flareHeight = 3.0
-        let approach = radians(landing.approachAngle)
-        let target = -approach * max(0.3, min(1, height / flareHeight))
-        var gamma = s.pathAngle
-        gamma += max(-dt, min(dt, target - gamma))
-        s.speed += max(-4 * dt, min(4 * dt, landingSpeed - s.speed))
         let dir = s.direction
-        s.heading = dir > 0 ? gamma : .pi - gamma
-        s.heading = FlightModel.wrap(s.heading)
+        let steepest = steepestGlide
+        let target: Double
+        if height > flareHeight {
+            let togo = dir * (aim - dir * flareLength - s.x)
+            target = min(-radians(1), max(steepest, -atan2(height - flareHeight, max(1, togo))))
+        } else {
+            target = -radians(4)
+        }
+        var gamma = s.pathAngle
+        gamma += max(-2 * dt, min(2 * dt, target - gamma))
+        s.speed += max(-8 * dt, min(8 * dt, landingSpeed - s.speed))
+        s.heading = FlightModel.wrap(dir > 0 ? gamma : .pi - gamma)
         s.inverted = dir < 0
         s.x += dir * cos(gamma) * s.speed * dt
         s.y += sin(gamma) * s.speed * dt
@@ -285,9 +318,8 @@ public struct AirfieldModel: Equatable, Sendable {
     private func takeoffRoll(
         _ s: inout PlaneState, _ phase: inout FlightPhase, input: PlaneInput, dt: Double
     ) -> FlightEvent? {
-        let t = flight.tuning
         let dir = s.direction
-        s.speed = max(0, s.speed + (t.thrust - t.drag * s.speed * s.speed) * dt)
+        s.speed = min(flight.tuning.cruiseSpeed, s.speed + landing.takeoffAcceleration * dt)
         s.x += dir * s.speed * dt
         s.y = landing.gearHeight
         if !airfield.contains(s.x) { return crash(&s, &phase) }
