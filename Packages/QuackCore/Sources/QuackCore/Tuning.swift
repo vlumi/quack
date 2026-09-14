@@ -160,6 +160,14 @@ public struct TuningDial: Identifiable {
             step: 5,
             decimals: 0),
         TuningDial(
+            id: "landing.taxiSpeed", section: .landing, keyPath: \.landing.taxiSpeed, range: 2...20,
+            step: 1,
+            decimals: 0),
+        TuningDial(
+            id: "landing.turnTime", section: .landing, keyPath: \.landing.turnTime, range: 0.25...3,
+            step: 0.25,
+            decimals: 2),
+        TuningDial(
             id: "landing.repairTime", section: .landing, keyPath: \.landing.repairTime,
             range: 0...10, step: 0.5,
             decimals: 1),

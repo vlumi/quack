@@ -111,8 +111,19 @@ crash, and the plane is back at the start of the field after a moment. The
 clock does not stop for any of it.
 
 Taking off is the other half: parked, pull up and the plane rolls with the
-throttle open, turned to face the longer side of the field, and lifts off
-once it is fast enough and the stick is back. Running off the end is a crash.
+throttle open the way it is facing, and lifts off once it is fast enough and
+the stick is back. Running off the end is a crash.
+
+**Choosing the direction is a taxi, never a warp.** Parked, a push swings the
+plane round on the spot; if there would not be room to take off the other
+way, it first taxis out to where there is. A pull toward a short end taxis
+back, swings round and rolls. The plane stays on the ground the whole time
+and it costs seconds, so once anything can shoot at parked planes, turning
+around is not a free dodge. A warp to the other end was considered and
+rejected for exactly that, and because it reads as a glitch. A parked plane
+keeps facing the way it rolled out; the push is how that changes. With a
+wraparound strip and wind to come, the direction will decide the shorter way
+to a contract and a headwind or tailwind takeoff.
 
 **The field fits on the screen.** A real strip for a Camel would run off both
 sides of the view, and a field you cannot see is a field you cannot aim at. So

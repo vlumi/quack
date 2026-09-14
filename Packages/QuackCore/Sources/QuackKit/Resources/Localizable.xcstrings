@@ -376,13 +376,13 @@
         }
       }
     },
-    "Pull up to take off" : {
+    "Pull up to take off, push to turn around" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pull up to take off"
+            "value" : "Pull up to take off, push to turn around"
           }
         }
       }
@@ -519,6 +519,28 @@
         }
       }
     },
+    "Taxi speed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taxi speed"
+          }
+        }
+      }
+    },
+    "Taxiing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taxiing"
+          }
+        }
+      }
+    },
     "Throw" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -559,6 +581,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tuning Panel"
+          }
+        }
+      }
+    },
+    "Turn time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn time"
           }
         }
       }

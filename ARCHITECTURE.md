@@ -46,8 +46,9 @@ of the display's refresh rate.
 - `AirfieldModel` — everything where the plane meets the ground, wrapping
   `FlightModel`, which only knows the air. An `Airfield` is a stretch of
   ground; `LandingTuning` its dials; `FlightPhase` is flying, approach
-  (assist, carrying its aim point), go-around, rollout, parked, takeoff roll or
-  wrecked, and each step returns a `FlightEvent` when something happens.
+  (assist, carrying its aim point), go-around, rollout, parked, taxiing (a plan
+  of `TaxiStep`s: swing round, taxi to x), takeoff roll or wrecked, and each
+  step returns a `FlightEvent` when something happens.
   `inCone` is the approach cone over the end the plane is flying toward: a
   wedge at the approach angle ± band, `coneLength` out, with a throat over the
   threshold and a floor that rises to what a flare can carry onto the field.
@@ -59,9 +60,12 @@ of the display's refresh rate.
   out of the cone. Braking and the takeoff roll are exaggerated so both fit the
   short field. Unassisted contact is graded by path angle:
   touchdown, bounce, broken undercarriage (a repair delay), or crash (a wreck
-  delay, then back at the parking spot). Parked, a pull starts the takeoff
-  roll toward the longer side of the field; lift-off needs rotate speed and the
-  stick back; the field's end is a crash.
+  delay, then back at the parking spot). Parked, a pull takes off the way the plane faces,
+  taxiing back and swinging round first if there is not `takeoffRoom` ahead; a
+  push swings it round, taxiing out to room first if needed. Taxiing ignores
+  the stick. Lift-off needs rotate speed and the stick back; the field's end is
+  a crash. The air half is `AirfieldModel.swift`, the ground half
+  `AirfieldModel+Ground.swift`.
 - `Tuning` — every dial the tuning panel exposes in one value: `FlightTuning`,
   `GunTuning`, the thumb throw, invert pitch and roll time. `TuningDial.all` is
   the panel's catalog (id, section, key path, range, step). Stored as an
@@ -85,7 +89,7 @@ threshold bars, a windsock beside the middle, and the approach cone over each
 end, drawn from `inCone`'s own floor and ceiling with the approach angle
 dashed, redrawn when the landing dials change.
 The status line under the title says what the plane is doing (pull up to take
-off, landing, repairing, land to stop the clock) and flashes touchdowns,
+off or push to turn around, taxiing, landing, repairing, land to stop the clock) and flashes touchdowns,
 bounces, breaks and crashes; a wrecked plane blinks. A white chevron points to
 the field when it is off screen.
 
