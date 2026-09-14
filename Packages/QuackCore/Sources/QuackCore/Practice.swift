@@ -30,6 +30,10 @@ public struct Practice: Equatable, Sendable {
     public var startedAt: Double?
     public var finishedAt: Double?
     public var gunCooldown: Double = 0
+    /// Rounds left in the belt.
+    public var ammo: Int
+    /// Part of the next round loaded while parked.
+    public var rearmProgress: Double = 0
     public let seed: UInt64
 
     public var model = AirfieldModel(airfield: Practice.airfield)
@@ -45,6 +49,18 @@ public struct Practice: Equatable, Sendable {
         plane = model.parkingSpot
         phase = .parked(repair: 0)
         balloons = Practice.field(seed: seed, count: count)
+        // Every stored property is set before `capacity` reads the gun.
+        ammo = 0
+        ammo = capacity
+    }
+
+    /// Rounds in a full belt, from the gun's dial.
+    public var capacity: Int { max(1, Int(gun.capacity.rounded())) }
+
+    /// Loading a round at a time while parked, and not yet full.
+    public var isRearming: Bool {
+        guard case .parked = phase else { return false }
+        return ammo < capacity
     }
 
     /// Balloons scattered ahead of the start, no two closer than `spacing`.
@@ -84,8 +100,10 @@ public struct Practice: Equatable, Sendable {
             return
         }
 
+        rearm(dt: dt)
         gunCooldown = max(0, gunCooldown - dt)
-        if input.fire && gunCooldown == 0 {
+        if input.fire && gunCooldown == 0 && ammo > 0 {
+            ammo -= 1
             let m = plane.muzzle(gun)
             bullets.append(
                 Bullet(
@@ -121,6 +139,21 @@ public struct Practice: Equatable, Sendable {
         if finishedAt == nil, startedAt != nil, remaining == 0, case .parked = phase {
             finishedAt = time
         }
+    }
+
+    /// Parked on the field, the belt fills a round at a time; anywhere else the
+    /// part-loaded round is lost. A belt over a lowered capacity is cut down.
+    private mutating func rearm(dt: Double) {
+        ammo = min(ammo, capacity)
+        guard isRearming else {
+            rearmProgress = 0
+            return
+        }
+        rearmProgress += gun.rearmRate * dt
+        let loaded = min(Int(rearmProgress), capacity - ammo)
+        ammo += loaded
+        rearmProgress -= Double(loaded)
+        if ammo == capacity { rearmProgress = 0 }
     }
 
     /// Popped everything and still to land.

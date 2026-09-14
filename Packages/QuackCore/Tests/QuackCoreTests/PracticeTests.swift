@@ -121,6 +121,61 @@ final class PracticeTests: XCTestCase {
         XCTAssertEqual(p.balloons.count, 12)
     }
 
+    // MARK: Ammunition
+
+    func testARunStartsWithAFullBeltAndEachRoundCostsOne() {
+        var p = airborne(balloons: 0)
+        p.balloons = []
+        XCTAssertEqual(p.ammo, 40)
+        XCTAssertEqual(p.ammo, p.capacity)
+        for _ in 0..<30 { p.advance(input: PlaneInput(power: true, fire: true)) }
+        XCTAssertEqual(p.ammo, 40 - p.bullets.count, "one round per shot")
+    }
+
+    func testAnEmptyBeltFiresNothing() {
+        var p = airborne(balloons: 0)
+        p.balloons = []
+        p.ammo = 0
+        for _ in 0..<60 { p.advance(input: PlaneInput(power: true, fire: true)) }
+        XCTAssertTrue(p.bullets.isEmpty)
+        XCTAssertEqual(p.ammo, 0, "no rearming in the air")
+    }
+
+    func testParkedTheBeltFillsARoundAtATimeUpToCapacity() {
+        var p = Practice(seed: 1, balloons: 0)
+        p.ammo = 0
+        XCTAssertTrue(p.isRearming)
+        // Half a second at 20 rounds a second: ten rounds, not a full belt.
+        for _ in 0..<30 { p.advance(input: .idle) }
+        XCTAssertEqual(p.ammo, 10)
+        for _ in 0..<600 { p.advance(input: .idle) }
+        XCTAssertEqual(p.ammo, p.capacity)
+        XCTAssertFalse(p.isRearming)
+    }
+
+    func testTakingOffPartWayKeepsWhatWasLoaded() {
+        var p = Practice(seed: 1, balloons: 0)
+        p.ammo = 0
+        for _ in 0..<15 { p.advance(input: .idle) }
+        let loaded = p.ammo
+        XCTAssertEqual(loaded, 5)
+        p.advance(input: PlaneInput(pitch: 1, power: true))
+        XCTAssertEqual(p.phase, .takeoffRoll)
+        for _ in 0..<60 { p.advance(input: PlaneInput(pitch: 1, power: true)) }
+        XCTAssertEqual(p.ammo, loaded, "nothing more loads once the plane is moving")
+        XCTAssertFalse(p.isRearming)
+        XCTAssertEqual(p.rearmProgress, 0)
+    }
+
+    func testLoweringTheCapacityCutsTheBeltDown() {
+        var p = airborne(balloons: 0)
+        p.balloons = []
+        p.gun.capacity = 10
+        p.advance(input: .idle)
+        XCTAssertEqual(p.capacity, 10)
+        XCTAssertEqual(p.ammo, 10)
+    }
+
     func testSeededRNGIsReproducibleAndInUnitRange() {
         var a = SeededRNG(seed: 99)
         var b = SeededRNG(seed: 99)

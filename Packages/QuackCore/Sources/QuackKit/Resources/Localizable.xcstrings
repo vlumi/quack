@@ -57,6 +57,52 @@
         }
       }
     },
+    "%lld rounds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld round"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rounds"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld rounds, rearming" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld round, rearming"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld rounds, rearming"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "All popped: land to stop the clock" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -75,6 +121,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Back"
+          }
+        }
+      }
+    },
+    "Belt size" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belt size"
           }
         }
       }
@@ -365,6 +422,17 @@
         }
       }
     },
+    "Out of rounds: land to rearm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Out of rounds: land to rearm"
+          }
+        }
+      }
+    },
     "Pitch rate" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -383,6 +451,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pull up to take off, push to turn around"
+          }
+        }
+      }
+    },
+    "Rearm rate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rearm rate"
           }
         }
       }

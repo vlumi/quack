@@ -36,6 +36,8 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   the field.
 - [x] Choose the takeoff direction: push to swing round, taxiing to room if
   needed; no warps.
+- [x] A belt of rounds that refills a round at a time while parked; belt size
+  and rearm rate on the tuning panel.
 - [ ] Fly it and tune the window on a device (the Landing section of the
   tuning panel).
 - [ ] A small bonus for a hand-flown landing inside the window.
@@ -50,13 +52,15 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 
 - [ ] Contracts between fields: mail (indifferent) and passengers (punish
   aerobatics). Pay falls with time.
-- [ ] Fuel: a range clock; costs money and time to refill.
+- [ ] Fuel: a range clock; costs money and time to refill. An empty tank
+  stops the engine and the plane glides to a field, or does not.
+- [ ] Rounds cost money at the field.
 - [ ] Money buys a bigger tank, a stronger engine, a second seat.
 
 ## 0.5 — Hazards
 
 - [ ] AA guns on the strip; a simple enemy pilot. Dodging costs time,
-  shooting costs ammunition bought at the field. Bombs/guns on a tap of the
+  shooting costs rounds bought at the field. Bombs/guns on a tap of the
   thumb already in use — never a third input.
 
 ## 0.6 — Duckfight

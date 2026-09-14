@@ -81,6 +81,21 @@ stops at the last pop, and the next pull of the trigger deals a new field.
 Every field comes from a seed, so a run can be replayed and compared. It is a
 practice mode first and, with a shared seed, a Daily Drop later.
 
+**The gun has a belt.** 40 rounds, and an empty belt fires nothing. Parked on
+the field it refills a round at a time (20 a second), and a plane that takes
+off part way keeps what was loaded: a pilot who needs only a few rounds can
+save the time. Running dry mid-run is a choice between ramming the rest and
+landing to rearm, and both cost time, which gives landing a job inside the run.
+Belt size and rearm rate are on the tuning panel. Paying for rounds comes with
+the courier's money.
+
+**Fuel waits for distance.** On a 600 m balloon course a tank either never runs
+out, which is pointless, or runs out on a schedule the course was tuned to
+force, which is artificial. It becomes a decision on the wraparound strip and
+with contracts, where the way round and a stop to refuel are real trade-offs,
+and it needs other fields to glide to. The flight model already glides with
+the engine off.
+
 ## Landing
 
 The approach is the test, the touchdown is automatic. Fly into the **cone**
