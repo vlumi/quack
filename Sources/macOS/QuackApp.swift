@@ -9,5 +9,7 @@ struct QuackApp: App {
             GameView()
                 .frame(minWidth: 800, minHeight: 450)
         }
+        // Debug › Tuning Panel (⌥⌘T); absent from a build without the tuning panel.
+        .commands { TuningCommands() }
     }
 }

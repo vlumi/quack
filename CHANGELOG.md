@@ -18,9 +18,11 @@ the first match).
 ## [0.1.0]
 
 **Milestone 1 — feel.** A plane, a ground line, two thumbs. Does drag-pitch
-plus hold-for-power feel as good as Sopwith's two keys?
+with the throttle open feel as good as Sopwith's two keys?
 
 ### Unreleased (next build)
+
+- The tuning panel: shake the phone, or Debug › Tuning Panel (⌥⌘T) on the Mac. Sliders for the flight, the stall, the controls, the gun and the roll apply at once and stay on the device; Copy puts every value on the clipboard. The flight pauses while it is open.
 
 ### build 3 — 2026-09-14
 

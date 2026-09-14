@@ -4,6 +4,8 @@ import SpriteKit
 /// from the lower left, with an optional red arc for the range to stay out of.
 final class Dial: SKNode {
     private let needle = SKShapeNode()
+    private let redArc = SKShapeNode()
+    private let radius: CGFloat
     private let maximum: CGFloat
     private let sweep: CGFloat = 1.5 * .pi
     private let start: CGFloat = -1.25 * .pi
@@ -12,9 +14,17 @@ final class Dial: SKNode {
         didSet { needle.zRotation = angle(value) }
     }
 
+    /// The top of the red range, or nil for none. Settable, so a tuned stall
+    /// speed moves the arc with it.
+    var redBelow: CGFloat? {
+        didSet { drawRedArc() }
+    }
+
     /// `redBelow` marks 0…value in red; `majorEvery` places the long ticks.
     init(radius: CGFloat, maximum: CGFloat, majorEvery: CGFloat, redBelow: CGFloat? = nil) {
+        self.radius = radius
         self.maximum = maximum
+        self.redBelow = redBelow
         super.init()
         let ink = SKColor(white: 0.12, alpha: 1)
         let face = SKShapeNode(circleOfRadius: radius)
@@ -22,16 +32,10 @@ final class Dial: SKNode {
         face.strokeColor = ink
         face.lineWidth = radius * 0.06
         addChild(face)
-        if let red = redBelow {
-            let p = CGMutablePath()
-            p.addArc(
-                center: .zero, radius: radius * 0.8, startAngle: angle(0), endAngle: angle(red),
-                clockwise: true)
-            let arc = SKShapeNode(path: p)
-            arc.strokeColor = SKColor(red: 0.8, green: 0.15, blue: 0.15, alpha: 0.9)
-            arc.lineWidth = radius * 0.12
-            addChild(arc)
-        }
+        redArc.strokeColor = SKColor(red: 0.8, green: 0.15, blue: 0.15, alpha: 0.9)
+        redArc.lineWidth = radius * 0.12
+        addChild(redArc)
+        drawRedArc()
         let ticks = CGMutablePath()
         var v: CGFloat = 0
         var i = 0
@@ -67,6 +71,18 @@ final class Dial: SKNode {
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("not used") }
+
+    private func drawRedArc() {
+        guard let red = redBelow else {
+            redArc.path = nil
+            return
+        }
+        let p = CGMutablePath()
+        p.addArc(
+            center: .zero, radius: radius * 0.8, startAngle: angle(0), endAngle: angle(red),
+            clockwise: true)
+        redArc.path = p
+    }
 
     /// Needle angle for a value: clockwise from the lower left, clamped to the dial.
     private func angle(_ v: CGFloat) -> CGFloat {

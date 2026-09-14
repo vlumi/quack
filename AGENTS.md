@@ -47,6 +47,12 @@ into the prose above it.
   network peers all produce `PlaneInput`; the sim never knows which.
 - **Two inputs at most, each doing one thing; never a third simultaneous
   input.** Difficulty lives in the generated world, not the controls.
+- **Tuning panel:** every feel dial lives in `Tuning` (QuackCore) and is
+  reachable on device by shaking the phone, or Debug › Tuning Panel (⌥⌘T) on
+  the Mac. It is behind `QUACK_TUNING`, which is **on unless** a build sets
+  `QUACK_NO_TUNING=1`, because TestFlight builds are release builds and tuning
+  is what they are for; the store release sets it. A new dial is a
+  `TuningDial` entry plus its label, not a new mechanism.
 - **Localization:** English-only for now, but String Catalog + `Text(_,
   bundle:)` / `String(localized:)` from day one — never hardcoded literals in
   UI.

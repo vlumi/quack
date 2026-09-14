@@ -7,8 +7,8 @@ indicative, not contractual.
 
 ## 0.1 — Feel (in progress)
 
-The only question: does drag-pitch plus hold-for-power, with the energy model
-and auto-upright, feel as good as Sopwith's two keys? A ground line, one plane,
+The only question: does drag-pitch with the throttle open, the energy model
+and auto-upright feel as good as Sopwith's two keys? A ground line, one plane,
 a loop and a half-loop turn, on a real iPhone and a Mac.
 
 - [x] Decide the throttle: open for the whole flight; the right thumb is
@@ -18,12 +18,13 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   stick. Liveries and an emblem picker come later; the seam is in.
 - [x] The roll: a part-by-part projection, top toward the camera.
 - [x] The gun, and the balloon run to use it on.
-- [ ] Fly it. Tune `FlightTuning` on a device until the half-loop turn is a
-  pleasure and a stall is a lesson, not a punishment. Expose the dials in a
-  debug overlay if that speeds it up (Skid's Tuning panel is the precedent).
+- [x] The tuning panel: shake the phone, or ⌥⌘T on the Mac; Copy hands the
+  values back to become defaults.
+- [ ] Fly it. Tune on a device until the half-loop turn is a pleasure and a
+  stall is a lesson, not a punishment.
 - [ ] Decide the throw distance and response curve for the pitch drag.
-- [ ] A setting to invert the pitch sense (the controls have the flag; the
-  UI does not exist yet).
+- [ ] A player-facing setting to invert the pitch sense (the tuning panel has
+  the switch; players need it somewhere they will look).
 - [ ] Decide: is the plane fun to fly? **If not, stop here.**
 
 ## 0.2 — Landing
@@ -65,6 +66,7 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 
 ## 1.0 — Polish & submission
 
+- [ ] Store build without the tuning panel (`QUACK_NO_TUNING=1`).
 - [ ] Icon (a duck in a flying cap at the stick), site at `quack.misaki.fi`,
   App Store Connect listing, privacy answers, TestFlight → review.
 

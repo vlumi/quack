@@ -49,7 +49,15 @@ public final class FlightScene: SKScene {
     private var rollFrom: CGFloat = 0
     private var rollStart: TimeInterval?
     /// How long the plane takes to roll when it rights itself.
-    private let rollDuration: TimeInterval = 0.35
+    private var rollDuration: TimeInterval = 0.35
+
+    /// The dials in force. Set by the tuning panel; applied at once, and again
+    /// to every new run.
+    public var tuning = Tuning() {
+        didSet { applyTuning() }
+    }
+    /// Freezes the flight while the tuning panel is open; the clock does not run.
+    public var simulationPaused = false
 
     /// Scene units per metre.
     private let scale: CGFloat = FlightScene.boxSize.height / FlightScene.worldHeight
@@ -68,8 +76,7 @@ public final class FlightScene: SKScene {
     public init(overlay: ThumbOverlayState) {
         planeNode = PlaneNode(livery: .courier, pointsPerMetre: scale)
         controls = ThumbControls(overlay: overlay)
-        let stall = CGFloat(practice.model.tuning.stallSpeed * 3.6)
-        speedDial = Dial(radius: 44, maximum: 240, majorEvery: 60, redBelow: stall)
+        speedDial = Dial(radius: 44, maximum: 240, majorEvery: 60)
         super.init(size: FlightScene.boxSize)
         scaleMode = .aspectFit
         backgroundColor = SKColor(red: 0.55, green: 0.72, blue: 0.9, alpha: 1)
@@ -120,8 +127,19 @@ public final class FlightScene: SKScene {
         redrawGround()
     }
 
+    private func applyTuning() {
+        practice.model.tuning = tuning.flight
+        practice.gun = tuning.gun
+        controls.throwDistance = CGFloat(tuning.throwDistance)
+        controls.minimumThrow = CGFloat(tuning.minimumThrow)
+        controls.invertedPitch = tuning.invertedPitch
+        rollDuration = tuning.rollDuration
+        speedDial.redBelow = CGFloat(tuning.flight.stallSpeed * 3.6)
+    }
+
     private func startRun() {
         practice = Practice(seed: run)
+        applyTuning()
         balloonNodes.forEach { $0.removeFromParent() }
         balloonNodes = practice.balloons.enumerated().map { i, b in
             let n = SceneArt.balloonNode(
@@ -143,7 +161,7 @@ public final class FlightScene: SKScene {
 
     public override func update(_ currentTime: TimeInterval) {
         defer { lastTime = currentTime }
-        guard let last = lastTime else { return }
+        guard let last = lastTime, !simulationPaused else { return }
         accumulator += min(currentTime - last, 0.25)
         input = controls.input
         // Once the run is done, the next pull of the trigger starts the next one.
