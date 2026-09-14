@@ -45,6 +45,11 @@ jobs:
         run: |
           swift format lint --strict --recursive --configuration .swift-format \
             Packages/QuackCore/Sources Packages/QuackCore/Tests Sources
+      - name: markdownlint
+        # The docs are part of the product (the release lane edits CHANGELOG.md
+        # by pattern), so they are linted like the code. Same pinned version
+        # and file set as `make lint`, via Scripts/lint-markdown.sh.
+        run: Scripts/lint-markdown.sh
 
   test:
     name: Test core logic

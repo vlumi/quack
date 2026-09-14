@@ -51,8 +51,10 @@ into the prose above it.
   bundle:)` / `String(localized:)` from day one — never hardcoded literals in
   UI.
 - **Comments minimal**; determinism for tests (injected RNG, fixed timestep).
-- **Lint/format/CI:** pinned SwiftLint + swift-format both `--strict`; CI runs
-  lint + core tests (with coverage) + builds both apps.
+- **Lint/format/CI:** pinned SwiftLint + swift-format both `--strict`, and
+  markdownlint on every `.md` (`.markdownlint.json`; the release lane edits
+  CHANGELOG.md by pattern, so a malformed heading is a real bug). `make lint`
+  runs all three exactly as CI does.
 - **PRs:** branch off `main`, one focused change, never commit on `main`;
   `Co-Authored-By: <model> <noreply@anthropic.com>` trailer (no session
   links); a user-facing PR writes its own CHANGELOG bullet under
