@@ -1,0 +1,195 @@
+import XCTest
+
+@testable import QuackCore
+
+final class AirfieldGroundTests: AirfieldTestCase {
+    // MARK: Helpers on the plane
+
+    func testUprightDirectionAndPathAngle() {
+        let right = PlaneState(heading: -0.1, inverted: false)
+        XCTAssertTrue(right.upright)
+        XCTAssertEqual(right.direction, 1)
+        XCTAssertEqual(right.pathAngle, -0.1, accuracy: 1e-12)
+        let left = PlaneState(heading: .pi + 0.1, inverted: true)
+        XCTAssertTrue(left.upright)
+        XCTAssertEqual(left.direction, -1)
+        XCTAssertEqual(left.pathAngle, -0.1, accuracy: 1e-9, "descending, whichever way it flies")
+        XCTAssertFalse(PlaneState(heading: 0, inverted: true).upright)
+        XCTAssertTrue(field.contains(0) && field.contains(160) && !field.contains(-0.1))
+        XCTAssertEqual(field.end, 160)
+    }
+
+    // MARK: Taking off
+
+    func testParkedPlaneWaitsThenPullUpRollsAndLiftsOffOnlyWhenFastEnough() {
+        var s = model.parkingSpot
+        var phase = FlightPhase.parked(repair: 0)
+        fly(&s, &phase, input: PlaneInput(power: true, fire: true), seconds: 1)
+        XCTAssertEqual(phase, .parked(repair: 0), "the trigger does not start a takeoff")
+        XCTAssertEqual(s, model.parkingSpot)
+
+        XCTAssertNil(model.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true)))
+        XCTAssertEqual(phase, .takeoffRoll)
+        // Rolling with the stick neutral stays on the ground past rotate speed.
+        fly(&s, &phase, input: PlaneInput(power: true), seconds: 30) { s, _ in
+            s.speed >= self.model.rotateSpeed
+        }
+        XCTAssertEqual(phase, .takeoffRoll)
+        XCTAssertEqual(s.y, gear)
+        let events = fly(&s, &phase, input: PlaneInput(pitch: 1, power: true), seconds: 1) { _, p in
+            p == .flying
+        }
+        XCTAssertEqual(events, [.liftoff])
+        XCTAssertGreaterThan(s.pathAngle, 0)
+        XCTAssertTrue(field.contains(s.x))
+    }
+
+    func testRollingOffTheEndOfTheFieldIsACrash() {
+        var s = model.parkingSpot
+        var phase = FlightPhase.takeoffRoll
+        let events = fly(&s, &phase, input: PlaneInput(power: true), seconds: 30) { _, p in
+            p != .takeoffRoll
+        }
+        XCTAssertEqual(events, [.crash])
+    }
+
+    // MARK: Choosing the direction
+
+    /// Steps a parked or taxiing plane with `input` held until `stop`, returning seconds taken.
+    @discardableResult
+    func ground(
+        _ m: AirfieldModel, _ s: inout PlaneState, _ phase: inout FlightPhase, input: PlaneInput,
+        seconds: Double = 20, until stop: (FlightPhase) -> Bool
+    ) -> Double {
+        for tick in 0..<Int(seconds * 60) {
+            m.advance(&s, &phase, input: input)
+            if stop(phase) { return Double(tick + 1) / 60 }
+        }
+        return .infinity
+    }
+
+    func testPullingTakesOffTheWayThePlaneFaces() {
+        var s = PlaneState(x: 20, y: gear, heading: 0, speed: 0)
+        var phase = FlightPhase.parked(repair: 0)
+        model.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true))
+        XCTAssertEqual(phase, .takeoffRoll)
+        XCTAssertEqual(s.direction, 1)
+        var left = PlaneState(x: 140, y: gear, heading: .pi, speed: 0, inverted: true)
+        phase = .parked(repair: 0)
+        model.advance(&left, &phase, input: PlaneInput(pitch: 1, power: true))
+        XCTAssertEqual(phase, .takeoffRoll)
+        XCTAssertEqual(left.direction, -1)
+    }
+
+    func testPushingTurnsAroundOnTheSpotWhenThereIsRoomBehind() {
+        var s = PlaneState(x: 80, y: gear, heading: 0, speed: 0)
+        var phase = FlightPhase.parked(repair: 0)
+        model.advance(&s, &phase, input: PlaneInput(pitch: -1, power: true))
+        guard case .taxiing(let steps, false) = phase, steps.count == 1, case .turn = steps[0]
+        else {
+            return XCTFail("expected a turn, got \(phase)")
+        }
+        let seconds = ground(model, &s, &phase, input: .idle) { $0 == .parked(repair: 0) }
+        XCTAssertEqual(seconds, model.landing.turnTime, accuracy: 0.05)
+        XCTAssertEqual(s.x, 80)
+        XCTAssertEqual(s.direction, -1)
+        XCTAssertTrue(s.upright)
+    }
+
+    func testPushingNearAnEndTaxisOutToRoomFirstThenTurns() {
+        let short = AirfieldModel(airfield: Practice.airfield)
+        var s = short.parkingSpot
+        var phase = FlightPhase.parked(repair: 0)
+        short.advance(&s, &phase, input: PlaneInput(pitch: -1, power: true))
+        // The pilot lets go at once: the plan runs by itself.
+        let seconds = ground(short, &s, &phase, input: .idle) { $0 == .parked(repair: 0) }
+        XCTAssertEqual(s.direction, -1)
+        XCTAssertEqual(s.x - short.airfield.start, short.takeoffRoom, accuracy: 0.01)
+        let distance = short.takeoffRoom - (short.parkingSpot.x - short.airfield.start)
+        XCTAssertEqual(
+            seconds, distance / short.landing.taxiSpeed + short.landing.turnTime, accuracy: 0.1)
+        // And now a pull takes off to the left, with room.
+        short.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true))
+        XCTAssertEqual(phase, .takeoffRoll)
+        var events: [FlightEvent] = []
+        for _ in 0..<600 {
+            if let e = short.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true)) {
+                events.append(e)
+            }
+            if phase == .flying { break }
+        }
+        XCTAssertEqual(events, [.liftoff])
+    }
+
+    func testPullingTowardAShortEndTaxisBackTurnsAndRolls() {
+        let short = AirfieldModel(airfield: Practice.airfield)
+        let end = short.airfield.end
+        var s = PlaneState(x: end - 5, y: gear, heading: 0, speed: 0)
+        var phase = FlightPhase.parked(repair: 0)
+        let pull = PlaneInput(pitch: 1, power: true)
+        short.advance(&s, &phase, input: pull)
+        guard case .taxiing(let steps, true) = phase else {
+            return XCTFail("expected a taxi, got \(phase)")
+        }
+        XCTAssertEqual(steps.count, 3)
+        ground(short, &s, &phase, input: pull) { $0 == .takeoffRoll }
+        XCTAssertEqual(s.direction, 1, "facing the way the pilot asked to go")
+        XCTAssertEqual(end - s.x, short.takeoffRoom, accuracy: 0.2)
+        var events: [FlightEvent] = []
+        for _ in 0..<600 {
+            if let e = short.advance(&s, &phase, input: pull) { events.append(e) }
+            if phase == .flying { break }
+        }
+        XCTAssertEqual(events, [.liftoff])
+    }
+
+    func testTaxiingIgnoresTheStickAndIsOnTheGround() {
+        var s = PlaneState(x: 80, y: gear, heading: 0, speed: 0)
+        var phase = FlightPhase.parked(repair: 0)
+        model.advance(&s, &phase, input: PlaneInput(pitch: -1, power: true))
+        XCTAssertTrue(phase.isOnGround)
+        model.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true, fire: true))
+        guard case .taxiing = phase else {
+            return XCTFail("a pull mid-turn should not start a takeoff")
+        }
+        XCTAssertEqual(s.y, gear)
+    }
+
+    // MARK: Repair, rollout and wrecks
+
+    func testABrokenUndercarriageKeepsThePlaneDownUntilRepaired() {
+        var s = PlaneState(x: 60, y: gear, heading: 0, speed: 0)
+        var phase = FlightPhase.parked(repair: 1)
+        fly(&s, &phase, input: PlaneInput(pitch: 1, power: true), seconds: 0.5)
+        XCTAssertNotEqual(phase, .takeoffRoll, "still under repair")
+        fly(&s, &phase, input: PlaneInput(pitch: 1, power: true), seconds: 1) { _, p in
+            p == .takeoffRoll
+        }
+        XCTAssertEqual(phase, .takeoffRoll)
+    }
+
+    func testRolloutAlwaysStopsOnTheField() {
+        var s = PlaneState(x: 140, y: gear, heading: 0, speed: 40)
+        var phase = FlightPhase.rollout(repair: 0)
+        fly(&s, &phase, seconds: 10) { _, p in p == .parked(repair: 0) }
+        XCTAssertEqual(phase, .parked(repair: 0))
+        XCTAssertLessThanOrEqual(s.x, field.end)
+    }
+
+    // MARK: Crashing
+
+    func testAWreckReturnsToTheParkingSpotAfterItsTime() {
+        var s = PlaneState(x: -50, y: gear + 0.05, heading: -0.3, speed: 30)
+        var phase = FlightPhase.flying
+        XCTAssertEqual(model.advance(&s, &phase, input: .idle), .crash)
+        let events = fly(&s, &phase, seconds: model.landing.wreckTime + 0.1) { _, p in
+            p == .parked(repair: 0)
+        }
+        XCTAssertEqual(events, [.backOnField])
+        XCTAssertEqual(s, model.parkingSpot)
+        XCTAssertFalse(FlightPhase.wrecked(remaining: 1).isOnGround)
+        XCTAssertTrue(
+            FlightPhase.takeoffRoll.isOnGround && FlightPhase.parked(repair: 0).isOnGround)
+        XCTAssertFalse(FlightPhase.approach(aim: 0).isOnGround)
+    }
+}

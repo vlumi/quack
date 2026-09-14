@@ -88,8 +88,10 @@ extension FlightScene {
             return String(localized: "Landing", bundle: .module)
         case .parked(let repair) where repair > 0:
             return String(localized: "Repairing", bundle: .module)
-        case .parked where practice.startedAt == nil:
-            return String(localized: "Pull up to take off", bundle: .module)
+        case .parked where !practice.isFinished:
+            return String(localized: "Pull up to take off, push to turn around", bundle: .module)
+        case .taxiing:
+            return String(localized: "Taxiing", bundle: .module)
         default:
             return practice.needsToLand
                 ? String(localized: "All popped: land to stop the clock", bundle: .module) : ""

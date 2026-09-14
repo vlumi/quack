@@ -34,6 +34,8 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   pull aborts it. Outside it: touchdown / bounce / broken undercarriage /
   crash by how steep. Takeoff from parked. The balloon run starts and ends on
   the field.
+- [x] Choose the takeoff direction: push to swing round, taxiing to room if
+  needed; no warps.
 - [ ] Fly it and tune the window on a device (the Landing section of the
   tuning panel).
 - [ ] A small bonus for a hand-flown landing inside the window.

@@ -221,6 +221,8 @@ struct TuningPanel: View {
         case "landing.braking": return Text("Braking", bundle: .module)
         case "landing.takeoffAcceleration": return Text("Takeoff push", bundle: .module)
         case "landing.fieldLength": return Text("Field length", bundle: .module)
+        case "landing.taxiSpeed": return Text("Taxi speed", bundle: .module)
+        case "landing.turnTime": return Text("Turn time", bundle: .module)
         case "landing.repairTime": return Text("Repair time", bundle: .module)
         case "controls.throwDistance": return Text("Throw", bundle: .module)
         case "controls.minimumThrow": return Text("Minimum throw", bundle: .module)

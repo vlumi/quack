@@ -189,6 +189,7 @@ public final class FlightScene: SKScene {
         }
 
         updateRoll(inverted: plane.inverted, at: now)
+        planeNode.xScale = swingScale()
 
         // Gloss: the top surface catches the sun in proportion to how squarely
         // it faces it, so it sweeps during a loop and vanishes inverted.
@@ -231,9 +232,14 @@ public final class FlightScene: SKScene {
     }
 
     /// The sim flips instantly; the drawing rolls, top toward the camera, with a
-    /// little easing, and rolls back the same way in reverse.
+    /// little easing, and rolls back the same way in reverse. On the ground a
+    /// plane never rolls: it swings round (`swingScale`), so the drawing snaps.
     private func updateRoll(inverted: Bool, at now: TimeInterval) {
         let target: CGFloat = inverted ? 1 : 0
+        if practice.phase.isOnGround {
+            rollShown = target
+            rollStart = nil
+        }
         if rollShown != target && rollStart == nil {
             rollStart = now
             rollFrom = rollShown
@@ -248,6 +254,15 @@ public final class FlightScene: SKScene {
             }
         }
         planeNode.roll = rollShown * .pi
+    }
+
+    /// A plane swinging round on the ground is drawn narrowing to edge-on and
+    /// widening again mirrored: a yaw seen from the side. The sim flips its
+    /// facing at the end, where a mirrored drawing and a flipped one look the same.
+    private func swingScale() -> CGFloat {
+        guard case .taxiing(let steps, _) = practice.phase, case .turn(let elapsed) = steps.first
+        else { return 1 }
+        return CGFloat(cos(.pi * min(1, elapsed / max(0.01, tuning.landing.turnTime))))
     }
 
     private func redrawGround() {
