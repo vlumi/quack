@@ -27,6 +27,7 @@ public final class FlightScene: SKScene {
     let planeNode: PlaneNode
     private let groundNode = SKShapeNode()
     private let glideSlopeNode = SKNode()
+    private let fieldNode = SKNode()
     private let balloonLayer = SKNode()
     private let bulletLayer = SKNode()
     private var balloonNodes: [SKNode] = []
@@ -90,7 +91,7 @@ public final class FlightScene: SKScene {
         anchorPoint = CGPoint(x: 0.5, y: 0.3)
         addChild(world)
         world.addChild(glideSlopeNode)
-        world.addChild(SceneArt.airfieldNode(Practice.airfield, scale: scale))
+        world.addChild(fieldNode)
         world.addChild(groundNode)
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
@@ -127,9 +128,12 @@ public final class FlightScene: SKScene {
         controls.invertedPitch = tuning.invertedPitch
         rollDuration = tuning.rollDuration
         speedDial.redBelow = CGFloat(tuning.flight.stallSpeed * 3.6)
+        practice.model.airfield.length = tuning.fieldLength
+        let field = practice.model.airfield
+        fieldNode.removeAllChildren()
+        fieldNode.addChild(SceneArt.airfieldNode(field, scale: scale))
         glideSlopeNode.removeAllChildren()
-        glideSlopeNode.addChild(
-            SceneArt.glideSlopes(Practice.airfield, landing: tuning.landing, scale: scale))
+        glideSlopeNode.addChild(SceneArt.approachCones(practice.model, scale: scale))
     }
 
     private func startRun() {

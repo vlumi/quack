@@ -36,8 +36,9 @@ public struct Practice: Equatable, Sendable {
     public var gun = GunTuning()
     /// Metres from the plane's centre that count as a ram.
     public var planeRadius: Double = 1.6
-    /// The field the run starts and ends on, just behind the balloons.
-    public static let airfield = Airfield(start: -40, length: 160)
+    /// The field the run starts and ends on, just behind the balloons: short
+    /// enough to see end to end from its middle. `Tuning.fieldLength` resizes it.
+    public static let airfield = Airfield(start: -20, length: 60)
 
     public init(seed: UInt64, balloons count: Int = 12) {
         self.seed = seed

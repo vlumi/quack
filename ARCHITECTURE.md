@@ -46,11 +46,18 @@ of the display's refresh rate.
 - `AirfieldModel` — everything where the plane meets the ground, wrapping
   `FlightModel`, which only knows the air. An `Airfield` is a stretch of
   ground; `LandingTuning` its dials; `FlightPhase` is flying, approach
-  (assist), rollout, parked, takeoff roll or wrecked, and each step returns a
-  `FlightEvent` when something happens. The assist engages on the approach
-  angle ± band, below the engage height, with the path meeting the ground where
-  there is room to stop, and flies a kinematic glide, flare and braking
-  rollout; a hard pull aborts it. Unassisted contact is graded by path angle:
+  (assist, carrying its aim point), go-around, rollout, parked, takeoff roll or
+  wrecked, and each step returns a `FlightEvent` when something happens.
+  `inCone` is the approach cone over the end the plane is flying toward: a
+  wedge at the approach angle ± band, `coneLength` out, with a throat over the
+  threshold and a floor that rises to what a flare can carry onto the field.
+  The assist engages in the cone when the plane is upright, not climbing past
+  `noseUpLimit` and not diving past `diveLimit`, aiming just past the threshold
+  or the nearest point reachable without diving, if that leaves room to stop;
+  it flies a kinematic glide, pulls out quickly, flares and brakes. A hard pull
+  aborts it into a go-around, which leaves the assist off until the plane is
+  out of the cone. Braking and the takeoff roll are exaggerated so both fit the
+  short field. Unassisted contact is graded by path angle:
   touchdown, bounce, broken undercarriage (a repair delay), or crash (a wreck
   delay, then back at the parking spot). Parked, a pull starts the takeoff
   roll toward the longer side of the field; lift-off needs rotate speed and the
@@ -74,8 +81,9 @@ The numbers and shapes here are a starting point to be flown and replaced.
 ## The scene
 
 The field is drawn by `SceneArt`: a tan strip in the ground line with
-threshold bars and a windsock, and the approach window as a faint wedge from
-each end with the approach angle dashed, redrawn when the landing dials change.
+threshold bars, a windsock beside the middle, and the approach cone over each
+end, drawn from `inCone`'s own floor and ceiling with the approach angle
+dashed, redrawn when the landing dials change.
 The status line under the title says what the plane is doing (pull up to take
 off, landing, repairing, land to stop the clock) and flashes touchdowns,
 bounces, breaks and crashes; a wrecked plane blinks. A white chevron points to

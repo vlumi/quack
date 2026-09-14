@@ -49,16 +49,16 @@ final class FlightModelTests: XCTestCase {
     func testVerticalClimbStallsAndFlipsOverSoon() {
         // Pull up from cruise to straight up, let go, and hold it there: the
         // plane must run out of speed, break, and be pointing below level
-        // within two seconds and well inside a screen height (about 75 m).
+        // within two and a half seconds and well inside a screen height (70 m).
         var s = PlaneState(x: 0, y: 0, heading: 0, speed: 40)
         while s.heading < .pi / 2 { s = model.advance(s, input: PlaneInput(pitch: 1, power: true)) }
         let top = s.y
         var ticks = 0
-        while s.heading > 0 && ticks < 120 {
+        while s.heading > 0 && ticks < 150 {
             s = model.advance(s, input: PlaneInput(pitch: 0, power: true))
             ticks += 1
         }
-        XCTAssertLessThan(s.heading, 0, "should have flipped nose down within 2 s")
+        XCTAssertLessThan(s.heading, 0, "should have flipped nose down within 2.5 s")
         XCTAssertLessThan(s.y - top, 40, "should not climb far past vertical")
         XCTAssertLessThan(s.speed, model.tuning.stallSpeed, "it flipped because it stalled")
     }

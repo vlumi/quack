@@ -60,7 +60,7 @@ final class TuningTests: XCTestCase {
         XCTAssertEqual(lines.first, "Quack Express tuning (2 changed)")
         XCTAssertEqual(lines.count, 1 + TuningDial.all.count + 1)
         XCTAssertTrue(report.contains("flight.gravity = 24  (default 22)"))
-        XCTAssertTrue(report.contains("flight.thrust = 8.0\n"))
+        XCTAssertTrue(report.contains("flight.thrust = 16.0\n"))
         XCTAssertTrue(report.contains("controls.invertedPitch = true  (default false)"))
         XCTAssertEqual(t.changedIDs, ["flight.gravity", Tuning.invertedPitchID])
     }

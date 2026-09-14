@@ -68,39 +68,6 @@
         }
       }
     },
-    "Approach angle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Approach angle"
-          }
-        }
-      }
-    },
-    "Approach band" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Approach band"
-          }
-        }
-      }
-    },
-    "Assist height" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Assist height"
-          }
-        }
-      }
-    },
     "Back" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -163,6 +130,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Changes apply at once and stay on this device. %lld changed."
+          }
+        }
+      }
+    },
+    "Cone angle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cone angle"
+          }
+        }
+      }
+    },
+    "Cone length" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cone length"
+          }
+        }
+      }
+    },
+    "Cone width" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cone width"
           }
         }
       }
@@ -240,6 +240,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Feel"
+          }
+        }
+      }
+    },
+    "Field length" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Field length"
           }
         }
       }
@@ -482,6 +493,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stall speed"
+          }
+        }
+      }
+    },
+    "Steepest entry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steepest entry"
+          }
+        }
+      }
+    },
+    "Takeoff push" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takeoff push"
           }
         }
       }
