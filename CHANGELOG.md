@@ -22,6 +22,8 @@ plus hold-for-power feel as good as Sopwith's two keys?
 
 ### Unreleased (next build)
 
+### build 2 — 2026-09-14
+
 - Two cockpit gauges top right: airspeed in km/h with the stall range in red, and altitude in metres.
 - Thumb pads drawn over the game: a pitch track and a trigger ring that float to where the thumbs land and stay, dimmed, where they left them; the bar and knob show how much elevator is in. Near a screen edge the throw shrinks to the room there, so full elevator is always reachable.
 - A placeholder app icon: the plane climbing over the strip, drawn by the game's own rig. The duck in a flying cap comes with 1.0.
