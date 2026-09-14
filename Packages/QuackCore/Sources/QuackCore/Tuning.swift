@@ -104,7 +104,7 @@ public struct TuningDial: Identifiable {
             id: "flight.gravity", section: .flight, keyPath: \.flight.gravity, range: 6...40,
             step: 1, decimals: 0),
         TuningDial(
-            id: "flight.thrust", section: .flight, keyPath: \.flight.thrust, range: 2...20,
+            id: "flight.thrust", section: .flight, keyPath: \.flight.thrust, range: 2...40,
             step: 0.5, decimals: 1),
         TuningDial(
             id: "flight.cruiseSpeed", section: .flight, keyPath: \.flight.cruiseSpeed,

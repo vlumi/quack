@@ -7,8 +7,11 @@ public struct FlightTuning: Equatable, Sendable {
     /// ninety metres before the wing quits, which is most of a screen. This is
     /// the dial that decides how soon a vertical climb stops and flips over.
     public var gravity: Double = 22
-    /// Engine push in metres per second squared, constant while powered.
-    public var thrust: Double = 8
+    /// Engine push in metres per second squared, constant while powered. At 8
+    /// the steepest climb the plane could hold was 17°, and getting any height
+    /// off the field was a slog; 16 holds 35° and still stalls straight up
+    /// inside a screen.
+    public var thrust: Double = 16
     /// Speed at which thrust and drag balance in level powered flight. Drag is
     /// derived from it, so this is the one speed dial.
     public var cruiseSpeed: Double = 40

@@ -25,6 +25,7 @@ land back on it by flying the approach angle.
 - The field: the balloon run now starts parked on a 60 m strip, short enough to see end to end. Pull up to roll and take off; the run ends when you land again after the last pop.
 - Landing: fly into the cone drawn over the end of the field, the right way up, heading for it, not climbing and not diving steeply, and the assist takes over: it glides down, flares, touches down just past the threshold and brakes hard to a stop. Level flight into the cone is enough. Pull hard to take it back; it then leaves you alone until you are out of the cone.
 - Reaching the ground without the assist is graded by how steep: a touchdown, a bounce, a broken undercarriage that keeps you down for a repair, or a crash that puts you back at the start of the field. Touching the ground off the field is a crash.
+- Twice the engine: thrust 16 instead of 8, so the plane can hold a 35° climb instead of 17° and gets height off the field. Straight up it still stalls and flips within about 27 m.
 - A Landing section on the tuning panel: cone angle, width and length, steepest entry, bounce margin, braking, takeoff push, field length and repair time. A white chevron points to the field when it is off screen.
 
 ## [0.1.0]
