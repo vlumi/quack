@@ -22,6 +22,8 @@ with the throttle open feel as good as Sopwith's two keys?
 
 ### Unreleased (next build)
 
+### build 4 — 2026-09-14
+
 - The tuning panel: shake the phone, or Debug › Tuning Panel (⌥⌘T) on the Mac. Sliders for the flight, the stall, the controls, the gun and the roll apply at once and stay on the device; Copy puts every value on the clipboard. The flight pauses while it is open.
 
 ### build 3 — 2026-09-14
