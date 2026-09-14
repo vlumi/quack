@@ -22,6 +22,8 @@ land back on it by flying the approach angle.
 
 ### Unreleased (next build)
 
+### build 5 — 2026-09-14
+
 - A belt of 40 rounds: an empty belt fires nothing. Parked on the field it refills a round at a time, and you can take off before it is full to save time. The rounds left show under the clock. Belt size and rearm rate are on the tuning panel.
 - The field: the balloon run now starts parked on a 60 m strip, short enough to see end to end. Pull up to roll and take off; the run ends when you land again after the last pop.
 - Landing: fly into the cone drawn over the end of the field, the right way up, heading for it, not climbing and not diving steeply, and the assist takes over: it glides down, flares, touches down just past the threshold and brakes hard to a stop. Level flight into the cone is enough. Pull hard to take it back; it then leaves you alone until you are out of the cone.
