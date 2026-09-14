@@ -229,6 +229,8 @@ struct TuningPanel: View {
         case "gun.muzzleSpeed": return Text("Muzzle speed", bundle: .module)
         case "gun.fireInterval": return Text("Fire interval", bundle: .module)
         case "gun.bulletLife": return Text("Round life", bundle: .module)
+        case "gun.capacity": return Text("Belt size", bundle: .module)
+        case "gun.rearmRate": return Text("Rearm rate", bundle: .module)
         case "feel.rollDuration": return Text("Roll time", bundle: .module)
         default: return Text(verbatim: id)
         }

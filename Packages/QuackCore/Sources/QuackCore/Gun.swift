@@ -8,6 +8,11 @@ public struct GunTuning: Equatable, Sendable {
     public var fireInterval: Double = 0.1
     /// Seconds a round flies before it is gone.
     public var bulletLife: Double = 1.2
+    /// Rounds in a full belt. A number for the tuning dial; the run counts whole rounds.
+    public var capacity: Double = 40
+    /// Rounds per second loaded while parked on the field, one at a time, so a
+    /// pilot who needs only a few can take off before the belt is full.
+    public var rearmRate: Double = 20
     /// Where the muzzle is, in metres ahead of and above the plane's centre.
     public var muzzleAhead: Double = 2
     public var muzzleUp: Double = 0.75

@@ -187,6 +187,12 @@ public struct TuningDial: Identifiable {
             id: "gun.bulletLife", section: .gun, keyPath: \.gun.bulletLife, range: 0.3...3,
             step: 0.1, decimals: 1),
         TuningDial(
+            id: "gun.capacity", section: .gun, keyPath: \.gun.capacity, range: 5...200, step: 5,
+            decimals: 0),
+        TuningDial(
+            id: "gun.rearmRate", section: .gun, keyPath: \.gun.rearmRate, range: 2...100, step: 2,
+            decimals: 0),
+        TuningDial(
             id: "feel.rollDuration", section: .feel, keyPath: \.rollDuration, range: 0.05...1,
             step: 0.05, decimals: 2),
     ]

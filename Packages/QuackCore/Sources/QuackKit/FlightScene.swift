@@ -39,6 +39,8 @@ public final class FlightScene: SKScene {
     let fieldMarker: SKShapeNode
     let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     let clockLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+    /// Rounds left, and whether they are being loaded.
+    let ammoLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     /// What the plane is doing, or what just happened to it.
     let statusLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     var flash: (text: String, until: TimeInterval)?
@@ -139,6 +141,8 @@ public final class FlightScene: SKScene {
     private func startRun() {
         practice = Practice(seed: run)
         applyTuning()
+        // A new run starts with the tuned belt, not the default one.
+        practice.ammo = practice.capacity
         balloonNodes.forEach { $0.removeFromParent() }
         balloonNodes = practice.balloons.enumerated().map { i, b in
             let n = SceneArt.balloonNode(

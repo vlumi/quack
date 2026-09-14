@@ -13,6 +13,11 @@ extension FlightScene {
             label.zPosition = 100
             addChild(label)
         }
+        ammoLabel.fontSize = 24
+        ammoLabel.horizontalAlignmentMode = .left
+        ammoLabel.verticalAlignmentMode = .top
+        ammoLabel.zPosition = 100
+        addChild(ammoLabel)
         statusLabel.fontSize = 26
         statusLabel.fontColor = SKColor(white: 0.12, alpha: 1)
         statusLabel.horizontalAlignmentMode = .center
@@ -38,6 +43,7 @@ extension FlightScene {
         let top = size.height * 0.7 - 24
         countLabel.position = CGPoint(x: left, y: top)
         clockLabel.position = CGPoint(x: left, y: top - 40)
+        ammoLabel.position = CGPoint(x: left, y: top - 80)
         statusLabel.position = CGPoint(x: 0, y: top)
         let right = size.width / 2 - 24
         altitudeDial.position = CGPoint(x: right - 44, y: top - 44)
@@ -78,7 +84,23 @@ extension FlightScene {
                 localized: "\(practice.remaining) balloons left", bundle: .module)
             clockLabel.text = String(localized: "\(seconds) s", bundle: .module)
         }
+        updateAmmo()
         statusLabel.text = status(at: now)
+    }
+
+    /// Rounds left; red and a hint when the belt is empty, a note while it loads.
+    private func updateAmmo() {
+        let ink = SKColor(white: 0.12, alpha: 1)
+        if practice.ammo == 0 && !practice.isRearming {
+            ammoLabel.text = String(localized: "Out of rounds: land to rearm", bundle: .module)
+            ammoLabel.fontColor = SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1)
+        } else if practice.isRearming {
+            ammoLabel.text = String(localized: "\(practice.ammo) rounds, rearming", bundle: .module)
+            ammoLabel.fontColor = ink
+        } else {
+            ammoLabel.text = String(localized: "\(practice.ammo) rounds", bundle: .module)
+            ammoLabel.fontColor = ink
+        }
     }
 
     private func status(at now: TimeInterval) -> String {

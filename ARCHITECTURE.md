@@ -73,11 +73,14 @@ of the display's refresh rate.
   renamed; `report()` is the Copy button's text, with defaults beside changed
   values.
 - `GunTuning`, `Bullet` — the gun on the hump: rounds leave the muzzle at the
-  plane's speed plus a muzzle speed, fly straight, and expire.
+  plane's speed plus a muzzle speed, fly straight, and expire. The belt holds
+  `capacity` rounds and refills at `rearmRate` a second.
 - `Practice` — the balloon run: a seeded set of balloons (`SeededRNG`,
   SplitMix64), the plane parked on `Practice.airfield`, the rounds, and a clock
   that starts at the first input and stops when the plane is parked after the
-  last pop. Balloons pop by round or by collision. Deterministic, so the same
+  last pop. It counts `ammo`: a round per shot, nothing fires when empty, and
+  while parked the belt loads a round at a time (`isRearming`), keeping a part
+  load on takeoff. Balloons pop by round or by collision. Deterministic, so the same
   inputs give the same run.
 
 The numbers and shapes here are a starting point to be flown and replaced.
@@ -152,7 +155,8 @@ for the reasoning.
   assist earns a little.
 - **Livery picker**: the player's own colours and emblem, saved and carried
   into Duckfight; a flapping scarf.
-- **Ammunition** bought at the field, and something that shoots back.
+- **Rounds bought at the field**, and something that shoots back.
+- **Fuel**, with the wraparound strip and contracts.
 - **The strip**: noise terrain, horizontal wraparound (a torus), parallax
   silhouettes, fields on flat ground, sky by hour; wind as the cloud layer's
   speed, so one direction is faster than the other.
