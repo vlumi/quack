@@ -110,6 +110,12 @@ public final class FlightScene: SKScene {
     required init?(coder: NSCoder) { fatalError("not used") }
 
     public override func didMove(to view: SKView) {
+        #if os(iOS)
+        // A UIView takes one touch at a time unless told otherwise, and
+        // SpriteView does not tell it: the first thumb down took every touch,
+        // so holding the trigger locked out the elevator and the other way round.
+        view.isMultipleTouchEnabled = true
+        #endif
         layoutHUD()
         redrawGround()
     }
