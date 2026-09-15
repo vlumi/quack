@@ -7,11 +7,14 @@ public struct Airfield: Equatable, Sendable {
     public var length: Double
     /// Metres above sea level: the height of the flat shelf the field sits on.
     public var elevation: Double
+    /// What the field is called, for contracts and signs; empty for a nameless test field.
+    public var name: String
 
-    public init(start: Double, length: Double, elevation: Double = 0) {
+    public init(start: Double, length: Double, elevation: Double = 0, name: String = "") {
         self.start = start
         self.length = length
         self.elevation = elevation
+        self.name = name
     }
 
     public var end: Double { start + length }

@@ -20,6 +20,13 @@ public struct Balloon: Equatable, Sendable {
 /// Deterministic: the strip and the balloons come from the seed and the sim is
 /// fixed-step, so the same inputs give the same run.
 public struct Practice: Equatable, Sendable {
+    /// What a run is for: popping balloons, or carrying contracts between fields.
+    public enum Mode: String, CaseIterable, Sendable {
+        case courier
+        case balloons
+    }
+
+    public let mode: Mode
     public var plane: PlaneState
     public var phase: FlightPhase
     /// What happened on the last tick, for the scene to show.
@@ -34,6 +41,17 @@ public struct Practice: Equatable, Sendable {
     public var ammo: Int
     /// Part of the next round loaded while parked.
     public var rearmProgress: Double = 0
+    /// Whether the trigger was held last step, to catch a fresh pull.
+    var wasFiring = false
+    /// The courier's day: money made, the contract aboard, and the offers at the field.
+    public var money: Double = 0
+    public var contract: Contract?
+    public var acceptedAt: Double?
+    public var offers: [Contract] = []
+    public var chosenOffer = 0
+    public var deliveries = 0
+    /// What happened to the courier this step, for the scene to show.
+    public var courierEvent: CourierEvent?
     public let seed: UInt64
     /// The hour the run is flown at, from the seed.
     public let hour: TimeOfDay
@@ -47,6 +65,7 @@ public struct Practice: Equatable, Sendable {
 
     public var model: AirfieldModel
     public var gun = GunTuning()
+    public var courierTuning = CourierTuning()
     /// Metres from the plane's centre that count as a ram.
     public var planeRadius: Double = 1.6
     /// Metres of field: short enough to see end to end from its middle.
@@ -56,9 +75,12 @@ public struct Practice: Equatable, Sendable {
     public static let stripLength: Double = 2400
     public static let fieldCount = 4
 
-    public init(seed: UInt64, balloons count: Int = 12, fieldLength: Double = Practice.fieldLength)
-    {
+    public init(
+        seed: UInt64, mode: Mode = .balloons, balloons count: Int = 12,
+        fieldLength: Double = Practice.fieldLength
+    ) {
         self.seed = seed
+        self.mode = mode
         hour = TimeOfDay(seed: seed)
         windStep = Wind.step(seed: seed)
         windDirection = Wind.direction(seed: seed)
@@ -66,7 +88,8 @@ public struct Practice: Equatable, Sendable {
         model = AirfieldModel(strip: strip)
         plane = model.parkingSpot
         phase = .parked(repair: 0)
-        balloons = Practice.balloons(seed: seed, count: count, strip: strip)
+        balloons =
+            mode == .courier ? [] : Practice.balloons(seed: seed, count: count, strip: strip)
         clouds = Wind.clouds(seed: seed, count: 7, strip: strip)
         // Every stored property is set before `capacity` reads the gun.
         ammo = 0
@@ -151,6 +174,7 @@ public struct Practice: Equatable, Sendable {
         advanceWeather(dt: dt)
         lastEvent = model.advance(&plane, &phase, input: input, dt: dt)
         plane.x = model.strip.wrap(plane.x)
+        advanceCourier(input: input)
         if case .wrecked = phase {
             bullets.removeAll()
             return
@@ -158,7 +182,9 @@ public struct Practice: Equatable, Sendable {
 
         rearm(dt: dt)
         gunCooldown = max(0, gunCooldown - dt)
-        if input.fire && gunCooldown == 0 && ammo > 0 {
+        // A courier on the ground uses the trigger to pick a contract, not to shoot.
+        let gunFree = mode == .balloons || !phase.isOnGround
+        if input.fire && gunFree && gunCooldown == 0 && ammo > 0 {
             ammo -= 1
             let m = plane.muzzle(gun)
             bullets.append(
@@ -192,7 +218,9 @@ public struct Practice: Equatable, Sendable {
         }
         bullets.removeAll { $0.age >= gun.bulletLife || $0.y < model.strip.surfaceHeight(at: $0.x) }
 
-        if finishedAt == nil, startedAt != nil, remaining == 0, case .parked = phase {
+        if mode == .balloons, finishedAt == nil, startedAt != nil, remaining == 0,
+            case .parked = phase
+        {
             finishedAt = time
         }
     }
@@ -214,7 +242,7 @@ public struct Practice: Equatable, Sendable {
 
     /// Popped everything and still to land.
     public var needsToLand: Bool {
-        guard remaining == 0, !isFinished else { return false }
+        guard mode == .balloons, remaining == 0, !isFinished else { return false }
         if case .parked = phase { return false }
         return true
     }

@@ -35,6 +35,17 @@
         }
       }
     },
+    "%lld fr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld fr"
+          }
+        }
+      }
+    },
     "%lld km/h" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -132,6 +143,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Balloon drift"
+          }
+        }
+      }
+    },
+    "Balloon run (0 = courier)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balloon run (0 = courier)"
+          }
+        }
+      }
+    },
+    "Base fare" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Base fare"
           }
         }
       }
@@ -279,6 +312,17 @@
         }
       }
     },
+    "Courier" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Courier"
+          }
+        }
+      }
+    },
     "Crashed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -308,6 +352,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Debug"
+          }
+        }
+      }
+    },
+    "Delivered: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delivered: %@"
+          }
+        }
+      }
+    },
+    "Fare falls over (+ seconds)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fare falls over (+ seconds)"
+          }
+        }
+      }
+    },
+    "Fare falls over (× straight run)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fare falls over (× straight run)"
+          }
+        }
+      }
+    },
+    "Fare per metre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fare per metre"
           }
         }
       }
@@ -433,6 +521,50 @@
         }
       }
     },
+    "Mail for %@ aboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mail for %@ aboard"
+          }
+        }
+      }
+    },
+    "Mail for %@, %@. Fire for another, pull up to go" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mail for %@, %@. Fire for another, pull up to go"
+          }
+        }
+      }
+    },
+    "Mail for %@: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mail for %@: %@"
+          }
+        }
+      }
+    },
+    "Mail still aboard: pull up to fly on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mail still aboard: pull up to fly on"
+          }
+        }
+      }
+    },
     "Minimum throw" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -451,6 +583,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Muzzle speed"
+          }
+        }
+      }
+    },
+    "No work here: pull up to fly on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No work here: pull up to fly on"
           }
         }
       }
@@ -682,6 +825,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Taxiing"
+          }
+        }
+      }
+    },
+    "The mail is lost" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The mail is lost"
           }
         }
       }

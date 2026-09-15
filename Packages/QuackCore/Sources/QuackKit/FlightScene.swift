@@ -129,6 +129,8 @@ public final class FlightScene: SKScene {
         practice.model.landing = tuning.landing
         practice.gun = tuning.gun
         practice.windTuning = tuning.wind
+        practice.courierTuning = tuning.courier
+        if practice.mode != tuning.mode { startRun() }
         controls.throwDistance = CGFloat(tuning.throwDistance)
         controls.minimumThrow = CGFloat(tuning.minimumThrow)
         controls.invertedPitch = tuning.invertedPitch
@@ -140,7 +142,7 @@ public final class FlightScene: SKScene {
         fieldNodes.forEach { $0.removeFromParent() }
         fieldNodes = practice.model.strip.airfields.map { field in
             // Drawn with the field starting at 0; `render` places it.
-            let local = Airfield(start: 0, length: field.length)
+            let local = Airfield(start: 0, length: field.length, name: field.name)
             let node = SKNode()
             node.addChild(SceneArt.approachCones(practice.model, field: local, scale: scale))
             node.addChild(SceneArt.airfieldNode(local, scale: scale, palette: look.palette))
@@ -174,7 +176,7 @@ public final class FlightScene: SKScene {
     }
 
     private func startRun() {
-        practice = Practice(seed: run, fieldLength: tuning.fieldLength)
+        practice = Practice(seed: run, mode: tuning.mode, fieldLength: tuning.fieldLength)
         applyTuning()
         // A new run starts with the tuned belt, not the default one.
         practice.ammo = practice.capacity
@@ -204,6 +206,7 @@ public final class FlightScene: SKScene {
         while accumulator >= FlightModel.dt {
             practice.advance(input: input)
             if let event = practice.lastEvent { show(event, at: currentTime) }
+            if let event = practice.courierEvent { show(event, at: currentTime) }
             accumulator -= FlightModel.dt
         }
         render(at: currentTime)

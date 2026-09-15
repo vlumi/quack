@@ -233,7 +233,14 @@ so the turn back and the approach are part of the time.
 ## The courier economy (single player)
 
 - Contracts appear at fields: pick up here, deliver there, pay falls with
-  time. Distance, terrain and wind decide how tempting each is.
+  time. Distance, terrain and wind decide how tempting each is. As built:
+  each field posts two jobs to other fields, the fare 10 francs plus 7 a
+  hundred metres the shorter way round, falling in a straight line to a
+  quarter over four straight runs at cruise plus 20 s. Parked, the trigger
+  picks (it has nothing else to do on the ground), pulling up takes the pick
+  aboard, and parking at its field pays. One job at a time. A crash loses
+  the bag, and the plane comes back at home. Money is the day's, not yet
+  kept between runs. Fields have village names so a job can say where.
 - **Mailbags don't care how you fly; passengers do.** Aerobatics with a
   passenger cut the fare. Two contract types, two ways to fly.
 - **Fuel is a range clock**: it drains as long as the engine runs, which is

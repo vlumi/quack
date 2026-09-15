@@ -198,6 +198,7 @@ struct TuningPanel: View {
         case .controls: return Text("Controls", bundle: .module)
         case .gun: return Text("Gun", bundle: .module)
         case .wind: return Text("Wind", bundle: .module)
+        case .courier: return Text("Courier", bundle: .module)
         case .feel: return Text("Feel", bundle: .module)
         }
     }
@@ -239,6 +240,12 @@ struct TuningPanel: View {
         case "wind.groundShare": return Text("Share at the ground", bundle: .module)
         case "wind.layer": return Text("Full strength above", bundle: .module)
         case "wind.balloonDrift": return Text("Balloon drift", bundle: .module)
+        case "courier.baseFare": return Text("Base fare", bundle: .module)
+        case "courier.farePerMetre": return Text("Fare per metre", bundle: .module)
+        case "courier.windowFactor":
+            return Text("Fare falls over (× straight run)", bundle: .module)
+        case "courier.windowExtra": return Text("Fare falls over (+ seconds)", bundle: .module)
+        case "feel.balloonRun": return Text("Balloon run (0 = courier)", bundle: .module)
         case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
         default: return Text(verbatim: id)
         }

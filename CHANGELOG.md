@@ -22,6 +22,8 @@ fields and wind.
 
 ### Unreleased (next build)
 
+- The courier's day: every field has a name and posts two mail jobs to other fields. Parked, the trigger picks one and pulling up takes it aboard; land at its field and it pays what is left of the fare, which falls with time to a quarter. Landing elsewhere keeps the bag; a crash loses it. The readouts show your money and the job's pay, the minimap lights the destination red, and the white chevron points at it. The balloon run is still there behind the Balloon run dial on the tuning panel.
+
 ### build 6 — 2026-09-15
 
 - The world wraps: fly off one end of a 2.4 km strip and you come back from the other. Four fields are spread round it, generated from the run's seed.
