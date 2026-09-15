@@ -22,6 +22,8 @@ fields and wind.
 
 ### Unreleased (next build)
 
+### build 6 — 2026-09-15
+
 - The world wraps: fly off one end of a 2.4 km strip and you come back from the other. Four fields are spread round it, generated from the run's seed.
 - The balloon run spreads its balloons round the whole strip and finishes when you land at any field, not only at home.
 - A tiny minimap under the status line shows the whole world shrunk into a box, squeezed more side to side than up and down: the ground with its fields, the balloons still up at their heights, and your plane at its height, pointing the way it flies.
