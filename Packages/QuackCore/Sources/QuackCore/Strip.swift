@@ -12,13 +12,18 @@ public struct Strip: Equatable, Sendable {
     /// Ground heights sampled every `spacing` metres from 0, wrapping; empty is flat at 0.
     public var heights: [Double]
     public var spacing: Double
+    /// Houses and trees standing on the strip, in order along it.
+    public var scenery: [Obstacle]
 
-    public init(length: Double, airfields: [Airfield], heights: [Double] = [], spacing: Double = 5)
-    {
+    public init(
+        length: Double, airfields: [Airfield], heights: [Double] = [], spacing: Double = 5,
+        scenery: [Obstacle] = []
+    ) {
         self.length = length
         self.airfields = airfields
         self.heights = heights
         self.spacing = spacing
+        self.scenery = scenery
     }
 
     /// `x` moved by whole laps into 0..<length.
@@ -78,10 +83,12 @@ public struct Strip: Equatable, Sendable {
     /// round the strip, and `fields` fields spread evenly round it, each nudged
     /// by up to a quarter of the gap, the first near the start. Each field sits
     /// on a flat shelf reaching `apron` metres past its ends, room for its
-    /// approach cones, blended back into the hills over `blend` metres.
+    /// approach cones, blended back into the hills over `blend` metres. Houses
+    /// and trees stand everywhere else that leaves the approaches clear, under
+    /// a line rising at `approachSlope` from each field's ends.
     public static func generate(
         seed: UInt64, length: Double, fields: Int, fieldLength: Double, apron: Double = 70,
-        blend: Double = 80
+        blend: Double = 80, approachSlope: Double = tan(8 * .pi / 180)
     ) -> Strip {
         var rng = SeededRNG(seed: seed ^ 0x5717_1B00)
         let gap = length / Double(max(1, fields))
@@ -100,27 +107,17 @@ public struct Strip: Equatable, Sendable {
             strip.flatten(airfields[k], apron: apron, blend: blend)
         }
         strip.airfields = airfields
+        strip.scenery = Strip.scenery(seed: seed, on: strip, apron: apron, slope: approachSlope)
         return strip
     }
 
     /// Octaves of periodic value noise, sampled every 5 m: long swells, hills,
     /// bumps. Shifted so the lowest ground is at 0.
     private static func hills(_ rng: inout SeededRNG, length: Double) -> [Double] {
-        let spacing = 5.0
-        let count = max(4, Int((length / spacing).rounded()))
-        var heights = [Double](repeating: 0, count: count)
-        for (wavelength, amplitude) in [(800.0, 34.0), (300.0, 16.0), (110.0, 6.0), (40.0, 1.5)] {
-            let cells = max(1, Int((length / wavelength).rounded()))
-            let values = (0..<cells).map { _ in rng.unit() * 2 - 1 }
-            for i in 0..<count {
-                let u = Double(i) / Double(count) * Double(cells)
-                let c = Int(u.rounded(.down))
-                let f = u - Double(c)
-                let s = f * f * (3 - 2 * f)
-                heights[i] +=
-                    amplitude * (values[c % cells] * (1 - s) + values[(c + 1) % cells] * s)
-            }
-        }
+        let count = max(4, Int((length / 5).rounded()))
+        let heights = ValueNoise.periodic(
+            &rng, count: count, period: length,
+            octaves: [(800, 34), (300, 16), (110, 6), (40, 1.5)])
         let lowest = heights.min() ?? 0
         return heights.map { $0 - lowest }
     }

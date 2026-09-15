@@ -48,8 +48,10 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   spread round it, finishing at any field; a tiny minimap of the whole strip.
 - [x] Noise terrain: fields on flat shelves, hills to crash into, balloons
   above the ground; the air thins above 120 m to a 250 m ceiling.
-- [ ] The look, mockups first: parallax silhouettes, buildings and trees, sky
-  gradient for the seeded hour.
+- [x] The look: poster shapes over a smooth sky for the seeded hour (dawn,
+  noon, evening, night); three parallax layers with villages; houses and trees
+  on the strip, solid.
+- [ ] Fly it at every hour on a device (the hour dial on the tuning panel).
 - [ ] Wind = the cloud layer's speed; headwind one way, tailwind the other;
   balloons drift with it. Clouds in front of the plane too, translucent.
 

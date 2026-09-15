@@ -25,7 +25,10 @@ public final class FlightScene: SKScene {
 
     let world = SKNode()
     let planeNode: PlaneNode
-    private let groundNode = SKShapeNode()
+    /// The sky, the backdrop, the ground and the scenery, for the run's hour.
+    private let look = StripLook()
+    /// Readout ink for the hour: dark by day, pale at night.
+    var hudInk = SKColor(white: 0.12, alpha: 1)
     /// One node per field, each holding its strip and its two approach cones,
     /// placed every frame at the field's lap nearest the plane.
     private let fieldLayer = SKNode()
@@ -77,14 +80,6 @@ public final class FlightScene: SKScene {
     let scale: CGFloat = FlightScene.boxSize.height / FlightScene.worldHeight
     /// Where the sun is, for the gloss: up and a little ahead.
     private let sun = CGVector(dx: 0.33, dy: 0.94)
-    private static let balloonColours: [SKColor] = [
-        SKColor(red: 0.85, green: 0.2, blue: 0.2, alpha: 1),
-        SKColor(red: 0.95, green: 0.72, blue: 0.02, alpha: 1),
-        SKColor(red: 0.2, green: 0.45, blue: 0.85, alpha: 1),
-        SKColor(red: 0.3, green: 0.65, blue: 0.3, alpha: 1),
-        SKColor(red: 0.9, green: 0.45, blue: 0.15, alpha: 1),
-        SKColor(red: 0.6, green: 0.3, blue: 0.7, alpha: 1),
-    ]
 
     /// The thumb overlay draws from `overlay`, which the controls keep current.
     public init(overlay: ThumbOverlayState) {
@@ -94,11 +89,15 @@ public final class FlightScene: SKScene {
         fieldMarker = SceneArt.markerNode(scale: scale, colour: .white)
         super.init(size: FlightScene.boxSize)
         scaleMode = .aspectFit
-        backgroundColor = SKColor(red: 0.55, green: 0.72, blue: 0.9, alpha: 1)
         anchorPoint = CGPoint(x: 0.5, y: 0.3)
+        addChild(look.sky)
+        addChild(look.backdrop)
         addChild(world)
-        // The fields go over the ground: their bands sit just under its line.
-        world.addChild(groundNode)
+        // Scenery stands behind the ground's edge; the fields go over the
+        // ground, since their bands sit just under its line.
+        world.addChild(look.scenery)
+        world.addChild(look.ground)
+        world.addChild(look.groundShade)
         world.addChild(fieldLayer)
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
@@ -106,9 +105,6 @@ public final class FlightScene: SKScene {
         markerLayer.zPosition = 50
         markerLayer.addChild(fieldMarker)
         addChild(markerLayer)
-        groundNode.fillColor = SKColor(red: 0.42, green: 0.62, blue: 0.32, alpha: 1)
-        groundNode.strokeColor = SKColor(red: 0.25, green: 0.45, blue: 0.2, alpha: 1)
-        groundNode.lineWidth = 0.5 * scale
         setUpHUD()
         startRun()
     }
@@ -124,7 +120,7 @@ public final class FlightScene: SKScene {
         view.isMultipleTouchEnabled = true
         #endif
         layoutHUD()
-        redrawGround()
+        render(at: 0)
     }
 
     private func applyTuning() {
@@ -138,19 +134,39 @@ public final class FlightScene: SKScene {
         speedDial.redBelow = CGFloat(tuning.flight.stallSpeed * 3.6)
         practice.resizeFields(to: tuning.fieldLength)
         altitudeDial.redAbove = CGFloat(tuning.flight.thinAirFrom)
+        applyLook()
         fieldNodes.forEach { $0.removeFromParent() }
         fieldNodes = practice.model.strip.airfields.map { field in
             // Drawn with the field starting at 0; `render` places it.
             let local = Airfield(start: 0, length: field.length)
             let node = SKNode()
             node.addChild(SceneArt.approachCones(practice.model, field: local, scale: scale))
-            node.addChild(SceneArt.airfieldNode(local, scale: scale))
+            node.addChild(SceneArt.airfieldNode(local, scale: scale, palette: look.palette))
             fieldLayer.addChild(node)
             return node
         }
         minimap.reset(
             strip: practice.model.strip,
-            balloonColours: practice.balloons.indices.map { FlightScene.balloonColours[$0 % 6] })
+            balloonColours: practice.balloons.indices.map { look.palette.balloon($0) })
+    }
+
+    /// Build the world's look again if the run, its hour or its scenery changed,
+    /// and recolour what takes the hour's light: the balloons and the readouts.
+    private func applyLook() {
+        let hour = tuning.timeOfDay(seeded: practice.hour)
+        guard look.needsBuild(practice, hour: hour) else { return }
+        look.build(practice, hour: hour, scale: scale, box: size)
+        backgroundColor = look.palette.sky[2].color()
+        hudInk = look.palette.hudInk
+        applyInk()
+        balloonNodes.forEach { $0.removeFromParent() }
+        balloonNodes = practice.balloons.enumerated().map { i, b in
+            let n = SceneArt.balloonNode(
+                radius: CGFloat(b.radius) * scale, colour: look.palette.balloon(i))
+            n.position = CGPoint(x: b.x * scale, y: b.y * scale)
+            if !b.popped { balloonLayer.addChild(n) }
+            return n
+        }
     }
 
     private func startRun() {
@@ -158,17 +174,9 @@ public final class FlightScene: SKScene {
         applyTuning()
         // A new run starts with the tuned belt, not the default one.
         practice.ammo = practice.capacity
-        balloonNodes.forEach { $0.removeFromParent() }
-        balloonNodes = practice.balloons.enumerated().map { i, b in
-            let n = SceneArt.balloonNode(
-                radius: CGFloat(b.radius) * scale, colour: FlightScene.balloonColours[i % 6])
-            n.position = CGPoint(x: b.x * scale, y: b.y * scale)
-            balloonLayer.addChild(n)
-            return n
-        }
         markerNodes.forEach { $0.removeFromParent() }
         markerNodes = practice.balloons.indices.map { i in
-            let m = SceneArt.markerNode(scale: scale, colour: FlightScene.balloonColours[i % 6])
+            let m = SceneArt.markerNode(scale: scale, colour: Palette.Base.balloons[i % 6].color())
             markerLayer.addChild(m)
             return m
         }
@@ -254,7 +262,8 @@ public final class FlightScene: SKScene {
         }
 
         follow(plane)
-        redrawGround()
+        look.update(
+            practice, planePoints: planeNode.position, cameraY: cameraY, scale: scale, box: size)
         updateMarkers()
         updateHUD(at: now)
     }
@@ -303,38 +312,6 @@ public final class FlightScene: SKScene {
         let target2 = max(below * scale, planeNode.position.y - size.height * 0.4)
         cameraY += (target2 - cameraY) * 0.12
         world.position = CGPoint(x: -planeNode.position.x, y: -cameraY)
-    }
-
-    /// The ground as a filled silhouette a screen either side of the plane,
-    /// sampled every two metres, with a tick every 20 m hanging under the
-    /// surface so motion over it reads.
-    private func redrawGround() {
-        let strip = practice.model.strip
-        let half = size.width
-        let x0 = planeNode.position.x - half
-        let bottom = cameraY - size.height
-        let surface = { (x: CGFloat) -> CGPoint in
-            CGPoint(x: x, y: CGFloat(strip.groundHeight(at: Double(x / self.scale))) * self.scale)
-        }
-        let path = CGMutablePath()
-        path.move(to: CGPoint(x: x0, y: bottom))
-        let step: CGFloat = 2 * scale
-        var x = (x0 / step).rounded(.down) * step
-        while x <= x0 + 2 * half + step {
-            path.addLine(to: surface(x))
-            x += step
-        }
-        path.addLine(to: CGPoint(x: x - step, y: bottom))
-        path.closeSubpath()
-        let tick: CGFloat = 20 * scale
-        x = (x0 / tick).rounded(.down) * tick
-        while x < x0 + 2 * half {
-            let top = surface(x)
-            path.move(to: top)
-            path.addLine(to: CGPoint(x: x, y: top.y - 1.3 * scale))
-            x += tick
-        }
-        groundNode.path = path
     }
 
     // MARK: Input

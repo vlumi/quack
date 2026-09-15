@@ -96,13 +96,13 @@ enum SceneArt {
     /// A mown strip in the ground line: a tan band, threshold bars at both ends,
     /// and a windsock beside the middle, faded back so a plane landing or
     /// rolling past it reads as passing in front rather than through it.
-    static func airfieldNode(_ field: Airfield, scale: CGFloat) -> SKNode {
+    static func airfieldNode(_ field: Airfield, scale: CGFloat, palette: Palette) -> SKNode {
         let n = SKNode()
         let x0 = CGFloat(field.start) * scale, x1 = CGFloat(field.end) * scale
         let ink = SKColor(white: 0.12, alpha: 1)
         let band = SKShapeNode(
             rect: CGRect(x: x0, y: -1.2 * scale, width: x1 - x0, height: 1.2 * scale))
-        band.fillColor = SKColor(red: 0.78, green: 0.68, blue: 0.48, alpha: 1)
+        band.fillColor = palette.lit(Palette.Base.field).color()
         band.strokeColor = .clear
         n.addChild(band)
         let bars = CGMutablePath()
@@ -117,7 +117,7 @@ enum SceneArt {
             }
         }
         let barNode = SKShapeNode(path: bars)
-        barNode.fillColor = .white
+        barNode.fillColor = palette.lit(.white).color()
         barNode.strokeColor = .clear
         n.addChild(barNode)
         let windsock = SKNode()
@@ -139,7 +139,7 @@ enum SceneArt {
         ])
         sock.closeSubpath()
         let sockNode = SKShapeNode(path: sock)
-        sockNode.fillColor = SKColor(red: 0.93, green: 0.45, blue: 0.15, alpha: 1)
+        sockNode.fillColor = palette.lit(Palette.Base.sock).color()
         sockNode.strokeColor = ink
         sockNode.lineWidth = 0.1 * scale
         windsock.addChild(sockNode)

@@ -234,6 +234,7 @@ struct TuningPanel: View {
         case "gun.capacity": return Text("Belt size", bundle: .module)
         case "gun.rearmRate": return Text("Rearm rate", bundle: .module)
         case "feel.rollDuration": return Text("Roll time", bundle: .module)
+        case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
         default: return Text(verbatim: id)
         }
     }

@@ -18,8 +18,17 @@ public struct Tuning: Equatable, Sendable {
     public var invertedPitch = false
     /// Seconds the plane takes to roll when it rights itself.
     public var rollDuration: Double = 0.35
+    /// The sky to show: 0 is the seed's hour, 1 to 4 force dawn, noon, evening, night.
+    public var hour: Double = 0
 
     public init() {}
+
+    /// The hour to draw a run at: the forced one, or else the seed's.
+    public func timeOfDay(seeded: TimeOfDay) -> TimeOfDay {
+        let forced = Int(hour.rounded())
+        guard (1...TimeOfDay.allCases.count).contains(forced) else { return seeded }
+        return TimeOfDay.allCases[forced - 1]
+    }
 
     /// The id the invert switch is stored and reported under; the sliders use their dial ids.
     public static let invertedPitchID = "controls.invertedPitch"
@@ -202,6 +211,8 @@ public struct TuningDial: Identifiable {
         TuningDial(
             id: "feel.rollDuration", section: .feel, keyPath: \.rollDuration, range: 0.05...1,
             step: 0.05, decimals: 2),
+        TuningDial(
+            id: "feel.hour", section: .feel, keyPath: \.hour, range: 0...4, step: 1, decimals: 0),
     ]
 
     /// The sliders in one section, in panel order.
