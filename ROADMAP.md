@@ -59,8 +59,10 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 
 ## 0.4 — Courier
 
-- [ ] Contracts between fields: mail (indifferent) and passengers (punish
-  aerobatics). Pay falls with time.
+- [x] Mail contracts between fields: a board at each field, the trigger picks,
+  lift-off loads, landing at the destination pays what is left of the fare.
+- [ ] Passengers: the same jobs, but aerobatics cut the fare.
+- [ ] A way into the balloon run and back that is not a tuning dial.
 - [ ] Fuel: a range clock; costs money and time to refill. An empty tank
   stops the engine and the plane glides to a field, or does not.
 - [ ] Rounds cost money at the field.

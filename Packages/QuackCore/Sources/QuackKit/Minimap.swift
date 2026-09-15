@@ -16,6 +16,7 @@ final class Minimap: SKNode {
     private var balloonDots: [SKShapeNode] = []
     private let planeMark = SKShapeNode()
     private let ink = SKColor(white: 0.12, alpha: 1)
+    private static let fieldTan = SKColor(red: 0.78, green: 0.68, blue: 0.48, alpha: 1)
 
     init(size: CGSize) {
         self.size = size
@@ -52,7 +53,7 @@ final class Minimap: SKNode {
         fieldMarks = strip.airfields.map { field in
             let w = max(4, CGFloat(field.length / strip.length) * size.width)
             let mark = SKShapeNode(rect: CGRect(x: -w / 2, y: -1.5, width: w, height: 3))
-            mark.fillColor = SKColor(red: 0.78, green: 0.68, blue: 0.48, alpha: 1)
+            mark.fillColor = Minimap.fieldTan
             mark.strokeColor = ink
             mark.lineWidth = 0.8
             mark.zPosition = 2
@@ -85,9 +86,15 @@ final class Minimap: SKNode {
             drawTerrain(strip, up: up)
             drawn = (strip, shown)
         }
-        for (mark, field) in zip(fieldMarks, strip.airfields) {
+        for (i, (mark, field)) in zip(fieldMarks, strip.airfields).enumerated() {
             mark.position = CGPoint(
                 x: across(field.start + field.length / 2), y: up(field.elevation))
+            // The destination's mark is lit red.
+            let isDestination = practice.contract?.to == i
+            mark.fillColor =
+                isDestination
+                ? SKColor(red: 0.85, green: 0.2, blue: 0.2, alpha: 1) : Minimap.fieldTan
+            mark.setScale(isDestination ? 1.6 : 1)
         }
         for (dot, balloon) in zip(balloonDots, practice.balloons) {
             dot.isHidden = balloon.popped

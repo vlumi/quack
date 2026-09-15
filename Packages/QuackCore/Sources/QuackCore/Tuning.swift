@@ -11,6 +11,9 @@ public struct Tuning: Equatable, Sendable {
     public var fieldLength: Double = Practice.fieldLength
     public var gun = GunTuning()
     public var wind = WindTuning()
+    public var courier = CourierTuning()
+    /// 0 flies contracts, 1 the balloon run.
+    public var balloonRun: Double = 0
     /// Points of thumb drag for full elevator, at most.
     public var throwDistance: Double = 80
     /// The least the throw shrinks to near a screen edge.
@@ -23,6 +26,9 @@ public struct Tuning: Equatable, Sendable {
     public var hour: Double = 0
 
     public init() {}
+
+    /// What a run is for, from the mode dial.
+    public var mode: Practice.Mode { balloonRun.rounded() >= 1 ? .balloons : .courier }
 
     /// The hour to draw a run at: the forced one, or else the seed's.
     public func timeOfDay(seeded: TimeOfDay) -> TimeOfDay {
@@ -91,6 +97,7 @@ public enum TuningSection: String, CaseIterable, Sendable {
     case controls
     case gun
     case wind
+    case courier
     case feel
 }
 
@@ -222,6 +229,21 @@ public struct TuningDial: Identifiable {
         TuningDial(
             id: "wind.balloonDrift", section: .wind, keyPath: \.wind.balloonDrift, range: 0...1,
             step: 0.1, decimals: 1),
+        TuningDial(
+            id: "courier.baseFare", section: .courier, keyPath: \.courier.baseFare, range: 0...50,
+            step: 1, decimals: 0),
+        TuningDial(
+            id: "courier.farePerMetre", section: .courier, keyPath: \.courier.farePerMetre,
+            range: 0.01...0.3, step: 0.01, decimals: 2),
+        TuningDial(
+            id: "courier.windowFactor", section: .courier, keyPath: \.courier.windowFactor,
+            range: 1...10, step: 0.5, decimals: 1),
+        TuningDial(
+            id: "courier.windowExtra", section: .courier, keyPath: \.courier.windowExtra,
+            range: 0...60, step: 5, decimals: 0),
+        TuningDial(
+            id: "feel.balloonRun", section: .feel, keyPath: \.balloonRun, range: 0...1, step: 1,
+            decimals: 0),
         TuningDial(
             id: "feel.rollDuration", section: .feel, keyPath: \.rollDuration, range: 0.05...1,
             step: 0.05, decimals: 2),

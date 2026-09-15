@@ -130,7 +130,17 @@ of the display's refresh rate.
   moved (`Weather.swift`). `resizeFields(to:)` regenerates
   the strip for a new field length, so each field keeps a shelf that fits it.
   Balloons pop by round or by collision. Deterministic, so the same
-  inputs give the same run.
+  inputs give the same run. Its `mode` is the balloon run or the courier
+  (`Practice.Mode`, from the tuning panel's balloon-run dial for now).
+- `Contract`, `CourierTuning`, `CourierEvent` — the courier's day
+  (`Courier.swift`): a mail contract from one field to another with a fare
+  that falls to a quarter over its window (`pay(after:)`); `offers(at:)`
+  posts two per field from the seed and the delivery count, priced by the
+  shorter way round; `advanceCourier` runs the board while parked (the
+  trigger cycles the pick and does not fire on the ground), loads the pick at
+  lift-off, pays on parking at the destination, and loses the bag in a
+  crash, reporting each as a `CourierEvent`. Fields carry village `name`s
+  from `Strip.fieldNames`.
 - `Backdrop` — what lies behind the strip, from the seed: three
   `BackdropLayer`s (far ridge, village hills, hedgerows), each a ridge profile
   with the `BackdropProp`s standing on it (houses, a church, windmills, round
@@ -172,7 +182,10 @@ its height, pointing the way it flies.
 The status line under the title says what the plane is doing (pull up to take
 off or push to turn around, taxiing, landing, repairing, land at any field to stop the clock) and flashes touchdowns,
 bounces, breaks and crashes; a wrecked plane blinks. A white chevron points to
-the nearest field when it is off screen; the chevrons dodge the readouts, the
+the destination while carrying, else the nearest field, when it is off
+screen; the minimap lights the destination's mark red; each field's name
+stands on a board by its windsock; the readouts show the courier's money and
+the pay now for the job aboard, and the status line the board's pick; the chevrons dodge the readouts, the
 status line and minimap, and the gauges.
 
 `FlightScene` (SpriteKit) is a fixed 1280 × 720 box showing 70 m of world

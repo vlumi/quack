@@ -76,6 +76,26 @@ extension FlightScene {
         flash = (text, now + 1.5)
     }
 
+    /// Flash the courier's news: a bag loaded, delivered, or lost.
+    func show(_ event: CourierEvent, at now: TimeInterval) {
+        let text: String
+        switch event {
+        case .loaded(let c):
+            text = String(localized: "Mail for \(name(c.to)) aboard", bundle: .module)
+        case .delivered(_, let pay):
+            text = String(localized: "Delivered: \(francs(pay))", bundle: .module)
+        case .lost:
+            text = String(localized: "The mail is lost", bundle: .module)
+        }
+        flash = (text, now + 2)
+    }
+
+    func name(_ field: Int) -> String { practice.model.strip.airfields[field].name }
+
+    func francs(_ amount: Double) -> String {
+        String(localized: "\(Int(amount.rounded())) fr", bundle: .module)
+    }
+
     func updateHUD(at now: TimeInterval) {
         let plane = practice.plane
         let kmh = Int((plane.speed * 3.6).rounded())
@@ -86,7 +106,15 @@ extension FlightScene {
         speedLabel.text = String(localized: "\(kmh) km/h", bundle: .module)
         altitudeLabel.text = String(localized: "\(metres) m", bundle: .module)
         let seconds = practice.elapsed.formatted(.number.precision(.fractionLength(1)))
-        if practice.isFinished {
+        if practice.mode == .courier {
+            countLabel.text = francs(practice.money)
+            if let contract = practice.contract, let pay = practice.payNow {
+                clockLabel.text = String(
+                    localized: "Mail for \(name(contract.to)): \(francs(pay))", bundle: .module)
+            } else {
+                clockLabel.text = String(localized: "\(seconds) s", bundle: .module)
+            }
+        } else if practice.isFinished {
             countLabel.text = String(
                 localized: "Landed in \(seconds) s. Fire to go again.", bundle: .module)
             clockLabel.text = ""
@@ -122,6 +150,16 @@ extension FlightScene {
             return String(localized: "Landing", bundle: .module)
         case .parked(let repair) where repair > 0:
             return String(localized: "Repairing", bundle: .module)
+        case .parked where practice.mode == .courier && practice.contract != nil:
+            return String(localized: "Mail still aboard: pull up to fly on", bundle: .module)
+        case .parked where practice.mode == .courier:
+            guard let pick = practice.chosen else {
+                return String(localized: "No work here: pull up to fly on", bundle: .module)
+            }
+            return String(
+                localized:
+                    "Mail for \(name(pick.to)), \(francs(pick.fare)). Fire for another, pull up to go",
+                bundle: .module)
         case .parked where !practice.isFinished:
             return String(localized: "Pull up to take off, push to turn around", bundle: .module)
         case .taxiing:
@@ -147,7 +185,9 @@ extension FlightScene {
                 markerNodes[i], at: plane.x + strip.offset(from: plane.x, to: b.x), b.y,
                 hidden: b.popped, from: plane)
         }
-        if let field = strip.nearestAirfield(to: plane.x) {
+        // The chevron points at the destination while carrying, else the nearest field.
+        let target = practice.destination.map { strip.image(of: $0, near: plane.x) }
+        if let field = target ?? strip.nearestAirfield(to: plane.x) {
             let nearest = min(max(plane.x, field.start), field.end)
             place(fieldMarker, at: nearest, field.elevation, hidden: false, from: plane)
         }

@@ -125,6 +125,18 @@ enum SceneArt {
         }
     }
 
+    /// The village's name on a board by the sock's pole.
+    private static func sign(_ name: String, at x: CGFloat, scale: CGFloat) -> SKNode {
+        let sign = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        sign.text = name.uppercased()
+        sign.fontSize = 1.1 * scale
+        sign.fontColor = SKColor(white: 0.12, alpha: 0.7)
+        sign.horizontalAlignmentMode = .left
+        sign.verticalAlignmentMode = .baseline
+        sign.position = CGPoint(x: x + 0.6 * scale, y: 0.4 * scale)
+        return sign
+    }
+
     static func airfieldNode(_ field: Airfield, scale: CGFloat, palette: Palette) -> SKNode {
         let n = SKNode()
         let x0 = CGFloat(field.start) * scale, x1 = CGFloat(field.end) * scale
@@ -149,6 +161,7 @@ enum SceneArt {
         barNode.fillColor = palette.lit(.white).color()
         barNode.strokeColor = .clear
         n.addChild(barNode)
+        if !field.name.isEmpty { n.addChild(sign(field.name, at: (x0 + x1) / 2, scale: scale)) }
         let windsock = SKNode()
         windsock.alpha = 0.55
         windsock.zPosition = -1

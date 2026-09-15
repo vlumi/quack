@@ -64,7 +64,7 @@ public struct Strip: Equatable, Sendable {
         let middle = field.start + field.length / 2
         return Airfield(
             start: x + offset(from: x, to: middle) - field.length / 2, length: field.length,
-            elevation: field.elevation)
+            elevation: field.elevation, name: field.name)
     }
 
     /// The field under `x`, as an image near it, if there is one.
@@ -92,10 +92,13 @@ public struct Strip: Equatable, Sendable {
     ) -> Strip {
         var rng = SeededRNG(seed: seed ^ 0x5717_1B00)
         let gap = length / Double(max(1, fields))
+        let names = fieldNames(seed: seed, count: max(1, fields))
         var airfields = (0..<max(1, fields)).map { k -> Airfield in
             let jitter = (rng.unit() - 0.5) * gap / 2
             let start = Double(k) * gap + gap / 4 + jitter
-            return Airfield(start: min(max(0, start), length - fieldLength), length: fieldLength)
+            return Airfield(
+                start: min(max(0, start), length - fieldLength), length: fieldLength,
+                name: names[k])
         }
         let heights = hills(&rng, length: length)
         var strip = Strip(
@@ -110,6 +113,25 @@ public struct Strip: Equatable, Sendable {
         strip.scenery = Strip.scenery(seed: seed, on: strip, apron: apron, slope: approachSlope)
         return strip
     }
+
+    /// Village names for the fields, no two the same, from the seed.
+    static func fieldNames(seed: UInt64, count: Int) -> [String] {
+        var rng = SeededRNG(seed: seed ^ 0x0A3E_5000)
+        var pool = Strip.villages
+        var out: [String] = []
+        while out.count < count {
+            if pool.isEmpty { pool = Strip.villages }
+            out.append(pool.remove(at: min(pool.count - 1, Int(rng.unit() * Double(pool.count)))))
+        }
+        return out
+    }
+
+    /// The villages a field can be named after.
+    static let villages = [
+        "Ashby", "Brill", "Crake", "Dunmore", "Elmley", "Fenny", "Gosford", "Hartley", "Ivinghoe",
+        "Kettle", "Lynton", "Marlow", "Nettlebed", "Oakley", "Purton", "Quarry", "Ripley", "Stow",
+        "Tring", "Wendover",
+    ]
 
     /// Octaves of periodic value noise, sampled every 5 m: long swells, hills,
     /// bumps. Shifted so the lowest ground is at 0.
