@@ -190,43 +190,89 @@ enum SceneArt {
         return n
     }
 
-    /// The approach cone drawn in the sky over each end of the field, the exact
-    /// region where the assist can take over: floor, ceiling and the low throat
-    /// over the threshold, with the approach angle dashed along its middle.
+    /// The approach guides: a soft amber glow over each end of the field, the
+    /// shape of the cone, brightest at the threshold and fading out toward the
+    /// far end, with no hard edge, so it reads as a rough guide rather than a
+    /// rule. Drawn once into a texture; the scene fades the whole node out while
+    /// the plane is on the ground.
     static func approachCones(_ model: AirfieldModel, field: Airfield, scale: CGFloat) -> SKNode {
         let n = SKNode()
         let landing = model.landing
         let a = landing.approachAngle * .pi / 180
         let b = landing.approachBand * .pi / 180
+        let samples = stride(from: -landing.throatLength, through: landing.coneLength, by: 1).map {
+            $0
+        }
+        let floors = samples.map { model.coneFloor(outward: $0, a: a, b: b) }
+        let ceilings = samples.map { model.coneCeiling(along: max(0, $0), a: a, b: b) }
+        let width = CGFloat(landing.coneLength + landing.throatLength) * scale
+        let height = CGFloat(ceilings.max() ?? 1) * scale
+        let texture = SceneArt.coneGlow(
+            samples: samples.map { $0 + landing.throatLength }, floors: floors,
+            ceilings: ceilings, size: CGSize(width: width, height: height), scale: scale)
         for (end, outwardSign) in [(field.start, -1.0), (field.end, 1.0)] {
-            func point(_ outward: Double, _ height: Double) -> CGPoint {
-                CGPoint(x: (end + outwardSign * outward) * scale, y: height * scale)
-            }
-            let samples = stride(from: -landing.throatLength, through: landing.coneLength, by: 1)
-                .map { $0 }
-            let cone = CGMutablePath()
-            cone.move(to: point(samples[0], model.coneFloor(outward: samples[0], a: a, b: b)))
-            for o in samples.dropFirst() {
-                cone.addLine(to: point(o, model.coneFloor(outward: o, a: a, b: b)))
-            }
-            for o in samples.reversed() {
-                cone.addLine(to: point(o, model.coneCeiling(along: max(0, o), a: a, b: b)))
-            }
-            cone.closeSubpath()
-            let fill = SKShapeNode(path: cone)
-            fill.fillColor = SKColor(white: 1, alpha: 0.14)
-            fill.strokeColor = SKColor(white: 1, alpha: 0.3)
-            fill.lineWidth = 0.15 * scale
-            n.addChild(fill)
-            let centre = CGMutablePath()
-            centre.move(to: point(0, 0))
-            centre.addLine(to: point(landing.coneLength, landing.coneLength * tan(a)))
-            let dashed = SKShapeNode(
-                path: centre.copy(dashingWithPhase: 0, lengths: [2 * scale, 2 * scale]))
-            dashed.strokeColor = SKColor(white: 1, alpha: 0.45)
-            dashed.lineWidth = 0.25 * scale
-            n.addChild(dashed)
+            let glow = SKSpriteNode(texture: texture)
+            glow.size = CGSize(width: width, height: height)
+            glow.anchorPoint = CGPoint(x: 0, y: 0)
+            glow.xScale = CGFloat(outwardSign)
+            glow.position = CGPoint(
+                x: (end - outwardSign * landing.throatLength) * scale, y: 0)
+            glow.blendMode = .add
+            n.addChild(glow)
         }
         return n
+    }
+
+    /// The glow for one cone, drawn at half resolution: the wedge several times
+    /// over, each thinner about its centre line, each a faint amber that fades
+    /// along its length, so the edges feather and the far end melts away.
+    private static func coneGlow(
+        samples: [Double], floors: [Double], ceilings: [Double], size: CGSize, scale: CGFloat
+    ) -> SKTexture {
+        let px = 2.0
+        return SceneArt.texture(width: Int(size.width / px), height: Int(size.height / px)) { ctx in
+            ctx.scaleBy(x: 1 / px, y: 1 / px)
+            let feathers = 6
+            let amber = CGColor(red: 1, green: 0.78, blue: 0.32, alpha: 0.05)
+            let clear = CGColor(red: 1, green: 0.78, blue: 0.32, alpha: 0)
+            guard
+                let gradient = CGGradient(
+                    colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [amber, clear] as CFArray,
+                    locations: [0, 1])
+            else { return }
+            for k in 0..<feathers {
+                let inset = Double(k) / Double(feathers * 2)
+                let edge = { (top: Bool) -> [CGPoint] in
+                    zip(samples, zip(floors, ceilings)).map { o, fc in
+                        let (f, c) = fc
+                        let y = top ? c - (c - f) * inset : f + (c - f) * inset
+                        return CGPoint(x: CGFloat(o) * scale, y: CGFloat(y) * scale)
+                    }
+                }
+                let path = CGMutablePath()
+                path.addLines(between: edge(false) + edge(true).reversed())
+                path.closeSubpath()
+                ctx.saveGState()
+                ctx.addPath(path)
+                ctx.clip()
+                ctx.drawLinearGradient(
+                    gradient, start: CGPoint(x: (samples.first ?? 0) * 0.5 * scale, y: 0),
+                    end: CGPoint(x: size.width, y: 0), options: [.drawsBeforeStartLocation])
+                ctx.restoreGState()
+            }
+        }
+    }
+
+    /// A texture drawn into a bitmap, or a blank one if the bitmap cannot be made.
+    static func texture(width: Int, height: Int, draw: (CGContext) -> Void) -> SKTexture {
+        guard
+            let ctx = CGContext(
+                data: nil, width: max(1, width), height: max(1, height), bitsPerComponent: 8,
+                bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        else { return SKTexture() }
+        draw(ctx)
+        guard let image = ctx.makeImage() else { return SKTexture() }
+        return SKTexture(cgImage: image)
     }
 }
