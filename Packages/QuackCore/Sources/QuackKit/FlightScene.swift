@@ -39,8 +39,8 @@ public final class FlightScene: SKScene {
     let markerLayer = SKNode()
     var markerNodes: [SKShapeNode] = []
     let fieldMarker: SKShapeNode
-    /// The whole strip, tiny, under the status line.
-    let minimap = Minimap(width: 300)
+    /// The whole world, tiny, under the status line.
+    let minimap = Minimap(size: CGSize(width: 320, height: 40))
     let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     let clockLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     /// Rounds left, and whether they are being loaded.

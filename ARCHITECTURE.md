@@ -102,8 +102,10 @@ threshold bars, a windsock beside the middle, and the approach cone over each
 end, drawn from `inCone`'s own floor and ceiling with the approach angle
 dashed, redrawn when the landing dials change. Everything on the strip (fields,
 balloons, rounds) is placed every frame at its lap nearest the plane, so the
-seam never shows. `Minimap`, under the status line, draws the whole strip tiny:
-field marks, a dot per balloon still up, and the plane.
+seam never shows. `Minimap`, under the status line, draws the whole world shrunk
+into a box, squeezed harder side to side than up and down (150 m of height):
+the ground with field marks, a dot per balloon at its height, and the plane at
+its height, pointing the way it flies.
 The status line under the title says what the plane is doing (pull up to take
 off or push to turn around, taxiing, landing, repairing, land at any field to stop the clock) and flashes touchdowns,
 bounces, breaks and crashes; a wrecked plane blinks. A white chevron points to

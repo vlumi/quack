@@ -47,7 +47,7 @@ extension FlightScene {
         clockLabel.position = CGPoint(x: left, y: top - 40)
         ammoLabel.position = CGPoint(x: left, y: top - 80)
         statusLabel.position = CGPoint(x: 0, y: top)
-        minimap.position = CGPoint(x: 0, y: top - 52)
+        minimap.position = CGPoint(x: 0, y: top - 84)
         let right = size.width / 2 - 24
         altitudeDial.position = CGPoint(x: right - 44, y: top - 44)
         speedDial.position = CGPoint(x: right - 44 - 112, y: top - 44)
@@ -168,7 +168,7 @@ extension FlightScene {
         // the corner readouts or gauges slides down the side below them.
         let gauges = CGRect(x: right - 250, y: top - 150, width: 300, height: 200)
         let readouts = CGRect(x: left - 20, y: top - 130, width: 380, height: 180)
-        let status = CGRect(x: -440, y: top - 90, width: 880, height: 140)
+        let status = CGRect(x: -440, y: top - 100, width: 880, height: 150)
         if status.contains(at) {
             at.x = at.x < 0 ? status.minX : status.maxX
         }
