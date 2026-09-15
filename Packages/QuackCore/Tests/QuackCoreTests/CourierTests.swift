@@ -87,6 +87,7 @@ final class CourierTests: XCTestCase {
         var p = day()
         let pick = takeOff(&p)
         XCTAssertEqual(p.courierEvent, .loaded(pick))
+        XCTAssertEqual(p.destination, p.model.strip.airfields[pick.to])
         let loadedAt = p.acceptedAt!
         XCTAssertEqual(p.payNow!, pick.fare, accuracy: 1e-6)
         // Half a window later, parked at the destination.
@@ -97,6 +98,7 @@ final class CourierTests: XCTestCase {
         XCTAssertEqual(p.money, expected, accuracy: 0.1)
         XCTAssertLessThan(expected, pick.fare * 0.7)
         XCTAssertNil(p.contract)
+        XCTAssertNil(p.destination)
         XCTAssertEqual(p.deliveries, 1)
         if case .delivered(let c, let pay)? = p.courierEvent {
             XCTAssertEqual(c, pick)
