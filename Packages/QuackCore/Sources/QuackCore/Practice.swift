@@ -14,11 +14,11 @@ public struct Balloon: Equatable, Sendable {
     }
 }
 
-/// The balloon run: take off from the field, pop every balloon by gun or by
-/// collision, and land again. The clock starts at the first input and stops
-/// when the plane is parked after the last pop. Deterministic: the balloons
-/// come from the seed and the sim is fixed-step, so the same inputs give the
-/// same run.
+/// The balloon run: take off from the home field, pop every balloon round the
+/// strip by gun or by collision, and land at any field. The clock starts at
+/// the first input and stops when the plane is parked after the last pop.
+/// Deterministic: the strip and the balloons come from the seed and the sim is
+/// fixed-step, so the same inputs give the same run.
 public struct Practice: Equatable, Sendable {
     public var plane: PlaneState
     public var phase: FlightPhase
@@ -36,19 +36,26 @@ public struct Practice: Equatable, Sendable {
     public var rearmProgress: Double = 0
     public let seed: UInt64
 
-    public var model = AirfieldModel(airfield: Practice.airfield)
+    public var model: AirfieldModel
     public var gun = GunTuning()
     /// Metres from the plane's centre that count as a ram.
     public var planeRadius: Double = 1.6
-    /// The field the run starts and ends on, just behind the balloons: short
-    /// enough to see end to end from its middle. `Tuning.fieldLength` resizes it.
-    public static let airfield = Airfield(start: -20, length: 60)
+    /// Metres of field: short enough to see end to end from its middle.
+    /// `Tuning.fieldLength` resizes the fields.
+    public static let fieldLength: Double = 60
+    /// Metres round the strip, and the fields along it.
+    public static let stripLength: Double = 2400
+    public static let fieldCount = 4
 
     public init(seed: UInt64, balloons count: Int = 12) {
         self.seed = seed
+        let strip = Strip.generate(
+            seed: seed, length: Practice.stripLength, fields: Practice.fieldCount,
+            fieldLength: Practice.fieldLength)
+        model = AirfieldModel(strip: strip)
         plane = model.parkingSpot
         phase = .parked(repair: 0)
-        balloons = Practice.field(seed: seed, count: count)
+        balloons = Practice.balloons(seed: seed, count: count, strip: strip)
         // Every stored property is set before `capacity` reads the gun.
         ammo = 0
         ammo = capacity
@@ -63,18 +70,26 @@ public struct Practice: Equatable, Sendable {
         return ammo < capacity
     }
 
-    /// Balloons scattered ahead of the start, no two closer than `spacing`.
-    public static func field(seed: UInt64, count: Int, spacing: Double = 28) -> [Balloon] {
+    /// Balloons scattered round the whole strip, no two closer than `spacing`
+    /// and none within `clearance` of a field's middle, so approaches stay open.
+    public static func balloons(
+        seed: UInt64, count: Int, strip: Strip, spacing: Double = 28, clearance: Double = 100
+    ) -> [Balloon] {
         var rng = SeededRNG(seed: seed)
         var out: [Balloon] = []
         var tries = 0
         while out.count < count && tries < count * 200 {
             tries += 1
-            let x = 50 + rng.unit() * 560
+            let x = rng.unit() * strip.length
             let y = 18 + rng.unit() * 100
-            if out.contains(where: {
-                ($0.x - x) * ($0.x - x) + ($0.y - y) * ($0.y - y) < spacing * spacing
-            }) {
+            let nearField = strip.airfields.contains {
+                abs(strip.offset(from: x, to: $0.start + $0.length / 2)) < clearance
+            }
+            let crowded = out.contains {
+                let dx = strip.offset(from: $0.x, to: x)
+                return dx * dx + ($0.y - y) * ($0.y - y) < spacing * spacing
+            }
+            if nearField || crowded {
                 continue
             }
             out.append(Balloon(x: x, y: y, radius: 3))
@@ -95,6 +110,7 @@ public struct Practice: Equatable, Sendable {
         time += dt
         if startedAt == nil && input.isActive && !isFinished { startedAt = time }
         lastEvent = model.advance(&plane, &phase, input: input, dt: dt)
+        plane.x = model.strip.wrap(plane.x)
         if case .wrecked = phase {
             bullets.removeAll()
             return
@@ -113,7 +129,7 @@ public struct Practice: Equatable, Sendable {
             gunCooldown = gun.fireInterval
         }
         for i in bullets.indices {
-            bullets[i].x += bullets[i].vx * dt
+            bullets[i].x = model.strip.wrap(bullets[i].x + bullets[i].vx * dt)
             bullets[i].y += bullets[i].vy * dt
             bullets[i].age += dt
         }
@@ -122,14 +138,13 @@ public struct Practice: Equatable, Sendable {
             let bl = balloons[b]
             let r2 = bl.radius * bl.radius
             let planeHit =
-                Practice.dist2(plane.x, plane.y, bl.x, bl.y) < (bl.radius + planeRadius)
+                dist2(plane.x, plane.y, bl.x, bl.y) < (bl.radius + planeRadius)
                 * (bl.radius + planeRadius)
             if planeHit {
                 balloons[b].popped = true
                 continue
             }
-            if let hit = bullets.firstIndex(where: { Practice.dist2($0.x, $0.y, bl.x, bl.y) < r2 })
-            {
+            if let hit = bullets.firstIndex(where: { dist2($0.x, $0.y, bl.x, bl.y) < r2 }) {
                 balloons[b].popped = true
                 bullets.remove(at: hit)
             }
@@ -163,7 +178,9 @@ public struct Practice: Equatable, Sendable {
         return true
     }
 
-    private static func dist2(_ ax: Double, _ ay: Double, _ bx: Double, _ by: Double) -> Double {
-        (ax - bx) * (ax - bx) + (ay - by) * (ay - by)
+    /// Squared distance, measured the shorter way round the strip.
+    private func dist2(_ ax: Double, _ ay: Double, _ bx: Double, _ by: Double) -> Double {
+        let dx = model.strip.offset(from: ax, to: bx)
+        return dx * dx + (ay - by) * (ay - by)
     }
 }

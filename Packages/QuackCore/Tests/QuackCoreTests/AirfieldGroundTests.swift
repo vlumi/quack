@@ -97,15 +97,15 @@ final class AirfieldGroundTests: AirfieldTestCase {
     }
 
     func testPushingNearAnEndTaxisOutToRoomFirstThenTurns() {
-        let short = AirfieldModel(airfield: Practice.airfield)
+        let short = AirfieldModel(airfield: Airfield(start: -20, length: Practice.fieldLength))
         var s = short.parkingSpot
         var phase = FlightPhase.parked(repair: 0)
         short.advance(&s, &phase, input: PlaneInput(pitch: -1, power: true))
         // The pilot lets go at once: the plan runs by itself.
         let seconds = ground(short, &s, &phase, input: .idle) { $0 == .parked(repair: 0) }
         XCTAssertEqual(s.direction, -1)
-        XCTAssertEqual(s.x - short.airfield.start, short.takeoffRoom, accuracy: 0.01)
-        let distance = short.takeoffRoom - (short.parkingSpot.x - short.airfield.start)
+        XCTAssertEqual(s.x - short.home.start, short.takeoffRoom, accuracy: 0.01)
+        let distance = short.takeoffRoom - (short.parkingSpot.x - short.home.start)
         XCTAssertEqual(
             seconds, distance / short.landing.taxiSpeed + short.landing.turnTime, accuracy: 0.1)
         // And now a pull takes off to the left, with room.
@@ -122,8 +122,8 @@ final class AirfieldGroundTests: AirfieldTestCase {
     }
 
     func testPullingTowardAShortEndTaxisBackTurnsAndRolls() {
-        let short = AirfieldModel(airfield: Practice.airfield)
-        let end = short.airfield.end
+        let short = AirfieldModel(airfield: Airfield(start: -20, length: Practice.fieldLength))
+        let end = short.home.end
         var s = PlaneState(x: end - 5, y: gear, heading: 0, speed: 0)
         var phase = FlightPhase.parked(repair: 0)
         let pull = PlaneInput(pitch: 1, power: true)

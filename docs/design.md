@@ -159,12 +159,27 @@ so the turn back and the approach are part of the time.
 
 - **A horizontal torus.** Fly east long enough and you return from the west.
   The strip fits in memory; the shortest way to a contract is sometimes the
-  other way round.
+  other way round. It is 2.4 km, with four fields spread round it from the seed
+  (each nudged by up to a quarter of the gap), the first of them home.
+- **A minimap of the whole strip**, very small, under the status line: the
+  fields, a dot per balloon still up, and the plane. The view shows 124 m of a
+  2.4 km world, so the edge chevrons alone cannot say where you are overall.
+- **The balloon run on the strip**: start at home, balloons spread round the
+  whole strip (clear of the fields' approaches), and finish by landing at *any*
+  field, so which way round and where to come down are part of the time.
 - **Noise terrain**, fields placed on flat ground, bridges over gaps, AA guns
   by rules. Parallax silhouettes, a sky gradient for the hour.
 - **Wind is the cloud layer's speed.** No gauge. On a wraparound strip that
   makes the two directions genuinely different: headwind one way, tailwind the
-  other; later, gusts push the approach and drift bombs.
+  other; later, gusts push the approach and drift bombs. Balloons drift with it
+  slowly, which shows the wind before anything else in the sky does.
+- **Clouds in front of the plane as well as behind**, a little translucent, so
+  a plane can hide in them. Only a look until something can see it; a real
+  tactic once there are gunners and Duckfight.
+- **The hour is part of the seed**, not the device's clock, so a seed always
+  gives the same world: the Daily Drop needs that.
+- **Weather later**: rain, thunder, snow, from the seed, once wind and the look
+  exist to carry them.
 
 ## The courier economy (single player)
 
