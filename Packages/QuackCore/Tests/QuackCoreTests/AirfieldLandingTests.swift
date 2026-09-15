@@ -121,8 +121,8 @@ final class AirfieldLandingTests: AirfieldTestCase {
     }
 
     func testTheRunsShortFieldTakesATakeoffAndALandingFromEitherEnd() {
-        let short = AirfieldModel(airfield: Practice.airfield)
-        let field = short.airfield
+        let short = AirfieldModel(airfield: Airfield(start: -20, length: Practice.fieldLength))
+        let field = short.home
         XCTAssertLessThanOrEqual(
             field.length, 62, "fits in half the screen's width, seen from its middle")
 
@@ -158,6 +158,24 @@ final class AirfieldLandingTests: AirfieldTestCase {
             XCTAssertEqual(ev, [.assistEngaged, .touchdown, .parked], "leftward \(leftward)")
             XCTAssertTrue(field.contains(touchdown) && field.contains(p.x), "leftward \(leftward)")
         }
+    }
+
+    func testALandingAcrossTheSeamWithThePositionWrappedEveryStep() {
+        // The field starts just past the seam; the plane comes in from the end of
+        // the strip, and its position is wrapped every step as the run does.
+        let strip = Strip(length: 2400, airfields: [Airfield(start: 10, length: 60)])
+        let m = AirfieldModel(strip: strip)
+        var s = PlaneState(x: 2400 - 25, y: gear + 4, heading: 0, speed: 35)
+        var phase = FlightPhase.flying
+        var events: [FlightEvent] = []
+        for _ in 0..<1200 {
+            if let e = m.advance(&s, &phase, input: .idle) { events.append(e) }
+            s.x = strip.wrap(s.x)
+            if phase == .parked(repair: 0) { break }
+        }
+        XCTAssertEqual(events, [.assistEngaged, .touchdown, .parked])
+        XCTAssertNotNil(strip.airfield(under: s.x))
+        XCTAssertTrue((10...70).contains(s.x))
     }
 
     // MARK: Touching down by hand

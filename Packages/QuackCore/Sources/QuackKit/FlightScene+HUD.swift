@@ -32,6 +32,8 @@ extension FlightScene {
             label.zPosition = 100
             addChild(label)
         }
+        minimap.zPosition = 100
+        addChild(minimap)
         for dial in [speedDial, altitudeDial] {
             dial.zPosition = 100
             addChild(dial)
@@ -45,6 +47,7 @@ extension FlightScene {
         clockLabel.position = CGPoint(x: left, y: top - 40)
         ammoLabel.position = CGPoint(x: left, y: top - 80)
         statusLabel.position = CGPoint(x: 0, y: top)
+        minimap.position = CGPoint(x: 0, y: top - 84)
         let right = size.width / 2 - 24
         altitudeDial.position = CGPoint(x: right - 44, y: top - 44)
         speedDial.position = CGPoint(x: right - 44 - 112, y: top - 44)
@@ -85,6 +88,7 @@ extension FlightScene {
             clockLabel.text = String(localized: "\(seconds) s", bundle: .module)
         }
         updateAmmo()
+        minimap.update(practice)
         statusLabel.text = status(at: now)
     }
 
@@ -116,7 +120,9 @@ extension FlightScene {
             return String(localized: "Taxiing", bundle: .module)
         default:
             return practice.needsToLand
-                ? String(localized: "All popped: land to stop the clock", bundle: .module) : ""
+                ? String(
+                    localized: "All popped: land at any field to stop the clock", bundle: .module)
+                : ""
         }
     }
 
@@ -127,12 +133,16 @@ extension FlightScene {
     /// bigger the nearer it is.
     func updateMarkers() {
         let plane = practice.plane
+        let strip = practice.model.strip
         for (i, b) in practice.balloons.enumerated() {
-            place(markerNodes[i], at: b.x, b.y, hidden: b.popped, from: plane)
+            place(
+                markerNodes[i], at: plane.x + strip.offset(from: plane.x, to: b.x), b.y,
+                hidden: b.popped, from: plane)
         }
-        let field = practice.model.airfield
-        let nearest = min(max(plane.x, field.start), field.end)
-        place(fieldMarker, at: nearest, 0, hidden: false, from: plane)
+        if let field = strip.nearestAirfield(to: plane.x) {
+            let nearest = min(max(plane.x, field.start), field.end)
+            place(fieldMarker, at: nearest, 0, hidden: false, from: plane)
+        }
     }
 
     private func place(
@@ -152,11 +162,21 @@ extension FlightScene {
         let ty = dy > 0 ? (top - pp.y) / dy : dy < 0 ? (bottom - pp.y) / dy : .infinity
         let t = max(0, min(tx, ty))
         var at = CGPoint(x: pp.x + dx * t, y: pp.y + dy * t)
-        // Keep clear of the gauges in the top-right corner: slide along the
-        // edge the marker is on until it is out from under them.
+        // Keep clear of the chrome: the status line and minimap top centre, the
+        // clock and rounds top left, the gauges top right. On the top edge a
+        // marker slides sideways out of the status area; anything that lands on
+        // the corner readouts or gauges slides down the side below them.
         let gauges = CGRect(x: right - 250, y: top - 150, width: 300, height: 200)
+        let readouts = CGRect(x: left - 20, y: top - 130, width: 380, height: 180)
+        let status = CGRect(x: -440, y: top - 100, width: 880, height: 150)
+        if status.contains(at) {
+            at.x = at.x < 0 ? status.minX : status.maxX
+        }
+        if readouts.contains(at) {
+            at = CGPoint(x: left, y: readouts.minY)
+        }
         if gauges.contains(at) {
-            if tx < ty { at.y = min(at.y, gauges.minY) } else { at.x = min(at.x, gauges.minX) }
+            at = CGPoint(x: right, y: gauges.minY)
         }
         m.position = at
         m.zRotation = atan2(dy, dx)

@@ -26,8 +26,10 @@ public final class FlightScene: SKScene {
     let world = SKNode()
     let planeNode: PlaneNode
     private let groundNode = SKShapeNode()
-    private let glideSlopeNode = SKNode()
-    private let fieldNode = SKNode()
+    /// One node per field, each holding its strip and its two approach cones,
+    /// placed every frame at the field's lap nearest the plane.
+    private let fieldLayer = SKNode()
+    private var fieldNodes: [SKNode] = []
     private let balloonLayer = SKNode()
     private let bulletLayer = SKNode()
     private var balloonNodes: [SKNode] = []
@@ -37,6 +39,8 @@ public final class FlightScene: SKScene {
     let markerLayer = SKNode()
     var markerNodes: [SKShapeNode] = []
     let fieldMarker: SKShapeNode
+    /// The whole world, tiny, under the status line.
+    let minimap = Minimap(size: CGSize(width: 320, height: 40))
     let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     let clockLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     /// Rounds left, and whether they are being loaded.
@@ -92,8 +96,7 @@ public final class FlightScene: SKScene {
         backgroundColor = SKColor(red: 0.55, green: 0.72, blue: 0.9, alpha: 1)
         anchorPoint = CGPoint(x: 0.5, y: 0.3)
         addChild(world)
-        world.addChild(glideSlopeNode)
-        world.addChild(fieldNode)
+        world.addChild(fieldLayer)
         world.addChild(groundNode)
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
@@ -130,12 +133,19 @@ public final class FlightScene: SKScene {
         controls.invertedPitch = tuning.invertedPitch
         rollDuration = tuning.rollDuration
         speedDial.redBelow = CGFloat(tuning.flight.stallSpeed * 3.6)
-        practice.model.airfield.length = tuning.fieldLength
-        let field = practice.model.airfield
-        fieldNode.removeAllChildren()
-        fieldNode.addChild(SceneArt.airfieldNode(field, scale: scale))
-        glideSlopeNode.removeAllChildren()
-        glideSlopeNode.addChild(SceneArt.approachCones(practice.model, scale: scale))
+        for i in practice.model.strip.airfields.indices {
+            practice.model.strip.airfields[i].length = tuning.fieldLength
+        }
+        fieldNodes.forEach { $0.removeFromParent() }
+        fieldNodes = practice.model.strip.airfields.map { field in
+            // Drawn with the field starting at 0; `render` places it.
+            let local = Airfield(start: 0, length: field.length)
+            let node = SKNode()
+            node.addChild(SceneArt.approachCones(practice.model, field: local, scale: scale))
+            node.addChild(SceneArt.airfieldNode(local, scale: scale))
+            fieldLayer.addChild(node)
+            return node
+        }
     }
 
     private func startRun() {
@@ -151,6 +161,9 @@ public final class FlightScene: SKScene {
             balloonLayer.addChild(n)
             return n
         }
+        minimap.reset(
+            strip: practice.model.strip,
+            balloonColours: practice.balloons.indices.map { FlightScene.balloonColours[$0 % 6] })
         markerNodes.forEach { $0.removeFromParent() }
         markerNodes = practice.balloons.indices.map { i in
             let m = SceneArt.markerNode(scale: scale, colour: FlightScene.balloonColours[i % 6])
@@ -202,9 +215,22 @@ public final class FlightScene: SKScene {
         planeNode.gloss.alpha = max(0, facing) * max(0, facing) * pow(cos(planeNode.roll), 2)
 
         // Balloons that popped this frame burst; rounds are re-laid each frame.
-        for (i, b) in practice.balloons.enumerated() where b.popped && balloonNodes[i].parent != nil
-        {
-            SceneArt.burst(balloonNodes[i])
+        let strip = practice.model.strip
+        // Everything on the strip is drawn at its lap nearest the plane, so the
+        // seam never shows.
+        let near = { (x: Double) -> CGFloat in
+            CGFloat(plane.x + strip.offset(from: plane.x, to: x)) * self.scale
+        }
+        for (node, field) in zip(fieldNodes, strip.airfields) {
+            node.position = CGPoint(x: near(field.start), y: 0)
+        }
+        for (i, b) in practice.balloons.enumerated() {
+            if b.popped && balloonNodes[i].parent != nil && !balloonNodes[i].hasActions() {
+                SceneArt.burst(balloonNodes[i])
+            }
+            if !b.popped {
+                balloonNodes[i].position = CGPoint(x: near(b.x), y: CGFloat(b.y) * scale)
+            }
         }
         while bulletNodes.count < practice.bullets.count {
             let n = SceneArt.tracerNode(scale: scale)
@@ -215,7 +241,7 @@ public final class FlightScene: SKScene {
             if i < practice.bullets.count {
                 let b = practice.bullets[i]
                 n.isHidden = false
-                n.position = CGPoint(x: b.x * scale, y: b.y * scale)
+                n.position = CGPoint(x: near(b.x), y: b.y * scale)
                 n.zRotation = atan2(b.vy, b.vx)
                 // The trail grows to full length over the first tenth of a second,
                 // so a fresh round does not wear a tail back through the nose.

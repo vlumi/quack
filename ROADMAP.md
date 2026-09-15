@@ -42,11 +42,16 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   tuning panel).
 - [ ] A small bonus for a hand-flown landing inside the window.
 
-## 0.3 — The strip
+## 0.3 — The strip (in progress)
 
-- [ ] Noise terrain, wraparound (torus), fields on flat ground, parallax
-  silhouettes, sky gradient by hour.
-- [ ] Wind = the cloud layer's speed; headwind one way, tailwind the other.
+- [x] A 2.4 km wraparound strip with four fields from the seed; the balloon run
+  spread round it, finishing at any field; a tiny minimap of the whole strip.
+- [ ] Noise terrain: fields on flat ground, hills to crash into, balloons
+  above the ground.
+- [ ] The look, mockups first: parallax silhouettes, buildings and trees, sky
+  gradient for the seeded hour.
+- [ ] Wind = the cloud layer's speed; headwind one way, tailwind the other;
+  balloons drift with it. Clouds in front of the plane too, translucent.
 
 ## 0.4 — Courier
 
@@ -71,6 +76,10 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 
 - [ ] Daily seed, one attempt, fares as score, nearby sharing.
 - [ ] AI pilot flies every generated strip; ranked seed lists as campaigns.
+
+## Later — weather
+
+- [ ] Rain, thunder, snow, from the seed.
 
 ## 1.0 — Polish & submission
 

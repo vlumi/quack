@@ -3,16 +3,22 @@ import XCTest
 @testable import QuackCore
 
 final class PracticeTests: XCTestCase {
-    func testFieldIsSeededSpacedAndInBounds() {
-        let a = Practice.field(seed: 7, count: 12)
-        let b = Practice.field(seed: 7, count: 12)
-        XCTAssertEqual(a, b)
-        XCTAssertNotEqual(a, Practice.field(seed: 8, count: 12))
+    func testBalloonsAreSeededSpreadRoundTheStripAndClearOfTheFields() {
+        let strip = Practice(seed: 7).model.strip
+        let a = Practice.balloons(seed: 7, count: 12, strip: strip)
+        XCTAssertEqual(a, Practice.balloons(seed: 7, count: 12, strip: strip))
+        XCTAssertNotEqual(a, Practice.balloons(seed: 8, count: 12, strip: strip))
         XCTAssertEqual(a.count, 12)
+        XCTAssertGreaterThan(
+            (a.map(\.x).max() ?? 0) - (a.map(\.x).min() ?? 0), strip.length / 2, "spread round")
         for (i, p) in a.enumerated() {
-            XCTAssertTrue((50...610).contains(p.x) && (18...118).contains(p.y))
+            XCTAssertTrue((0..<strip.length).contains(p.x) && (18...118).contains(p.y))
+            for f in strip.airfields {
+                XCTAssertGreaterThanOrEqual(
+                    abs(strip.offset(from: p.x, to: f.start + f.length / 2)), 100)
+            }
             for q in a[(i + 1)...] {
-                XCTAssertGreaterThanOrEqual(hypot(p.x - q.x, p.y - q.y), 28)
+                XCTAssertGreaterThanOrEqual(hypot(strip.offset(from: p.x, to: q.x), p.y - q.y), 28)
             }
         }
     }
@@ -28,7 +34,10 @@ final class PracticeTests: XCTestCase {
     func testRunStartsParkedOnTheField() {
         let p = Practice(seed: 1)
         XCTAssertEqual(p.phase, .parked(repair: 0))
-        XCTAssertTrue(Practice.airfield.contains(p.plane.x))
+        XCTAssertNotNil(p.model.strip.airfield(under: p.plane.x))
+        XCTAssertEqual(
+            p.model.strip.airfield(under: p.plane.x)?.start ?? .nan, p.model.home.start,
+            accuracy: 1e-9)
         XCTAssertEqual(p.plane.y, p.model.landing.gearHeight)
         XCTAssertEqual(p.plane.speed, 0)
     }
@@ -119,6 +128,47 @@ final class PracticeTests: XCTestCase {
         XCTAssertEqual(p.plane, p.model.parkingSpot)
         XCTAssertEqual(p.startedAt, started)
         XCTAssertEqual(p.balloons.count, 12)
+    }
+
+    // MARK: The strip
+
+    func testFlyingOffTheEndComesBackFromTheStart() {
+        var p = airborne(balloons: 0)
+        p.balloons = []
+        let length = p.model.strip.length
+        p.plane = PlaneState(x: length - 5, y: 60, heading: 0, speed: 40)
+        for _ in 0..<30 { p.advance(input: PlaneInput(power: true)) }
+        XCTAssertTrue((0..<length).contains(p.plane.x))
+        XCTAssertLessThan(p.plane.x, 30, "just past the start")
+    }
+
+    func testRoundsAndRamsReachBalloonsAcrossTheSeam() {
+        var p = airborne(balloons: 2)
+        let length = p.model.strip.length
+        p.plane = PlaneState(x: length - 30, y: 60, heading: 0, speed: 40)
+        p.balloons[0] = Balloon(x: 10, y: 60, radius: 3)
+        p.balloons[1] = Balloon(x: length - 20, y: 20, radius: 3)
+        for _ in 0..<60 where p.balloons[0].popped == false {
+            p.advance(input: PlaneInput(power: true, fire: true))
+        }
+        XCTAssertTrue(p.balloons[0].popped, "a round crossed the seam")
+        var ram = airborne(balloons: 1)
+        ram.balloons[0] = Balloon(x: 2, y: 40, radius: 3)
+        ram.plane = PlaneState(x: length - 1, y: 40, heading: 0, speed: 40)
+        ram.advance(input: PlaneInput(power: true))
+        XCTAssertTrue(ram.balloons[0].popped, "rammed across the seam")
+    }
+
+    func testTheRunFinishesParkedAtAnyField() {
+        var p = airborne(balloons: 1)
+        p.advance(input: PlaneInput(power: true, fire: true))
+        p.balloons[0].popped = true
+        let other = p.model.strip.airfields[2]
+        p.plane = PlaneState(
+            x: other.start + 30, y: p.model.landing.gearHeight, heading: 0, speed: 0)
+        p.phase = .parked(repair: 0)
+        p.advance(input: .idle)
+        XCTAssertTrue(p.isFinished)
     }
 
     // MARK: Ammunition

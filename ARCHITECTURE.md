@@ -75,10 +75,20 @@ of the display's refresh rate.
 - `GunTuning`, `Bullet` — the gun on the hump: rounds leave the muzzle at the
   plane's speed plus a muzzle speed, fly straight, and expire. The belt holds
   `capacity` rounds and refills at `rearmRate` a second.
-- `Practice` — the balloon run: a seeded set of balloons (`SeededRNG`,
-  SplitMix64), the plane parked on `Practice.airfield`, the rounds, and a clock
-  that starts at the first input and stops when the plane is parked after the
-  last pop. It counts `ammo`: a round per shot, nothing fires when empty, and
+- `Strip` — the world: a length that wraps and the fields along it, the first
+  of them home. `wrap` puts a position back in 0..<length, `offset` is the
+  signed distance the shorter way round, and `image(of:near:)` is a field moved
+  by whole laps to sit near a position. `Strip.generate` spreads fields round it
+  from a seed. `AirfieldModel` holds a strip and works on the image of the field
+  that matters (the one ahead for the cone, the one under the plane on the
+  ground), so its arithmetic reads as if the strip were straight; distances
+  that must survive the position being wrapped between steps (the approach aim,
+  a taxi target) go through `offset`.
+- `Practice` — the balloon run: a strip from the seed (2.4 km, four fields),
+  balloons spread round it clear of the fields (`SeededRNG`, SplitMix64), the
+  plane parked at home, the rounds, and a clock that starts at the first input
+  and stops when the plane is parked at any field after the last pop. The plane
+  and the rounds wrap every step; hits are measured round the seam. It counts `ammo`: a round per shot, nothing fires when empty, and
   while parked the belt loads a round at a time (`isRearming`), keeping a part
   load on takeoff. Balloons pop by round or by collision. Deterministic, so the same
   inputs give the same run.
@@ -87,14 +97,20 @@ The numbers and shapes here are a starting point to be flown and replaced.
 
 ## The scene
 
-The field is drawn by `SceneArt`: a tan strip in the ground line with
+Each field is drawn by `SceneArt`: a tan strip in the ground line with
 threshold bars, a windsock beside the middle, and the approach cone over each
 end, drawn from `inCone`'s own floor and ceiling with the approach angle
-dashed, redrawn when the landing dials change.
+dashed, redrawn when the landing dials change. Everything on the strip (fields,
+balloons, rounds) is placed every frame at its lap nearest the plane, so the
+seam never shows. `Minimap`, under the status line, draws the whole world shrunk
+into a box, squeezed harder side to side than up and down (150 m of height):
+the ground with field marks, a dot per balloon at its height, and the plane at
+its height, pointing the way it flies.
 The status line under the title says what the plane is doing (pull up to take
-off or push to turn around, taxiing, landing, repairing, land to stop the clock) and flashes touchdowns,
+off or push to turn around, taxiing, landing, repairing, land at any field to stop the clock) and flashes touchdowns,
 bounces, breaks and crashes; a wrecked plane blinks. A white chevron points to
-the field when it is off screen.
+the nearest field when it is off screen; the chevrons dodge the readouts, the
+status line and minimap, and the gauges.
 
 `FlightScene` (SpriteKit) is a fixed 1280 × 720 box showing 70 m of world
 top to bottom, aspect-fit into whatever screen or window it gets (the Mac
@@ -156,10 +172,12 @@ for the reasoning.
 - **Livery picker**: the player's own colours and emblem, saved and carried
   into Duckfight; a flapping scarf.
 - **Rounds bought at the field**, and something that shoots back.
-- **Fuel**, with the wraparound strip and contracts.
-- **The strip**: noise terrain, horizontal wraparound (a torus), parallax
-  silhouettes, fields on flat ground, sky by hour; wind as the cloud layer's
-  speed, so one direction is faster than the other.
+- **Fuel**, with contracts.
+- **The rest of the strip**: noise terrain with fields on flat ground, parallax
+  silhouettes, sky by the seeded hour; wind as the cloud layer's speed, so one
+  direction is faster than the other, with balloons drifting in it; clouds in
+  front of the plane as well as behind.
+- **Weather**: rain, thunder, snow.
 - **Courier economy**: contracts (mail and passengers) between fields, pay
   falling with time, fuel that costs money and time, passengers that punish
   aerobatics.

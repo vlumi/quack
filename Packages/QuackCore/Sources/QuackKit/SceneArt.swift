@@ -149,12 +149,11 @@ enum SceneArt {
     /// The approach cone drawn in the sky over each end of the field, the exact
     /// region where the assist can take over: floor, ceiling and the low throat
     /// over the threshold, with the approach angle dashed along its middle.
-    static func approachCones(_ model: AirfieldModel, scale: CGFloat) -> SKNode {
+    static func approachCones(_ model: AirfieldModel, field: Airfield, scale: CGFloat) -> SKNode {
         let n = SKNode()
         let landing = model.landing
         let a = landing.approachAngle * .pi / 180
         let b = landing.approachBand * .pi / 180
-        let field = model.airfield
         for (end, outwardSign) in [(field.start, -1.0), (field.end, 1.0)] {
             func point(_ outward: Double, _ height: Double) -> CGPoint {
                 CGPoint(x: (end + outwardSign * outward) * scale, y: height * scale)

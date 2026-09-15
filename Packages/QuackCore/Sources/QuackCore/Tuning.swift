@@ -8,7 +8,7 @@ public struct Tuning: Equatable, Sendable {
     public var flight = FlightTuning()
     public var landing = LandingTuning()
     /// Metres of field in the balloon run.
-    public var fieldLength: Double = Practice.airfield.length
+    public var fieldLength: Double = Practice.fieldLength
     public var gun = GunTuning()
     /// Points of thumb drag for full elevator, at most.
     public var throwDistance: Double = 80

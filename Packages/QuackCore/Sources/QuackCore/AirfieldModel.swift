@@ -3,23 +3,40 @@ import Foundation
 /// Landing, rollout, takeoff and crashing: everything that happens where the
 /// plane meets the ground. Wraps `FlightModel`, which only knows the air.
 /// Deterministic like it.
+///
+/// The world is a `Strip` that wraps. Each step works on an image of the field
+/// that matters, moved by whole laps to sit near the plane, so the arithmetic
+/// below reads as if the strip were straight; distances that must survive the
+/// plane's position being wrapped between steps go through `strip.offset`.
 public struct AirfieldModel: Equatable, Sendable {
     public var flight: FlightModel
     public var landing: LandingTuning
-    public var airfield: Airfield
+    public var strip: Strip
 
+    public init(
+        flight: FlightModel = FlightModel(), landing: LandingTuning = LandingTuning(), strip: Strip
+    ) {
+        self.flight = flight
+        self.landing = landing
+        self.strip = strip
+    }
+
+    /// One field on a strip far too long to wrap in a test.
     public init(
         flight: FlightModel = FlightModel(), landing: LandingTuning = LandingTuning(),
         airfield: Airfield
     ) {
-        self.flight = flight
-        self.landing = landing
-        self.airfield = airfield
+        self.init(
+            flight: flight, landing: landing, strip: Strip(length: 1_000_000, airfields: [airfield])
+        )
     }
+
+    /// The home field: where a run starts.
+    public var home: Airfield { strip.airfields[0] }
 
     /// Where a plane waits at the start and comes back to after a crash.
     public var parkingSpot: PlaneState {
-        PlaneState(x: airfield.start + 6, y: landing.gearHeight, heading: 0, speed: 0)
+        PlaneState(x: home.start + 6, y: landing.gearHeight, heading: 0, speed: 0)
     }
 
     /// Speed at which a plane on the takeoff roll can lift off.
@@ -79,6 +96,7 @@ public struct AirfieldModel: Equatable, Sendable {
     /// is flying toward: a wedge rising from that end at the approach angle
     /// ± band, `coneLength` long, with a low throat over the threshold.
     public func inCone(_ s: PlaneState) -> Bool {
+        guard let airfield = fieldAhead(s) else { return false }
         let height = s.y - landing.gearHeight
         let outward = s.direction > 0 ? airfield.start - s.x : s.x - airfield.end
         guard height > 0, outward >= -landing.throatLength, outward <= landing.coneLength else {
@@ -89,6 +107,15 @@ public struct AirfieldModel: Equatable, Sendable {
         let along = max(0, outward)
         return height <= coneCeiling(along: along, a: a, b: b)
             && height >= coneFloor(outward: outward, a: a, b: b)
+    }
+
+    /// The field whose approach end is ahead of the plane within the cone's reach,
+    /// as an image near the plane.
+    func fieldAhead(_ s: PlaneState) -> Airfield? {
+        strip.airfields.lazy.map { strip.image(of: $0, near: s.x) }.first { field in
+            let outward = s.direction > 0 ? field.start - s.x : s.x - field.end
+            return outward >= -landing.throatLength && outward <= landing.coneLength
+        }
     }
 
     /// The cone's top at `along` metres out from the end.
@@ -114,6 +141,7 @@ public struct AirfieldModel: Equatable, Sendable {
         guard s.upright, gamma <= radians(landing.noseUpLimit),
             gamma >= -radians(landing.diveLimit), inCone(s)
         else { return nil }
+        guard let airfield = fieldAhead(s) else { return nil }
         let dir = s.direction
         let height = s.y - landing.gearHeight
         let near = dir > 0 ? airfield.start : airfield.end
@@ -129,14 +157,14 @@ public struct AirfieldModel: Equatable, Sendable {
             max(0, usable - flareHeight) / tan(radians(1)) + max(0, min(usable, flareHeight))
             / tan(radians(4))
         guard outward + 2 <= float else { return nil }
-        return aimZone(direction: dir).contains(aim) ? aim : nil
+        return aimZone(airfield, direction: dir).contains(aim) ? aim : nil
     }
 
     /// The steepest glide the assist will fly, as a (negative) path angle.
     private var steepestGlide: Double { -radians(landing.approachAngle + landing.approachBand + 2) }
 
     /// Where a touchdown leaves room to flare and stop before the far end.
-    private func aimZone(direction: Double) -> ClosedRange<Double> {
+    private func aimZone(_ airfield: Airfield, direction: Double) -> ClosedRange<Double> {
         let room = stoppingDistance + 5
         return direction > 0
             ? (airfield.start + 5)...(airfield.end - room)
@@ -168,7 +196,7 @@ public struct AirfieldModel: Equatable, Sendable {
         let steepest = steepestGlide
         let target: Double
         if height > flareHeight {
-            let togo = dir * (aim - dir * flareLength - s.x)
+            let togo = dir * strip.offset(from: s.x, to: aim - dir * flareLength)
             target = min(-radians(1), max(steepest, -atan2(height - flareHeight, max(1, togo))))
         } else {
             target = -radians(4)
@@ -195,7 +223,7 @@ public struct AirfieldModel: Equatable, Sendable {
     func touchGround(_ s: inout PlaneState, _ phase: inout FlightPhase) -> FlightEvent {
         let steepness = degrees(-s.pathAngle)
         let window = landing.approachAngle + landing.approachBand
-        guard airfield.contains(s.x), s.upright else { return crash(&s, &phase) }
+        guard strip.airfield(under: s.x) != nil, s.upright else { return crash(&s, &phase) }
         if steepness <= window {
             level(&s)
             phase = .rollout(repair: 0)

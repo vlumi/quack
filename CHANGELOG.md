@@ -15,12 +15,22 @@ followed by its list items (no prose between), so the release script can promote
 it with a one-line edit — and keep it UNIQUE in the file (the script promotes
 the first match).
 
+## [0.3.0]
+
+**Milestone 3 — the strip.** A generated world that wraps around, with hills,
+fields and wind.
+
+### Unreleased (next build)
+
+- The world wraps: fly off one end of a 2.4 km strip and you come back from the other. Four fields are spread round it, generated from the run's seed.
+- The balloon run spreads its balloons round the whole strip and finishes when you land at any field, not only at home.
+- A tiny minimap under the status line shows the whole world shrunk into a box, squeezed more side to side than up and down: the ground with its fields, the balloons still up at their heights, and your plane at its height, pointing the way it flies.
+- The edge chevrons point the shorter way round, and keep clear of the readouts, the status line and the gauges.
+
 ## [0.2.0]
 
 **Milestone 2 — landing.** One field on the ground line: take off from it, and
 land back on it by flying the approach angle.
-
-### Unreleased (next build)
 
 ### build 5 — 2026-09-14
 

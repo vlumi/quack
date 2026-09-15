@@ -9,15 +9,21 @@ extension AirfieldModel {
         rotateSpeed * rotateSpeed / (2 * landing.takeoffAcceleration) + 10
     }
 
-    /// Metres of field ahead of `x` for a plane facing `direction`.
-    func room(at x: Double, facing direction: Double) -> Double {
+    /// Metres of `airfield` ahead of `x` for a plane facing `direction`.
+    func room(on airfield: Airfield, at x: Double, facing direction: Double) -> Double {
         direction > 0 ? airfield.end - x : x - airfield.start
     }
 
     /// Where a plane facing `direction` has just enough room to take off.
-    func takeoffSpot(facing direction: Double) -> Double {
+    func takeoffSpot(on airfield: Airfield, facing direction: Double) -> Double {
         let spot = direction > 0 ? airfield.end - takeoffRoom : airfield.start + takeoffRoom
         return min(max(spot, airfield.start), airfield.end)
+    }
+
+    /// The field a plane on the ground is on: the one under it, or failing that
+    /// (a fraction of a metre past an end) the nearest.
+    func groundField(_ s: PlaneState) -> Airfield {
+        strip.airfield(under: s.x) ?? strip.nearestAirfield(to: s.x) ?? home
     }
 
     /// Parked: wait out any repair. Then a pull takes off the way the plane
@@ -32,21 +38,25 @@ extension AirfieldModel {
             return
         }
         let facing = s.direction
+        let airfield = groundField(s)
         if input.pitch > 0 {
-            if room(at: s.x, facing: facing) >= takeoffRoom {
+            if room(on: airfield, at: s.x, facing: facing) >= takeoffRoom {
                 phase = .takeoffRoll
             } else {
                 let steps: [TaxiStep] = [
-                    .turn(elapsed: 0), .taxi(to: takeoffSpot(facing: facing)), .turn(elapsed: 0),
+                    .turn(elapsed: 0), .taxi(to: takeoffSpot(on: airfield, facing: facing)),
+                    .turn(elapsed: 0),
                 ]
                 phase = .taxiing(steps: steps, thenTakeoff: true)
             }
         } else if input.pitch < 0 {
-            if room(at: s.x, facing: -facing) >= takeoffRoom {
+            if room(on: airfield, at: s.x, facing: -facing) >= takeoffRoom {
                 phase = .taxiing(steps: [.turn(elapsed: 0)], thenTakeoff: false)
             } else {
                 phase = .taxiing(
-                    steps: [.taxi(to: takeoffSpot(facing: -facing)), .turn(elapsed: 0)],
+                    steps: [
+                        .taxi(to: takeoffSpot(on: airfield, facing: -facing)), .turn(elapsed: 0),
+                    ],
                     thenTakeoff: false)
             }
         }
@@ -85,10 +95,10 @@ extension AirfieldModel {
             }
         case .taxi(let target):
             let dir = s.direction
-            let togo = dir * (target - s.x)
+            let togo = dir * strip.offset(from: s.x, to: target)
             if togo <= landing.taxiSpeed * dt {
                 // Arrived; a target behind the plane never moves it backwards.
-                if togo > 0 { s.x = target }
+                if togo > 0 { s.x += dir * togo }
                 s.speed = 0
             } else {
                 s.x += dir * landing.taxiSpeed * dt
@@ -118,6 +128,7 @@ extension AirfieldModel {
         -> FlightEvent?
     {
         let dir = s.direction
+        let airfield = groundField(s)
         let toEnd = max(0.5, dir > 0 ? airfield.end - s.x : s.x - airfield.start)
         // Brake at least hard enough to stop on the field.
         let decel = max(landing.braking, s.speed * s.speed / (2 * toEnd))
@@ -143,7 +154,7 @@ extension AirfieldModel {
         s.speed = min(flight.tuning.cruiseSpeed, s.speed + landing.takeoffAcceleration * dt)
         s.x += dir * s.speed * dt
         s.y = landing.gearHeight
-        if !airfield.contains(s.x) { return crash(&s, &phase) }
+        if strip.airfield(under: s.x) == nil { return crash(&s, &phase) }
         if s.speed >= rotateSpeed && input.pitch > 0 {
             let climb = 0.12
             s.heading = dir > 0 ? climb : .pi - climb
