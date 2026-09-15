@@ -3,8 +3,8 @@ import SpriteKit
 
 /// The sky behind everything, fixed to the box: a smooth gradient for the
 /// hour, stars at night, the sun with a soft glow or the moon in its phase,
-/// and a few slow clouds sliding at a twelfth of the plane's speed. Built for
-/// an hour, then only the clouds move.
+/// and a few far clouds sliding at a twelfth of the plane's speed and drifting
+/// with the wind. Built for an hour, then only the clouds move.
 final class SkyNode: SKNode {
     private struct Cloud {
         let node: SKNode
@@ -39,10 +39,11 @@ final class SkyNode: SKNode {
         }
     }
 
-    /// Slide the clouds for a plane `planePoints` along the strip and a camera `cameraY` up.
-    func update(planePoints: CGFloat, cameraY: CGFloat, boxWidth: CGFloat) {
+    /// Slide the clouds for a plane `planePoints` along the strip, air that has
+    /// moved `driftPoints`, and a camera `cameraY` up.
+    func update(planePoints: CGFloat, driftPoints: CGFloat, cameraY: CGFloat, boxWidth: CGFloat) {
         for c in clouds {
-            var x = (c.x - planePoints * SkyNode.cloudParallax).truncatingRemainder(
+            var x = (c.x - (planePoints - driftPoints) * SkyNode.cloudParallax).truncatingRemainder(
                 dividingBy: cloudPeriod)
             if x < 0 { x += cloudPeriod }
             if x > boxWidth / 2 + 250 { x -= cloudPeriod }

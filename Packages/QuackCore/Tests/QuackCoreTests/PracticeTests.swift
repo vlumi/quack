@@ -29,6 +29,8 @@ final class PracticeTests: XCTestCase {
     /// A run already in the air, level at cruise, for tests about the gun and the balloons.
     private func airborne(seed: UInt64 = 1, balloons: Int = 1) -> Practice {
         var p = Practice(seed: seed, balloons: balloons)
+        // Calm, so the gun and balloon tests do not hang on a seed's wind.
+        p.windTuning.strength = 0
         p.plane = PlaneState(x: 0, y: 40, heading: 0, speed: 40)
         p.phase = .flying
         return p

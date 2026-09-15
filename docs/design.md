@@ -192,11 +192,38 @@ so the turn back and the approach are part of the time.
   windsock are part of the field and not solid.
 - **Wind is the cloud layer's speed.** No gauge. On a wraparound strip that
   makes the two directions genuinely different: headwind one way, tailwind the
-  other; later, gusts push the approach and drift bombs. Balloons drift with it
-  slowly, which shows the wind before anything else in the sky does.
+  other; later, gusts push the approach and drift bombs. Each seed gives one
+  steady wind in one of five steps, calm, low, medium, strong or gale, each as
+  likely as the others, either way. A gale is 16 m/s, two fifths of cruise:
+  about what a Camel's pilots flew in, and a plane should always be much
+  faster than the wind. Five steps rather than a scale so the windsock says
+  which it is: hanging in a calm, drooping, half out, nearly straight, and
+  straight out flapping in a gale. In the air the plane moves with the air,
+  so its airspeed, lift and handling are as in calm air and what changes is
+  the ground: the time round the strip, where a glide comes down, how a hill
+  comes at you. The clouds drift at the wind's speed, the far clouds with
+  them. Balloons drift slowly, at 0.4 of it, rising over hills that drift
+  under them, which shows the wind before anything else in the sky does.
+  Rounds carry the wind like the plane. 8 m/s at most was barely felt on a
+  device (2026-09-15) and 24 felt good; 16 is the compromise, with the dial
+  to 32.
+- **The wind fades toward the ground**: half strength at wheel height, full
+  at 30 m. That is where the wind turns into lift. On its wheels the plane
+  feels the ground-level wind as airspeed, so a takeoff into the wind lifts
+  off after a short roll and one downwind after a long one, and a landing
+  into the wind rolls out slow. Climbing through the fade into a headwind
+  gains airspeed, climbing out downwind loses it, and a descent does the
+  reverse: wind shear, and the reason to take off and land into the wind,
+  which the windsock shows. It also means nothing jumps: the plane leaves
+  the ground at the speed it rolled, and the landing assist, which glides
+  through the moving air like a pilot and re-takes its aim every step, takes
+  over without a lurch and still comes down at its aim and stops on the
+  field either way. Gusts can come once flying it says the approach is too
+  easy.
 - **Clouds in front of the plane as well as behind**, a little translucent, so
-  a plane can hide in them. Only a look until something can see it; a real
-  tactic once there are gunners and Duckfight.
+  a plane can hide in them: seven poster cumulus clouds at the plane's depth,
+  60 to 220 m up, drawn over the plane and the balloons. Only a look until
+  something can see it; a real tactic once there are gunners and Duckfight.
 - **The hour is part of the seed**, not the device's clock, so a seed always
   gives the same world: the Daily Drop needs that. Dawn, noon, evening or
   night, evenly. At night the windows are lit and the readouts turn pale.

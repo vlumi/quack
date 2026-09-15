@@ -125,6 +125,17 @@
         }
       }
     },
+    "Balloon drift" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balloon drift"
+          }
+        }
+      }
+    },
     "Belt size" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -345,6 +356,17 @@
         }
       }
     },
+    "Full strength above" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full strength above"
+          }
+        }
+      }
+    },
     "Gravity" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -543,6 +565,17 @@
         }
       }
     },
+    "Share at the ground" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share at the ground"
+          }
+        }
+      }
+    },
     "Slow-flight sink" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -605,6 +638,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Steepest entry"
+          }
+        }
+      }
+    },
+    "Strongest wind" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strongest wind"
           }
         }
       }
@@ -704,6 +748,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turn time"
+          }
+        }
+      }
+    },
+    "Wind" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wind"
           }
         }
       }

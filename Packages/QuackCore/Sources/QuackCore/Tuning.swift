@@ -10,6 +10,7 @@ public struct Tuning: Equatable, Sendable {
     /// Metres of field in the balloon run.
     public var fieldLength: Double = Practice.fieldLength
     public var gun = GunTuning()
+    public var wind = WindTuning()
     /// Points of thumb drag for full elevator, at most.
     public var throwDistance: Double = 80
     /// The least the throw shrinks to near a screen edge.
@@ -89,6 +90,7 @@ public enum TuningSection: String, CaseIterable, Sendable {
     case landing
     case controls
     case gun
+    case wind
     case feel
 }
 
@@ -208,6 +210,18 @@ public struct TuningDial: Identifiable {
         TuningDial(
             id: "gun.rearmRate", section: .gun, keyPath: \.gun.rearmRate, range: 2...100, step: 2,
             decimals: 0),
+        TuningDial(
+            id: "wind.strength", section: .wind, keyPath: \.wind.strength, range: 0...32, step: 1,
+            decimals: 0),
+        TuningDial(
+            id: "wind.groundShare", section: .wind, keyPath: \.wind.groundShare, range: 0...1,
+            step: 0.1, decimals: 1),
+        TuningDial(
+            id: "wind.layer", section: .wind, keyPath: \.wind.layer, range: 5...100, step: 5,
+            decimals: 0),
+        TuningDial(
+            id: "wind.balloonDrift", section: .wind, keyPath: \.wind.balloonDrift, range: 0...1,
+            step: 0.1, decimals: 1),
         TuningDial(
             id: "feel.rollDuration", section: .feel, keyPath: \.rollDuration, range: 0.05...1,
             step: 0.05, decimals: 2),

@@ -102,6 +102,7 @@ public final class FlightScene: SKScene {
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
         world.addChild(planeNode)
+        world.addChild(look.clouds)
         markerLayer.zPosition = 50
         markerLayer.addChild(fieldMarker)
         addChild(markerLayer)
@@ -127,6 +128,7 @@ public final class FlightScene: SKScene {
         practice.model.flight.tuning = tuning.flight
         practice.model.landing = tuning.landing
         practice.gun = tuning.gun
+        practice.windTuning = tuning.wind
         controls.throwDistance = CGFloat(tuning.throwDistance)
         controls.minimumThrow = CGFloat(tuning.minimumThrow)
         controls.invertedPitch = tuning.invertedPitch
@@ -142,6 +144,8 @@ public final class FlightScene: SKScene {
             let node = SKNode()
             node.addChild(SceneArt.approachCones(practice.model, field: local, scale: scale))
             node.addChild(SceneArt.airfieldNode(local, scale: scale, palette: look.palette))
+            SceneArt.setWindsock(
+                in: node, step: practice.windStep, direction: practice.windDirection)
             fieldLayer.addChild(node)
             return node
         }

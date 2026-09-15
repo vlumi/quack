@@ -37,6 +37,13 @@ public struct Practice: Equatable, Sendable {
     public let seed: UInt64
     /// The hour the run is flown at, from the seed.
     public let hour: TimeOfDay
+    /// How hard this run's wind blows and which way, from the seed.
+    public let windStep: WindStep
+    public let windDirection: Double
+    /// Clouds at the plane's depth, drifting with the wind.
+    public var clouds: [Cloud]
+    /// Metres the air has moved since the start.
+    public var airDrift: Double = 0
 
     public var model: AirfieldModel
     public var gun = GunTuning()
@@ -53,11 +60,14 @@ public struct Practice: Equatable, Sendable {
     {
         self.seed = seed
         hour = TimeOfDay(seed: seed)
+        windStep = Wind.step(seed: seed)
+        windDirection = Wind.direction(seed: seed)
         let strip = Practice.strip(seed: seed, fieldLength: fieldLength)
         model = AirfieldModel(strip: strip)
         plane = model.parkingSpot
         phase = .parked(repair: 0)
         balloons = Practice.balloons(seed: seed, count: count, strip: strip)
+        clouds = Wind.clouds(seed: seed, count: 7, strip: strip)
         // Every stored property is set before `capacity` reads the gun.
         ammo = 0
         ammo = capacity
@@ -137,6 +147,8 @@ public struct Practice: Equatable, Sendable {
     public mutating func advance(input: PlaneInput, dt: Double = FlightModel.dt) {
         time += dt
         if startedAt == nil && input.isActive && !isFinished { startedAt = time }
+        model.wind = wind
+        advanceWeather(dt: dt)
         lastEvent = model.advance(&plane, &phase, input: input, dt: dt)
         plane.x = model.strip.wrap(plane.x)
         if case .wrecked = phase {
@@ -152,7 +164,8 @@ public struct Practice: Equatable, Sendable {
             bullets.append(
                 Bullet(
                     x: m.x, y: m.y,
-                    vx: plane.vx + cos(plane.heading) * gun.muzzleSpeed,
+                    // Rounds fly in the moving air, as the plane does.
+                    vx: plane.vx + wind + cos(plane.heading) * gun.muzzleSpeed,
                     vy: plane.vy + sin(plane.heading) * gun.muzzleSpeed))
             gunCooldown = gun.fireInterval
         }

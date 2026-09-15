@@ -197,6 +197,7 @@ struct TuningPanel: View {
         case .landing: return Text("Landing", bundle: .module)
         case .controls: return Text("Controls", bundle: .module)
         case .gun: return Text("Gun", bundle: .module)
+        case .wind: return Text("Wind", bundle: .module)
         case .feel: return Text("Feel", bundle: .module)
         }
     }
@@ -234,6 +235,10 @@ struct TuningPanel: View {
         case "gun.capacity": return Text("Belt size", bundle: .module)
         case "gun.rearmRate": return Text("Rearm rate", bundle: .module)
         case "feel.rollDuration": return Text("Roll time", bundle: .module)
+        case "wind.strength": return Text("Strongest wind", bundle: .module)
+        case "wind.groundShare": return Text("Share at the ground", bundle: .module)
+        case "wind.layer": return Text("Full strength above", bundle: .module)
+        case "wind.balloonDrift": return Text("Balloon drift", bundle: .module)
         case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
         default: return Text(verbatim: id)
         }

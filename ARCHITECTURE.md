@@ -53,7 +53,16 @@ of the display's refresh rate.
   ground at an `elevation`; `LandingTuning` its dials; `FlightPhase` is flying, approach
   (assist, carrying its aim point), go-around, rollout, parked, taxiing (a plan
   of `TaxiStep`s: swing round, taxi to x), takeoff roll or wrecked, and each
-  step returns a `FlightEvent` when something happens.
+  step returns a `FlightEvent` when something happens. `wind` is the air's
+  speed along the strip up high and `windTuning` how it fades toward the
+  ground (`wind(at:)` is the wind at the plane's height). In the air the
+  plane's `speed` is airspeed and each step adds the air's drift, then
+  changes the airspeed by the wind met at the new height (the shear). On the
+  ground `speed` is over the ground: the takeoff roll rotates when that less
+  the ground-level tailwind reaches rotate speed and lifts off at that
+  airspeed, `takeoffRoom(facing:)` shrinks into the wind, and `level` turns
+  airspeed back into ground speed at touchdown. The assist glides through the
+  moving air and re-takes its aim every step.
   `inCone` is the approach cone over the end the plane is flying toward: a
   wedge at the approach angle ± band, `coneLength` out, with a throat over the
   threshold and a floor that rises to what a flare can carry onto the field.
@@ -110,7 +119,15 @@ of the display's refresh rate.
   and the rounds wrap every step; hits are measured round the seam. It counts `ammo`: a round per shot, nothing fires when empty, and
   while parked the belt loads a round at a time (`isRearming`), keeping a part
   load on takeoff. Rounds stop in the ground and in scenery. `hour` is the
-  run's `TimeOfDay` (dawn, noon, evening or night), from the seed. `resizeFields(to:)` regenerates
+  run's `TimeOfDay` (dawn, noon, evening or night), from the seed. `wind` is
+  the seed's `windStep` (`WindStep`: calm, low, medium, strong, gale, a
+  quarter of the strongest wind apart, `Wind.step`) times its `windDirection`
+  (`Wind.direction`) times `WindTuning.strength`,
+  handed to the model every step; `clouds` (`Cloud`, seven from
+  `Wind.clouds`) drift at it and wrap, balloons drift at `balloonDrift` of it
+  and rise at `balloonRise` to stay 18 m clear of whatever drifts under them,
+  rounds leave with it added, and `airDrift` adds up how far the air has
+  moved (`Weather.swift`). `resizeFields(to:)` regenerates
   the strip for a new field length, so each field keeps a shelf that fits it.
   Balloons pop by round or by collision. Deterministic, so the same
   inputs give the same run.
@@ -132,7 +149,10 @@ light, a haze the far layers fade into, the sun or moon, and how bright the
 stars and lit windows are. `SkyNode` is fixed to the box: a smooth gradient
 texture, stars at night, the sun with a soft glow or the moon as a crescent
 over its earthshine disc, and poster clouds sliding at 0.08 of the plane's
-speed. `BackdropNode` redraws each layer's ridge across the box every frame in
+speed and drifting with `airDrift`. `StripLook.clouds` are the run's clouds in
+front of the plane and balloons, each one flat-bottomed shape so its
+translucency is even. `SceneArt.setWindsock` gives each field's sock
+one shape per wind step, pointing downwind, flapping in a gale. `BackdropNode` redraws each layer's ridge across the box every frame in
 two tones (a lit band over a shaded body) and slides its props into place.
 `PropArt` draws every house, church, windmill (sails turning), hangar and
 tree as flat shapes with no outlines, trees as lozenges lit down one side. On
@@ -217,9 +237,6 @@ for the reasoning.
   into Duckfight; a flapping scarf.
 - **Rounds bought at the field**, and something that shoots back.
 - **Fuel**, with contracts.
-- **The rest of the strip**: wind as the cloud layer's speed, so one
-  direction is faster than the other, with balloons drifting in it; clouds in
-  front of the plane as well as behind.
 - **Weather**: rain, thunder, snow.
 - **Courier economy**: contracts (mail and passengers) between fields, pay
   falling with time, fuel that costs money and time, passengers that punish

@@ -12,6 +12,9 @@ final class StripLook {
     let scenery = SKNode()
     let ground = SKShapeNode()
     let groundShade = SKShapeNode()
+    /// World-space, in front of the plane: the clouds at its depth.
+    let clouds = SKNode()
+    private var cloudNodes: [SKNode] = []
     private(set) var palette = Palette(.noon)
     private var built: (seed: UInt64, hour: TimeOfDay)?
     private var builtScenery: [Obstacle] = []
@@ -19,6 +22,9 @@ final class StripLook {
     private var hangarNodes: [SKNode] = []
 
     init() {
+        clouds.alpha = 0.62
+        // Over the plane, whose parts stack their own z positions.
+        clouds.zPosition = 40
         sky.zPosition = -30
         backdrop.zPosition = -20
         for shape in [ground, groundShade] {
@@ -51,6 +57,14 @@ final class StripLook {
             scenery.addChild(n)
             return n
         }
+        clouds.removeAllChildren()
+        let cloudColour = RGB.white.mix(palette.sky[2], 0.25)
+            .mix(palette.tint, palette.tintAmount * 0.9).color()
+        cloudNodes = practice.clouds.map { cloud in
+            let n = StripLook.cloud(width: CGFloat(cloud.width) * scale, colour: cloudColour)
+            clouds.addChild(n)
+            return n
+        }
         sceneryNodes = strip.scenery.map { o in
             let n = PropArt.node(StripLook.kind(o.kind), s: scale, size: o.size, paint: paint)
             scenery.addChild(n)
@@ -65,7 +79,9 @@ final class StripLook {
     ) {
         let strip = practice.model.strip
         let planeX = practice.plane.x
-        sky.update(planePoints: planePoints.x, cameraY: cameraY, boxWidth: box.width)
+        sky.update(
+            planePoints: planePoints.x, driftPoints: CGFloat(practice.airDrift) * scale,
+            cameraY: cameraY, boxWidth: box.width)
         backdrop.update(planeX: planeX, cameraY: cameraY, scale: scale, box: box)
         let near = { (x: Double) -> CGFloat in
             CGFloat(planeX + strip.offset(from: planeX, to: x)) * scale
@@ -75,6 +91,10 @@ final class StripLook {
             node.isHidden = abs(strip.offset(from: planeX, to: o.x)) > reach
             node.position = CGPoint(
                 x: near(o.x), y: CGFloat(strip.groundHeight(at: o.x)) * scale - 4)
+        }
+        for (node, cloud) in zip(cloudNodes, practice.clouds) {
+            node.isHidden = abs(strip.offset(from: planeX, to: cloud.x)) > reach + cloud.width
+            node.position = CGPoint(x: near(cloud.x), y: CGFloat(cloud.y) * scale)
         }
         for (node, field) in zip(hangarNodes, strip.airfields) {
             // Behind the field, left of the windsock: a plane on the field
@@ -108,6 +128,40 @@ final class StripLook {
         ground.path = path
         var down = CGAffineTransform(translationX: 0, y: -12)
         groundShade.path = path.copy(using: &down)
+    }
+
+    /// A cloud as one flat shape, so its translucency is even: a poster
+    /// cumulus, three lozenges heaped up from a wide base, cut flat underneath.
+    private static func cloud(width: CGFloat, colour: SKColor) -> SKNode {
+        let lozenges = [
+            CGRect(x: -width / 2, y: -width * 0.09, width: width, height: width * 0.18),
+            CGRect(x: -width * 0.3, y: 0, width: width * 0.66, height: width * 0.24),
+            CGRect(x: -width * 0.28, y: width * 0.08, width: width * 0.36, height: width * 0.2),
+        ]
+        let floor = -width * 0.05
+        var tops: [CGPoint] = []
+        var bottoms: [CGPoint] = []
+        for i in 0...64 {
+            let x = -width / 2 + width * CGFloat(i) / 64
+            var top = -CGFloat.infinity
+            var bottom = CGFloat.infinity
+            for r in lozenges where x >= r.minX && x <= r.maxX {
+                let u = (x - r.midX) / (r.width / 2)
+                let half = r.height / 2 * sqrt(max(0, 1 - u * u))
+                top = max(top, r.midY + half)
+                bottom = min(bottom, r.midY - half)
+            }
+            guard top > floor else { continue }
+            tops.append(CGPoint(x: x, y: top))
+            bottoms.append(CGPoint(x: x, y: max(bottom, floor)))
+        }
+        let path = CGMutablePath()
+        path.addLines(between: tops + bottoms.reversed())
+        path.closeSubpath()
+        let n = SKShapeNode(path: path)
+        n.fillColor = colour
+        n.strokeColor = .clear
+        return n
     }
 
     private static func kind(_ kind: Obstacle.Kind) -> PropArt.Kind {

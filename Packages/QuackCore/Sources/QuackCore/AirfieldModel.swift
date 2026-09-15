@@ -12,6 +12,15 @@ public struct AirfieldModel: Equatable, Sendable {
     public var flight: FlightModel
     public var landing: LandingTuning
     public var strip: Strip
+    /// Metres a second the air moves along the strip, at full strength up in
+    /// the air; `windTuning` says how it fades toward the ground. A plane in
+    /// the air moves with the air, so its speed is airspeed; climbing or
+    /// descending through the fade changes that airspeed, which is wind shear.
+    /// On its wheels the plane's speed is over the ground, and the ground-level
+    /// wind adds to or takes from its airspeed, so a takeoff into the wind is
+    /// short and a landing into it slow.
+    public var wind: Double = 0
+    public var windTuning = WindTuning()
 
     public init(
         flight: FlightModel = FlightModel(), landing: LandingTuning = LandingTuning(), strip: Strip
@@ -47,6 +56,41 @@ public struct AirfieldModel: Equatable, Sendable {
     /// Speed at which a plane on the takeoff roll can lift off.
     public var rotateSpeed: Double { flight.tuning.stallSpeed * 1.25 }
 
+    /// Metres a second the air moves at the plane's height above the ground.
+    public func wind(at s: PlaneState) -> Double {
+        wind * windTuning.share(atHeight: s.y - landing.gearHeight - strip.groundHeight(at: s.x))
+    }
+
+    /// The wind along the way a plane on the ground faces: positive from behind.
+    func groundWind(facing direction: Double) -> Double {
+        direction * wind * windTuning.groundShare
+    }
+
+    /// A step of flight in moving air: the plane's own motion through the air,
+    /// then the air's motion over the ground, and the change of airspeed from
+    /// the wind being different at the new height.
+    private func flyInWind(
+        _ s: inout PlaneState, dt: Double, through step: (inout PlaneState) -> Void
+    ) {
+        let before = wind(at: s)
+        step(&s)
+        let after = wind(at: s)
+        s.x += after * dt
+        let shear = after - before
+        guard shear != 0, s.speed > 0 else { return }
+        // The plane keeps its speed over the ground; relative to air that has
+        // sped up, it is slower, and to air that has slowed, faster.
+        let vx = s.vx - shear
+        let vy = s.vy
+        s.speed = hypot(vx, vy)
+        s.heading = atan2(vy, vx)
+    }
+
+    /// Meeting the ground, the plane's speed becomes speed over the ground.
+    private func toGroundSpeed(_ s: inout PlaneState) {
+        s.speed = max(0, s.speed + groundWind(facing: s.direction))
+    }
+
     /// One fixed step. Returns what happened, if anything.
     public func advance(
         _ s: inout PlaneState, _ phase: inout FlightPhase, input: PlaneInput,
@@ -79,10 +123,10 @@ public struct AirfieldModel: Equatable, Sendable {
                 return flyApproach(&s, &phase, aim: aim, dt: dt)
             }
             phase = .goAround
-            s = flight.advance(s, input: input, dt: dt)
+            flyInWind(&s, dt: dt) { $0 = flight.advance($0, input: input, dt: dt) }
             return .assistAborted
         }
-        s = flight.advance(s, input: input, dt: dt)
+        flyInWind(&s, dt: dt) { $0 = flight.advance($0, input: input, dt: dt) }
         if clearance(s) <= 0 { return touchGround(&s, &phase) }
         if phase == .goAround {
             if !inCone(s) { phase = .flying }
@@ -213,8 +257,12 @@ public struct AirfieldModel: Equatable, Sendable {
         s.speed += max(-20 * dt, min(20 * dt, landingSpeed - s.speed))
         s.heading = FlightModel.wrap(dir > 0 ? gamma : .pi - gamma)
         s.inverted = dir < 0
-        s.x += dir * cos(gamma) * s.speed * dt
-        s.y += sin(gamma) * s.speed * dt
+        // The glide is through the air; the air drifts over the ground, and the
+        // aim is re-taken every step, so the glide still comes down at it.
+        flyInWind(&s, dt: dt) { p in
+            p.x += dir * cos(gamma) * p.speed * dt
+            p.y += sin(gamma) * p.speed * dt
+        }
         if s.y <= landing.gearHeight + elevation {
             level(&s)
             phase = .rollout(repair: 0)
@@ -253,11 +301,13 @@ public struct AirfieldModel: Equatable, Sendable {
         return crash(&s, &phase)
     }
 
+    /// On its wheels, pointed along the ground, at its speed over the ground.
     func level(_ s: inout PlaneState) {
         let dir = s.direction
         s.heading = dir > 0 ? 0 : .pi
         s.inverted = dir < 0
         s.y = strip.groundHeight(at: s.x) + landing.gearHeight
+        toGroundSpeed(&s)
     }
 
     func crash(_ s: inout PlaneState, _ phase: inout FlightPhase) -> FlightEvent {
