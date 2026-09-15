@@ -41,7 +41,7 @@ public struct AirfieldModel: Equatable, Sendable {
 
     /// Metres from the plane's wheels down to the ground under it.
     public func clearance(_ s: PlaneState) -> Double {
-        s.y - landing.gearHeight - strip.groundHeight(at: s.x)
+        s.y - landing.gearHeight - strip.surfaceHeight(at: s.x)
     }
 
     /// Speed at which a plane on the takeoff roll can lift off.

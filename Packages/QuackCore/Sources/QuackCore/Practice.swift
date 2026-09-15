@@ -35,6 +35,8 @@ public struct Practice: Equatable, Sendable {
     /// Part of the next round loaded while parked.
     public var rearmProgress: Double = 0
     public let seed: UInt64
+    /// The hour the run is flown at, from the seed.
+    public let hour: TimeOfDay
 
     public var model: AirfieldModel
     public var gun = GunTuning()
@@ -50,6 +52,7 @@ public struct Practice: Equatable, Sendable {
     public init(seed: UInt64, balloons count: Int = 12, fieldLength: Double = Practice.fieldLength)
     {
         self.seed = seed
+        hour = TimeOfDay(seed: seed)
         let strip = Practice.strip(seed: seed, fieldLength: fieldLength)
         model = AirfieldModel(strip: strip)
         plane = model.parkingSpot
@@ -174,7 +177,7 @@ public struct Practice: Equatable, Sendable {
                 bullets.remove(at: hit)
             }
         }
-        bullets.removeAll { $0.age >= gun.bulletLife || $0.y < model.strip.groundHeight(at: $0.x) }
+        bullets.removeAll { $0.age >= gun.bulletLife || $0.y < model.strip.surfaceHeight(at: $0.x) }
 
         if finishedAt == nil, startedAt != nil, remaining == 0, case .parked = phase {
             finishedAt = time

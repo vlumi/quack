@@ -74,7 +74,8 @@ of the display's refresh rate.
   hillside is a crash and the ground roll follows the shelf. The air half is
   `AirfieldModel.swift`, the ground half `AirfieldModel+Ground.swift`.
 - `Tuning` — every dial the tuning panel exposes in one value: `FlightTuning`,
-  `GunTuning`, the thumb throw, invert pitch and roll time. `TuningDial.all` is
+  `GunTuning`, the thumb throw, invert pitch, roll time, and an hour that
+  overrides the seed's (`timeOfDay(seeded:)`). `TuningDial.all` is
   the panel's catalog (id, section, key path, range, step). Stored as an
   id-to-number dictionary, so a stored set survives dials being added or
   renamed; `report()` is the Copy button's text, with defaults beside changed
@@ -90,7 +91,14 @@ of the display's refresh rate.
   wrapping, never below sea level). `Strip.generate` spreads fields round it
   from a seed, builds seamless hills from octaves of value noise, and cuts a
   flat shelf for each field at the height of its middle, blended into the
-  hill on both sides. `AirfieldModel` holds a strip and works on the image of the field
+  hill on both sides. `scenery` is the houses and trees standing on it
+  (`Obstacle`: a kind, a position and a size, with a solid box a little smaller
+  than its drawing); `obstacle(at:)` finds the one spanning a position and
+  `surfaceHeight(at:)` is the ground or the top of what stands there, which is
+  what the plane's clearance and the rounds are measured against. Generated
+  scenery stays off every field's shelf and under a line rising at the
+  approach angle from its ends. `ValueNoise` is the seamless noise behind the
+  hills and the backdrop's ridges. `AirfieldModel` holds a strip and works on the image of the field
   that matters (the one ahead for the cone, the one under the plane on the
   ground), so its arithmetic reads as if the strip were straight; distances
   that must survive the position being wrapped between steps (the approach aim,
@@ -101,18 +109,38 @@ of the display's refresh rate.
   and stops when the plane is parked at any field after the last pop. The plane
   and the rounds wrap every step; hits are measured round the seam. It counts `ammo`: a round per shot, nothing fires when empty, and
   while parked the belt loads a round at a time (`isRearming`), keeping a part
-  load on takeoff. Rounds stop in the ground. `resizeFields(to:)` regenerates
+  load on takeoff. Rounds stop in the ground and in scenery. `hour` is the
+  run's `TimeOfDay` (dawn, noon, evening or night), from the seed. `resizeFields(to:)` regenerates
   the strip for a new field length, so each field keeps a shelf that fits it.
   Balloons pop by round or by collision. Deterministic, so the same
   inputs give the same run.
+- `Backdrop` — what lies behind the strip, from the seed: three
+  `BackdropLayer`s (far ridge, village hills, hedgerows), each a ridge profile
+  with the `BackdropProp`s standing on it (houses, a church, windmills, round
+  trees, poplars), a parallax (0.15, 0.4, 0.7), a smaller share of the
+  camera's climb, and a period of the strip's length times its parallax, so a
+  lap of the strip is a lap of every layer. Nothing in it can be touched.
 
 The numbers and shapes here are a starting point to be flown and replaced.
 
 ## The scene
 
-The ground is a filled green silhouette of `groundHeight`, sampled every 2 m a
-screen either side of the plane, with a tick every 20 m. Each field is drawn by
-`SceneArt` at its elevation: a tan strip in the ground line with
+**The look** is poster shapes over a quiet sky, owned by `StripLook` and built
+again when the run, its hour or its scenery changes. `Palette` holds the
+hour's colours: a three-stop sky, a tint that shades everything toward the
+light, a haze the far layers fade into, the sun or moon, and how bright the
+stars and lit windows are. `SkyNode` is fixed to the box: a smooth gradient
+texture, stars at night, the sun with a soft glow or the moon as a crescent
+over its earthshine disc, and poster clouds sliding at 0.08 of the plane's
+speed. `BackdropNode` redraws each layer's ridge across the box every frame in
+two tones (a lit band over a shaded body) and slides its props into place.
+`PropArt` draws every house, church, windmill (sails turning), hangar and
+tree as flat shapes with no outlines, trees as lozenges lit down one side. On
+the strip the ground is `groundHeight` sampled every 2 m a screen either side
+of the plane, a lit band over a shaded body; scenery stands behind its edge;
+a hangar sits behind each field, left of the windsock, and is not solid. The
+readouts turn pale at night. Each field is drawn by `SceneArt` at its
+elevation: a tan strip in the ground line with
 threshold bars, a windsock beside the middle, and the approach cone over each
 end, drawn from `inCone`'s own floor and ceiling with the approach angle
 dashed, redrawn when the landing dials change. Everything on the strip (fields,
@@ -189,7 +217,7 @@ for the reasoning.
   into Duckfight; a flapping scarf.
 - **Rounds bought at the field**, and something that shoots back.
 - **Fuel**, with contracts.
-- **The rest of the strip**: parallax silhouettes, sky by the seeded hour; wind as the cloud layer's speed, so one
+- **The rest of the strip**: wind as the cloud layer's speed, so one
   direction is faster than the other, with balloons drifting in it; clouds in
   front of the plane as well as behind.
 - **Weather**: rain, thunder, snow.

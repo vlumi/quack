@@ -40,6 +40,13 @@ extension FlightScene {
         }
     }
 
+    /// Paint the readouts in the hour's ink.
+    func applyInk() {
+        for label in [countLabel, clockLabel, statusLabel, speedLabel, altitudeLabel, ammoLabel] {
+            label.fontColor = hudInk
+        }
+    }
+
     func layoutHUD() {
         let left = -size.width / 2 + 24
         let top = size.height * 0.7 - 24
@@ -95,7 +102,7 @@ extension FlightScene {
 
     /// Rounds left; red and a hint when the belt is empty, a note while it loads.
     private func updateAmmo() {
-        let ink = SKColor(white: 0.12, alpha: 1)
+        let ink = hudInk
         if practice.ammo == 0 && !practice.isRearming {
             ammoLabel.text = String(localized: "Out of rounds: land to rearm", bundle: .module)
             ammoLabel.fontColor = SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1)

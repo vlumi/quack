@@ -367,6 +367,17 @@
         }
       }
     },
+    "Hour (0 = seed's)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hour (0 = seed's)"
+          }
+        }
+      }
+    },
     "Invert pitch" : {
       "extractionState" : "manual",
       "localizations" : {

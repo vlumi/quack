@@ -182,8 +182,14 @@ so the turn back and the approach are part of the time.
   valley or on a ridge and its approach is clear. Flying into a hillside is a
   crash; rounds stop in it; balloons float 18 to 118 m above the ground under
   them, out of the thin air unless the hill itself is high. Bridges over gaps
-  and AA guns by rules come later. Parallax silhouettes, a sky gradient for
-  the hour.
+  and AA guns by rules come later.
+- **Houses and trees on the strip are solid.** Scenery a plane flies through
+  reads as a glitch, solid scenery makes low flying a skill, and houses become
+  targets once there are bombs, as in Sopwith. To stay fair, none stands on a
+  field's shelf or above the approach line beyond it, all stand well under the
+  lowest balloon, the solid box is smaller than the drawing so brushing leaves
+  is forgiven, and rounds stop in them as in the ground. A field's hangar and
+  windsock are part of the field and not solid.
 - **Wind is the cloud layer's speed.** No gauge. On a wraparound strip that
   makes the two directions genuinely different: headwind one way, tailwind the
   other; later, gusts push the approach and drift bombs. Balloons drift with it
@@ -192,7 +198,8 @@ so the turn back and the approach are part of the time.
   a plane can hide in them. Only a look until something can see it; a real
   tactic once there are gunners and Duckfight.
 - **The hour is part of the seed**, not the device's clock, so a seed always
-  gives the same world: the Daily Drop needs that.
+  gives the same world: the Daily Drop needs that. Dawn, noon, evening or
+  night, evenly. At night the windows are lit and the readouts turn pale.
 - **Weather later**: rain, thunder, snow, from the seed, once wind and the look
   exist to carry them.
 
@@ -237,6 +244,16 @@ Layered terrain silhouettes with parallax, stacked-rectangle buildings, smoke
 and explosion particles, a sky gradient for the hour. Fully procedural, and it
 looks intentional because the original looked like that too. The one drawn
 asset is the icon: a duck in a flying cap.
+
+The world's look was chosen in mockup rounds (2026-09-15) from Cutout (flat
+silhouettes fading into the sky), Ink (the plane's ink line carried into the
+world) and Poster (a 1930s travel poster). **Poster shapes over Cutout's quiet
+sky** won: hills lit along their tops, lozenge trees and poplars, villages
+with a church or a windmill, no outlines, the far layers fading into the haze,
+under a smooth gradient. Ink put too much weight behind the plane; the
+poster's banded sky was too strong at dawn and evening, and faint bands
+looked like a rendering glitch. The moon is drawn in its phase, not as a disc
+with another laid over it.
 
 The plane is a cartoon Camel, chosen over line art, a silhouette and an 8-bit
 sprite (2026-09-12) for being recognisable at a glance rather than correct for
