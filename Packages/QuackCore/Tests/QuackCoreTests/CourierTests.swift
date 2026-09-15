@@ -48,10 +48,10 @@ final class CourierTests: XCTestCase {
         for o in p.offers {
             XCTAssertEqual(o.from, 0)
             XCTAssertNotEqual(o.to, 0)
-            XCTAssertEqual(o.kind, .mail)
             let a = strip.airfields[0], b = strip.airfields[o.to]
             let distance = abs(strip.offset(from: a.start + 30, to: b.start + 30))
-            XCTAssertEqual(o.fare, (10 + distance * 0.07).rounded())
+            let mailFare = (10 + distance * 0.07).rounded()
+            XCTAssertEqual(o.fare, o.kind == .mail ? mailFare : (mailFare * 1.6).rounded())
             XCTAssertEqual(o.window, 4 * distance / 40 + 20, accuracy: 1e-9)
         }
         XCTAssertNotEqual(p.offers[0].to, p.offers[1].to)

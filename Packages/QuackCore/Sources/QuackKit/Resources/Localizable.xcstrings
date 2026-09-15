@@ -12,6 +12,17 @@
         }
       }
     },
+    "%@, %@. Fire for another, pull up to go" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, %@. Fire for another, pull up to go"
+          }
+        }
+      }
+    },
     "%lld balloons left" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -257,6 +268,28 @@
         }
       }
     },
+    "Comfort lost a second inverted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comfort lost a second inverted"
+          }
+        }
+      }
+    },
+    "Comfort lost per hard radian" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comfort lost per hard radian"
+          }
+        }
+      }
+    },
     "Cone angle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -466,6 +499,17 @@
         }
       }
     },
+    "Gentle turn (rad/s)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gentle turn (rad/s)"
+          }
+        }
+      }
+    },
     "Gravity" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -532,6 +576,17 @@
         }
       }
     },
+    "Mail for %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mail for %@"
+          }
+        }
+      }
+    },
     "Mail for %@ aboard" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -539,28 +594,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mail for %@ aboard"
-          }
-        }
-      }
-    },
-    "Mail for %@, %@. Fire for another, pull up to go" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mail for %@, %@. Fire for another, pull up to go"
-          }
-        }
-      }
-    },
-    "Mail for %@: %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mail for %@: %@"
           }
         }
       }
@@ -627,6 +660,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Out of rounds: land to rearm"
+          }
+        }
+      }
+    },
+    "Passenger premium" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passenger premium"
+          }
+        }
+      }
+    },
+    "Passenger still aboard: pull up to fly on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passenger still aboard: pull up to fly on"
+          }
+        }
+      }
+    },
+    "Passenger to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passenger to %@"
+          }
+        }
+      }
+    },
+    "Passenger to %@ aboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passenger to %@ aboard"
           }
         }
       }
@@ -913,6 +990,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The mail is lost"
+          }
+        }
+      }
+    },
+    "The passenger is not enjoying this" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The passenger is not enjoying this"
+          }
+        }
+      }
+    },
+    "The passenger walks home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The passenger walks home"
           }
         }
       }

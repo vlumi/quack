@@ -237,6 +237,18 @@ public struct TuningDial: Identifiable {
             id: "courier.windowExtra", section: .courier, keyPath: \.courier.windowExtra,
             range: 0...60, step: 5, decimals: 0),
         TuningDial(
+            id: "courier.passengerPremium", section: .courier, keyPath: \.courier.passengerPremium,
+            range: 1...3, step: 0.1, decimals: 1),
+        TuningDial(
+            id: "courier.invertedCost", section: .courier, keyPath: \.courier.invertedCost,
+            range: 0...0.5, step: 0.01, decimals: 2),
+        TuningDial(
+            id: "courier.turnCost", section: .courier, keyPath: \.courier.turnCost, range: 0...0.5,
+            step: 0.01, decimals: 2),
+        TuningDial(
+            id: "courier.gentleTurn", section: .courier, keyPath: \.courier.gentleTurn,
+            range: 0.1...3, step: 0.1, decimals: 1),
+        TuningDial(
             id: "feel.rollDuration", section: .feel, keyPath: \.rollDuration, range: 0.05...1,
             step: 0.05, decimals: 2),
         TuningDial(

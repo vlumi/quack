@@ -50,6 +50,9 @@ public struct Practice: Equatable, Sendable {
     public var offers: [Contract] = []
     public var chosenOffer = 0
     public var deliveries = 0
+    /// How much a passenger aboard has minded the flight so far, 0 to 0.75.
+    public var discomfort: Double = 0
+    var lastHeading: Double = 0
     /// What happened to the courier this step, for the scene to show.
     public var courierEvent: CourierEvent?
     public let seed: UInt64

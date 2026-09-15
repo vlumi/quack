@@ -139,7 +139,12 @@ of the display's refresh rate.
   shorter way round; `advanceCourier` runs the board while parked (the
   trigger cycles the pick and does not fire on the ground), loads the pick at
   lift-off, pays on parking at the destination, and loses the bag in a
-  crash, reporting each as a `CourierEvent`. Fields carry village `name`s
+  crash, reporting each as a `CourierEvent`. A `.passenger` contract pays
+  `passengerPremium` times the mail fare and its `payNow` is cut by
+  `comfort`: 1 minus the `discomfort` that `ride` adds each step for
+  inverted flight, turning faster than `gentleTurn`, stalling, and bounces
+  or a broken undercarriage, floored at a quarter, with a `.complaint`
+  event at each quarter lost. Fields carry village `name`s
   from `Strip.fieldNames`.
 - `Backdrop` — what lies behind the strip, from the seed: three
   `BackdropLayer`s (far ridge, village hills, hedgerows), each a ridge profile
