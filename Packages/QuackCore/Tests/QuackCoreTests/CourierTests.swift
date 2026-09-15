@@ -142,9 +142,5 @@ final class CourierTests: XCTestCase {
         XCTAssertTrue(p.offers.isEmpty)
         XCTAssertEqual(p.balloons.count, 12)
         XCTAssertFalse(Practice(seed: 1, mode: .courier).needsToLand)
-        var t = Tuning()
-        XCTAssertEqual(t.mode, .courier)
-        t.balloonRun = 1
-        XCTAssertEqual(t.mode, .balloons)
     }
 }

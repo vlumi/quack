@@ -23,8 +23,7 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 - [ ] Fly it. Tune on a device until the half-loop turn is a pleasure and a
   stall is a lesson, not a punishment.
 - [ ] Decide the throw distance and response curve for the pitch drag.
-- [ ] A player-facing setting to invert the pitch sense (the tuning panel has
-  the switch; players need it somewhere they will look).
+- [x] A player-facing setting to invert the pitch sense: on the title screen.
 - [ ] Decide: is the plane fun to fly? **If not, stop here.**
 
 ## 0.2 — Landing (in progress)
@@ -62,7 +61,6 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 - [x] Mail contracts between fields: a board at each field, the trigger picks,
   lift-off loads, landing at the destination pays what is left of the fare.
 - [ ] Passengers: the same jobs, but aerobatics cut the fare.
-- [ ] A way into the balloon run and back that is not a tuning dial.
 - [ ] Fuel: a range clock; costs money and time to refill. An empty tank
   stops the engine and the plane glides to a field, or does not.
 - [ ] Rounds cost money at the field.

@@ -22,7 +22,8 @@ fields and wind.
 
 ### Unreleased (next build)
 
-- The courier's day: every field has a name and posts two mail jobs to other fields. Parked, the trigger picks one and pulling up takes it aboard; land at its field and it pays what is left of the fare, which falls with time to a quarter. Landing elsewhere keeps the bag; a crash loses it. The readouts show your money and the job's pay, the minimap lights the destination red, and the white chevron points at it. The balloon run is still there behind the Balloon run dial on the tuning panel.
+- A title screen over the running world: Courier or Balloon run, and the invert-pitch switch, which is kept between launches. A pause button at the bottom of the screen (Escape on the Mac) freezes a run, with resume and quit to title.
+- The courier's day: every field has a name and posts two mail jobs to other fields. Parked, the trigger picks one and pulling up takes it aboard; land at its field and it pays what is left of the fare, which falls with time to a quarter. Landing elsewhere keeps the bag; a crash loses it. The readouts show your money and the job's pay, the minimap lights the destination red, and the white chevron points at it. The balloon run is the title screen's other choice.
 
 ### build 6 — 2026-09-15
 

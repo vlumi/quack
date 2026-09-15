@@ -131,7 +131,7 @@ of the display's refresh rate.
   the strip for a new field length, so each field keeps a shelf that fits it.
   Balloons pop by round or by collision. Deterministic, so the same
   inputs give the same run. Its `mode` is the balloon run or the courier
-  (`Practice.Mode`, from the tuning panel's balloon-run dial for now).
+  (`Practice.Mode`), the title screen's choice.
 - `Contract`, `CourierTuning`, `CourierEvent` — the courier's day
   (`Courier.swift`): a mail contract from one field to another with a fare
   that falls to a quarter over its window (`pay(after:)`); `offers(at:)`
@@ -214,10 +214,21 @@ same mirrored, which is the sim's `inverted`; the scene eases between them
 over a third of a second, top toward the camera both ways. A gloss layer's
 alpha follows the plane's attitude against a fixed sun.
 
+**The title screen** (`TitleScreen`, SwiftUI) sits over the scene, which
+keeps running the seeded world with inputs ignored (`FlightScene.attract`):
+the name, Courier or Balloon run (`FlightScene.start(_:)`, which keeps the
+untouched run behind the title when its mode matches), and the invert-pitch
+switch, the one player setting, which `TuningStore` keeps in UserDefaults in
+every build. `GameView` holds the screen state: title, playing (a
+`PauseButton` at the bottom middle, between the thumbs' halves; Escape on the
+Mac) and paused (`PauseMenu`: resume, or quit back to the title, where the
+world goes on as the attract mode).
+
 **The tuning panel** (`TuningPanel`, behind `QUACK_TUNING`, on unless
 `QUACK_NO_TUNING=1`): shaking the phone (UIKit's own shake, via `UIWindow`) or
 Debug › Tuning Panel (⌥⌘T, `TuningCommands`) on the Mac posts one
-notification, and `GameView` toggles a sheet of sliders over the game. The
+notification, and `GameView` toggles a sheet of sliders over the game (invert pitch is on both
+the panel and the title screen: one value). The
 flight pauses while it is up. `TuningStore` keeps the values in UserDefaults and
 publishes every change, which `GameView` hands to `FlightScene.tuning`; the
 scene applies it to the sim, the gun, the controls, the roll and the stall arc
