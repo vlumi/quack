@@ -19,6 +19,13 @@ public final class FlightScene: SKScene {
 
     var practice = Practice(seed: 1)
     private var run: UInt64 = 1
+    /// What the runs are for; the title screen sets it.
+    public private(set) var mode = Practice.Mode.courier
+    /// Behind the title screen the world runs but nobody is flying: inputs
+    /// are ignored and the readouts are off.
+    public var attract = false {
+        didSet { setHUDHidden(attract) }
+    }
     private var input = PlaneInput.idle
     private var accumulator: TimeInterval = 0
     private var lastTime: TimeInterval?
@@ -130,7 +137,6 @@ public final class FlightScene: SKScene {
         practice.gun = tuning.gun
         practice.windTuning = tuning.wind
         practice.courierTuning = tuning.courier
-        if practice.mode != tuning.mode { startRun() }
         controls.throwDistance = CGFloat(tuning.throwDistance)
         controls.minimumThrow = CGFloat(tuning.minimumThrow)
         controls.invertedPitch = tuning.invertedPitch
@@ -175,8 +181,17 @@ public final class FlightScene: SKScene {
         }
     }
 
+    /// Fly `mode`: a fresh run of it, unless the run behind the title is that
+    /// mode and nobody has touched it yet, which is then simply flown.
+    public func start(_ mode: Practice.Mode) {
+        guard mode != self.mode || practice.startedAt != nil else { return }
+        self.mode = mode
+        run += 1
+        startRun()
+    }
+
     private func startRun() {
-        practice = Practice(seed: run, mode: tuning.mode, fieldLength: tuning.fieldLength)
+        practice = Practice(seed: run, mode: mode, fieldLength: tuning.fieldLength)
         applyTuning()
         // A new run starts with the tuned belt, not the default one.
         practice.ammo = practice.capacity
@@ -196,7 +211,7 @@ public final class FlightScene: SKScene {
         defer { lastTime = currentTime }
         guard let last = lastTime, !simulationPaused else { return }
         accumulator += min(currentTime - last, 0.25)
-        input = controls.input
+        input = attract ? .idle : controls.input
         // Once the run is done, the next pull of the trigger starts the next one.
         if practice.isFinished && input.fire && !wasFiring {
             run += 1

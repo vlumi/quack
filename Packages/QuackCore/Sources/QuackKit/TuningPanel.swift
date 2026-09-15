@@ -245,7 +245,6 @@ struct TuningPanel: View {
         case "courier.windowFactor":
             return Text("Fare falls over (× straight run)", bundle: .module)
         case "courier.windowExtra": return Text("Fare falls over (+ seconds)", bundle: .module)
-        case "feel.balloonRun": return Text("Balloon run (0 = courier)", bundle: .module)
         case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
         default: return Text(verbatim: id)
         }
