@@ -97,8 +97,9 @@ public final class FlightScene: SKScene {
         backgroundColor = SKColor(red: 0.55, green: 0.72, blue: 0.9, alpha: 1)
         anchorPoint = CGPoint(x: 0.5, y: 0.3)
         addChild(world)
-        world.addChild(fieldLayer)
+        // The fields go over the ground: their bands sit just under its line.
         world.addChild(groundNode)
+        world.addChild(fieldLayer)
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
         world.addChild(planeNode)
