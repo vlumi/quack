@@ -49,4 +49,36 @@ final class StripTests: XCTestCase {
             XCTAssertGreaterThan(gap, 300, "fields \(i) and \(i + 1) are well apart")
         }
     }
+
+    // MARK: Terrain
+
+    func testAFlatStripIsAtSeaLevel() {
+        XCTAssertEqual(strip.groundHeight(at: 123), 0)
+    }
+
+    func testGeneratedHillsAreSeededSeamlessAndAboveSeaLevel() {
+        let a = Strip.generate(seed: 3, length: 2400, fields: 4, fieldLength: 60)
+        XCTAssertEqual(
+            a.heights, Strip.generate(seed: 3, length: 2400, fields: 4, fieldLength: 60).heights)
+        XCTAssertEqual(
+            a.groundHeight(at: 2400 - 1e-6), a.groundHeight(at: 0), accuracy: 1e-3,
+            "no step at the seam")
+        XCTAssertEqual(a.groundHeight(at: -5), a.groundHeight(at: 2395), accuracy: 1e-9)
+        let samples = stride(from: 0.0, to: 2400, by: 1).map { a.groundHeight(at: $0) }
+        XCTAssertEqual(samples.min() ?? -1, 0, accuracy: 1, "the lowest ground is about sea level")
+        XCTAssertGreaterThan(samples.max() ?? 0, 5, "and there are hills")
+    }
+
+    func testEveryFieldSitsOnAShelfAsFlatAsItsApproaches() {
+        // The cones reach 50 m past each end, with the throat 10 m over it: 60 m of apron is flat.
+        let a = Strip.generate(seed: 1, length: 2400, fields: 4, fieldLength: 60)
+        for field in a.airfields {
+            for x in stride(from: field.start - 60, through: field.end + 60, by: 2.5) {
+                XCTAssertEqual(
+                    a.groundHeight(at: x), field.elevation, accuracy: 1e-3, "flat at \(x)")
+            }
+            XCTAssertEqual(a.image(of: field, near: field.start).elevation, field.elevation)
+        }
+    }
+
 }

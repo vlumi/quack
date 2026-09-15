@@ -48,9 +48,10 @@ public final class FlightScene: SKScene {
     /// What the plane is doing, or what just happened to it.
     let statusLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     var flash: (text: String, until: TimeInterval)?
-    /// Cockpit gauges, top right: airspeed with the stall range in red, and altitude.
+    /// Cockpit gauges, top right: airspeed with the stall range in red, and
+    /// altitude above sea level with the thin air in red.
     let speedDial: Dial
-    let altitudeDial = Dial(radius: 44, maximum: 150, majorEvery: 50)
+    let altitudeDial = Dial(radius: 44, maximum: 300, majorEvery: 100)
     let speedLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     let altitudeLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let controls: ThumbControls
@@ -104,6 +105,7 @@ public final class FlightScene: SKScene {
         markerLayer.zPosition = 50
         markerLayer.addChild(fieldMarker)
         addChild(markerLayer)
+        groundNode.fillColor = SKColor(red: 0.42, green: 0.62, blue: 0.32, alpha: 1)
         groundNode.strokeColor = SKColor(red: 0.25, green: 0.45, blue: 0.2, alpha: 1)
         groundNode.lineWidth = 0.5 * scale
         setUpHUD()
@@ -133,9 +135,8 @@ public final class FlightScene: SKScene {
         controls.invertedPitch = tuning.invertedPitch
         rollDuration = tuning.rollDuration
         speedDial.redBelow = CGFloat(tuning.flight.stallSpeed * 3.6)
-        for i in practice.model.strip.airfields.indices {
-            practice.model.strip.airfields[i].length = tuning.fieldLength
-        }
+        practice.resizeFields(to: tuning.fieldLength)
+        altitudeDial.redAbove = CGFloat(tuning.flight.thinAirFrom)
         fieldNodes.forEach { $0.removeFromParent() }
         fieldNodes = practice.model.strip.airfields.map { field in
             // Drawn with the field starting at 0; `render` places it.
@@ -146,10 +147,13 @@ public final class FlightScene: SKScene {
             fieldLayer.addChild(node)
             return node
         }
+        minimap.reset(
+            strip: practice.model.strip,
+            balloonColours: practice.balloons.indices.map { FlightScene.balloonColours[$0 % 6] })
     }
 
     private func startRun() {
-        practice = Practice(seed: run)
+        practice = Practice(seed: run, fieldLength: tuning.fieldLength)
         applyTuning()
         // A new run starts with the tuned belt, not the default one.
         practice.ammo = practice.capacity
@@ -161,9 +165,6 @@ public final class FlightScene: SKScene {
             balloonLayer.addChild(n)
             return n
         }
-        minimap.reset(
-            strip: practice.model.strip,
-            balloonColours: practice.balloons.indices.map { FlightScene.balloonColours[$0 % 6] })
         markerNodes.forEach { $0.removeFromParent() }
         markerNodes = practice.balloons.indices.map { i in
             let m = SceneArt.markerNode(scale: scale, colour: FlightScene.balloonColours[i % 6])
@@ -222,7 +223,7 @@ public final class FlightScene: SKScene {
             CGFloat(plane.x + strip.offset(from: plane.x, to: x)) * self.scale
         }
         for (node, field) in zip(fieldNodes, strip.airfields) {
-            node.position = CGPoint(x: near(field.start), y: 0)
+            node.position = CGPoint(x: near(field.start), y: field.elevation * scale)
         }
         for (i, b) in practice.balloons.enumerated() {
             if b.popped && balloonNodes[i].parent != nil && !balloonNodes[i].hasActions() {
@@ -251,11 +252,7 @@ public final class FlightScene: SKScene {
             }
         }
 
-        // Camera: follows sideways always, and upward once the plane would leave
-        // the top 40% of the view, easing so a loop does not yank the ground.
-        let target2 = max(0, planeNode.position.y - size.height * 0.4)
-        cameraY += (target2 - cameraY) * 0.12
-        world.position = CGPoint(x: -planeNode.position.x, y: -cameraY)
+        follow(plane)
         redrawGround()
         updateMarkers()
         updateHUD(at: now)
@@ -295,19 +292,46 @@ public final class FlightScene: SKScene {
         return CGFloat(cos(.pi * min(1, elapsed / max(0.01, tuning.landing.turnTime))))
     }
 
+    private func follow(_ plane: PlaneState) {
+        // Camera: follows sideways always; up and down it keeps the lowest ground
+        // near the plane on the anchor line, and rises further once the plane
+        // would leave the top 40% of the view, easing so a loop does not yank
+        // the ground.
+        let below =
+            [-30.0, 0, 30].map { practice.model.strip.groundHeight(at: plane.x + $0) }.min() ?? 0
+        let target2 = max(below * scale, planeNode.position.y - size.height * 0.4)
+        cameraY += (target2 - cameraY) * 0.12
+        world.position = CGPoint(x: -planeNode.position.x, y: -cameraY)
+    }
+
+    /// The ground as a filled silhouette a screen either side of the plane,
+    /// sampled every two metres, with a tick every 20 m hanging under the
+    /// surface so motion over it reads.
     private func redrawGround() {
+        let strip = practice.model.strip
         let half = size.width
         let x0 = planeNode.position.x - half
+        let bottom = cameraY - size.height
+        let surface = { (x: CGFloat) -> CGPoint in
+            CGPoint(x: x, y: CGFloat(strip.groundHeight(at: Double(x / self.scale))) * self.scale)
+        }
         let path = CGMutablePath()
-        path.move(to: CGPoint(x: x0, y: 0))
-        path.addLine(to: CGPoint(x: x0 + 2 * half, y: 0))
-        // Tick marks so motion over the ground is readable.
-        let step: CGFloat = 20 * scale
+        path.move(to: CGPoint(x: x0, y: bottom))
+        let step: CGFloat = 2 * scale
         var x = (x0 / step).rounded(.down) * step
-        while x < x0 + 2 * half {
-            path.move(to: CGPoint(x: x, y: 0))
-            path.addLine(to: CGPoint(x: x, y: -1.3 * scale))
+        while x <= x0 + 2 * half + step {
+            path.addLine(to: surface(x))
             x += step
+        }
+        path.addLine(to: CGPoint(x: x - step, y: bottom))
+        path.closeSubpath()
+        let tick: CGFloat = 20 * scale
+        x = (x0 / tick).rounded(.down) * tick
+        while x < x0 + 2 * half {
+            let top = surface(x)
+            path.move(to: top)
+            path.addLine(to: CGPoint(x: x, y: top.y - 1.3 * scale))
+            x += tick
         }
         groundNode.path = path
     }

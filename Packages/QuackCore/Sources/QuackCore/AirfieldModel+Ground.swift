@@ -68,7 +68,7 @@ extension AirfieldModel {
         dt: Double
     ) {
         var rest = steps
-        s.y = landing.gearHeight
+        s.y = strip.groundHeight(at: s.x) + landing.gearHeight
         if !rest.isEmpty {
             advance(rest.removeFirst(), &s, rest: &rest, dt: dt)
         }
@@ -134,7 +134,7 @@ extension AirfieldModel {
         let decel = max(landing.braking, s.speed * s.speed / (2 * toEnd))
         s.speed = max(0, s.speed - decel * dt)
         s.x += dir * s.speed * dt
-        s.y = landing.gearHeight
+        s.y = strip.groundHeight(at: s.x) + landing.gearHeight
         // The fixed step can overshoot the braking arithmetic by a fraction of a metre.
         if !airfield.contains(s.x) {
             s.x = min(max(s.x, airfield.start), airfield.end)
@@ -153,13 +153,13 @@ extension AirfieldModel {
         let dir = s.direction
         s.speed = min(flight.tuning.cruiseSpeed, s.speed + landing.takeoffAcceleration * dt)
         s.x += dir * s.speed * dt
-        s.y = landing.gearHeight
+        s.y = strip.groundHeight(at: s.x) + landing.gearHeight
         if strip.airfield(under: s.x) == nil { return crash(&s, &phase) }
         if s.speed >= rotateSpeed && input.pitch > 0 {
             let climb = 0.12
             s.heading = dir > 0 ? climb : .pi - climb
             s.inverted = dir < 0
-            s.y = landing.gearHeight + 0.05
+            s.y = strip.groundHeight(at: s.x) + landing.gearHeight + 0.05
             phase = .flying
             return .liftoff
         }

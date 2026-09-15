@@ -47,11 +47,10 @@ public struct Practice: Equatable, Sendable {
     public static let stripLength: Double = 2400
     public static let fieldCount = 4
 
-    public init(seed: UInt64, balloons count: Int = 12) {
+    public init(seed: UInt64, balloons count: Int = 12, fieldLength: Double = Practice.fieldLength)
+    {
         self.seed = seed
-        let strip = Strip.generate(
-            seed: seed, length: Practice.stripLength, fields: Practice.fieldCount,
-            fieldLength: Practice.fieldLength)
+        let strip = Practice.strip(seed: seed, fieldLength: fieldLength)
         model = AirfieldModel(strip: strip)
         plane = model.parkingSpot
         phase = .parked(repair: 0)
@@ -59,6 +58,29 @@ public struct Practice: Equatable, Sendable {
         // Every stored property is set before `capacity` reads the gun.
         ammo = 0
         ammo = capacity
+    }
+
+    private static func strip(seed: UInt64, fieldLength: Double) -> Strip {
+        Strip.generate(
+            seed: seed, length: Practice.stripLength, fields: Practice.fieldCount,
+            fieldLength: fieldLength)
+    }
+
+    /// Fields of a new length, each on a shelf dug for it. Balloons the new
+    /// ground would bury rise clear of it, and a plane on the ground goes back
+    /// to the parking spot, since the ground under it has moved.
+    public mutating func resizeFields(to fieldLength: Double) {
+        guard model.home.length != fieldLength else { return }
+        model.strip = Practice.strip(seed: seed, fieldLength: fieldLength)
+        for i in balloons.indices {
+            balloons[i].y = max(balloons[i].y, model.strip.groundHeight(at: balloons[i].x) + 18)
+        }
+        switch phase {
+        case .flying, .approach, .goAround: break
+        default:
+            phase = .parked(repair: 0)
+            plane = model.parkingSpot
+        }
     }
 
     /// Rounds in a full belt, from the gun's dial.
@@ -70,8 +92,9 @@ public struct Practice: Equatable, Sendable {
         return ammo < capacity
     }
 
-    /// Balloons scattered round the whole strip, no two closer than `spacing`
-    /// and none within `clearance` of a field's middle, so approaches stay open.
+    /// Balloons scattered round the whole strip, 18 to 118 m above the ground
+    /// under them but no higher than 150 m unless the hill is, no two closer than `spacing` and none within `clearance` of a
+    /// field's middle, so approaches stay open.
     public static func balloons(
         seed: UInt64, count: Int, strip: Strip, spacing: Double = 28, clearance: Double = 100
     ) -> [Balloon] {
@@ -81,7 +104,9 @@ public struct Practice: Equatable, Sendable {
         while out.count < count && tries < count * 200 {
             tries += 1
             let x = rng.unit() * strip.length
-            let y = 18 + rng.unit() * 100
+            let ground = strip.groundHeight(at: x)
+            // Out of the thinning air: no higher than 150 m unless the hill itself is.
+            let y = min(ground + 18 + rng.unit() * 100, max(ground + 18, 150))
             let nearField = strip.airfields.contains {
                 abs(strip.offset(from: x, to: $0.start + $0.length / 2)) < clearance
             }
@@ -149,7 +174,7 @@ public struct Practice: Equatable, Sendable {
                 bullets.remove(at: hit)
             }
         }
-        bullets.removeAll { $0.age >= gun.bulletLife || $0.y < 0 }
+        bullets.removeAll { $0.age >= gun.bulletLife || $0.y < model.strip.groundHeight(at: $0.x) }
 
         if finishedAt == nil, startedAt != nil, remaining == 0, case .parked = phase {
             finishedAt = time

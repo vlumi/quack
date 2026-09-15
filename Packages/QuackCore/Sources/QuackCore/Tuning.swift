@@ -113,6 +113,13 @@ public struct TuningDial: Identifiable {
             id: "flight.pitchRate", section: .flight, keyPath: \.flight.pitchRate, range: 1...6,
             step: 0.1, decimals: 1),
         TuningDial(
+            id: "flight.thinAirFrom", section: .flight, keyPath: \.flight.thinAirFrom,
+            range: 50...400, step: 10,
+            decimals: 0),
+        TuningDial(
+            id: "flight.ceiling", section: .flight, keyPath: \.flight.ceiling, range: 100...600,
+            step: 10, decimals: 0),
+        TuningDial(
             id: "flight.liftDeficitSink", section: .flight, keyPath: \.flight.liftDeficitSink,
             range: 0...20, step: 0.5,
             decimals: 1),

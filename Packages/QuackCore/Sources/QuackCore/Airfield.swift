@@ -5,10 +5,13 @@ public struct Airfield: Equatable, Sendable {
     /// The x of the left end, in metres.
     public var start: Double
     public var length: Double
+    /// Metres above sea level: the height of the flat shelf the field sits on.
+    public var elevation: Double
 
-    public init(start: Double, length: Double) {
+    public init(start: Double, length: Double, elevation: Double = 0) {
         self.start = start
         self.length = length
+        self.elevation = elevation
     }
 
     public var end: Double { start + length }

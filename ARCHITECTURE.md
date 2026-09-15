@@ -30,9 +30,14 @@ of the display's refresh rate.
   and `inverted`, which says which way the cockpit faces relative to flight.
 - `FlightTuning` — every dial in one struct: gravity (well above Earth's, so
   a vertical climb stops within a screen), thrust, cruise and stall speeds,
-  the stall band, drop rate and sink, lift-deficit sink, pitch rate. Drag is derived
-  so that thrust and drag cancel at cruise.
-- `FlightModel` — pitch rotates the heading; thrust pushes and drag grows with
+  the stall band, drop rate and sink, lift-deficit sink, pitch rate, and where the
+  air starts to thin and the ceiling. Drag is derived so that thrust and drag
+  cancel at cruise. `airDensity(at:)` is 1 up to `thinAirFrom` and falls in a
+  straight line to the density at which full power just holds level at stall
+  speed at `ceiling`.
+- `FlightModel` — thrust is scaled by the air's density at the plane's height
+  and the stall speed by one over its square root; pitch rotates the heading;
+  thrust pushes and drag grows with
   the square of speed; the vertical component of gravity trades speed for
   height, so a dive gains speed past cruise, a shallow climb holds, a steep one
   bleeds to a stall; below stall the plane sinks at once and the nose falls
@@ -45,7 +50,7 @@ of the display's refresh rate.
   emblem (roundel, star, chequer). Pure data, `Codable`, with three built-ins.
 - `AirfieldModel` — everything where the plane meets the ground, wrapping
   `FlightModel`, which only knows the air. An `Airfield` is a stretch of
-  ground; `LandingTuning` its dials; `FlightPhase` is flying, approach
+  ground at an `elevation`; `LandingTuning` its dials; `FlightPhase` is flying, approach
   (assist, carrying its aim point), go-around, rollout, parked, taxiing (a plan
   of `TaxiStep`s: swing round, taxi to x), takeoff roll or wrecked, and each
   step returns a `FlightEvent` when something happens.
@@ -64,8 +69,10 @@ of the display's refresh rate.
   taxiing back and swinging round first if there is not `takeoffRoom` ahead; a
   push swings it round, taxiing out to room first if needed. Taxiing ignores
   the stick. Lift-off needs rotate speed and the stick back; the field's end is
-  a crash. The air half is `AirfieldModel.swift`, the ground half
-  `AirfieldModel+Ground.swift`.
+  a crash. Heights for the cone and the flare are measured from the field's
+  elevation; everywhere else the plane meets the strip's `groundHeight`, so a
+  hillside is a crash and the ground roll follows the shelf. The air half is
+  `AirfieldModel.swift`, the ground half `AirfieldModel+Ground.swift`.
 - `Tuning` — every dial the tuning panel exposes in one value: `FlightTuning`,
   `GunTuning`, the thumb throw, invert pitch and roll time. `TuningDial.all` is
   the panel's catalog (id, section, key path, range, step). Stored as an
@@ -78,33 +85,41 @@ of the display's refresh rate.
 - `Strip` — the world: a length that wraps and the fields along it, the first
   of them home. `wrap` puts a position back in 0..<length, `offset` is the
   signed distance the shorter way round, and `image(of:near:)` is a field moved
-  by whole laps to sit near a position. `Strip.generate` spreads fields round it
-  from a seed. `AirfieldModel` holds a strip and works on the image of the field
+  by whole laps to sit near a position. `heights` sampled every `spacing` metres
+  are the terrain, and `groundHeight(at:)` interpolates them (Catmull-Rom,
+  wrapping, never below sea level). `Strip.generate` spreads fields round it
+  from a seed, builds seamless hills from octaves of value noise, and cuts a
+  flat shelf for each field at the height of its middle, blended into the
+  hill on both sides. `AirfieldModel` holds a strip and works on the image of the field
   that matters (the one ahead for the cone, the one under the plane on the
   ground), so its arithmetic reads as if the strip were straight; distances
   that must survive the position being wrapped between steps (the approach aim,
   a taxi target) go through `offset`.
 - `Practice` — the balloon run: a strip from the seed (2.4 km, four fields),
-  balloons spread round it clear of the fields (`SeededRNG`, SplitMix64), the
+  balloons spread round it clear of the fields and above the ground (`SeededRNG`, SplitMix64), the
   plane parked at home, the rounds, and a clock that starts at the first input
   and stops when the plane is parked at any field after the last pop. The plane
   and the rounds wrap every step; hits are measured round the seam. It counts `ammo`: a round per shot, nothing fires when empty, and
   while parked the belt loads a round at a time (`isRearming`), keeping a part
-  load on takeoff. Balloons pop by round or by collision. Deterministic, so the same
+  load on takeoff. Rounds stop in the ground. `resizeFields(to:)` regenerates
+  the strip for a new field length, so each field keeps a shelf that fits it.
+  Balloons pop by round or by collision. Deterministic, so the same
   inputs give the same run.
 
 The numbers and shapes here are a starting point to be flown and replaced.
 
 ## The scene
 
-Each field is drawn by `SceneArt`: a tan strip in the ground line with
+The ground is a filled green silhouette of `groundHeight`, sampled every 2 m a
+screen either side of the plane, with a tick every 20 m. Each field is drawn by
+`SceneArt` at its elevation: a tan strip in the ground line with
 threshold bars, a windsock beside the middle, and the approach cone over each
 end, drawn from `inCone`'s own floor and ceiling with the approach angle
 dashed, redrawn when the landing dials change. Everything on the strip (fields,
 balloons, rounds) is placed every frame at its lap nearest the plane, so the
 seam never shows. `Minimap`, under the status line, draws the whole world shrunk
-into a box, squeezed harder side to side than up and down (150 m of height):
-the ground with field marks, a dot per balloon at its height, and the plane at
+into a box, squeezed harder side to side than up and down, as tall as the
+ceiling: the hills as a silhouette with field marks on their shelves, a dot per balloon at its height, and the plane at
 its height, pointing the way it flies.
 The status line under the title says what the plane is doing (pull up to take
 off or push to turn around, taxiing, landing, repairing, land at any field to stop the clock) and flashes touchdowns,
@@ -115,14 +130,15 @@ status line and minimap, and the gauges.
 `FlightScene` (SpriteKit) is a fixed 1280 × 720 box showing 70 m of world
 top to bottom, aspect-fit into whatever screen or window it gets (the Mac
 window keeps a 16:9 game area inside a dark frame; on iOS the letterbox bars
-stay touch surface). It runs the balloon run: a ground line with distance
-ticks, the plane, the balloons, the rounds, a two-line clock, two cockpit
-gauges top right (`Dial`: airspeed with the stall range in red, and altitude),
+stay touch surface). It runs the balloon run: the ground, the plane, the balloons, the rounds, a two-line clock, two cockpit
+gauges top right (`Dial`: airspeed with the stall range in red, and altitude
+above sea level to 300 m with the thinning air in red),
 and a chevron on
 the box's edge for each balloon outside it, on the line from the plane, bolder
-and bigger the nearer it is; camera following sideways always and upward once
-the plane would leave the top of the view. Touching the ground puts the plane back at the start height; the field
-and the clock stay. When the run is done, the next pull of the trigger starts
+and bigger the nearer it is; camera following sideways always, keeping the lowest ground near the plane on
+its anchor line, and rising once the plane would leave the top of the view. A
+crash puts the plane back at the parking spot after the wreck delay; the
+balloons and the clock stay. When the run is done, the next pull of the trigger starts
 the next one with the next seed.
 
 `PlaneNode` is the biplane as a rig built from a `Livery` (`PlaneBuilder`
@@ -173,8 +189,7 @@ for the reasoning.
   into Duckfight; a flapping scarf.
 - **Rounds bought at the field**, and something that shoots back.
 - **Fuel**, with contracts.
-- **The rest of the strip**: noise terrain with fields on flat ground, parallax
-  silhouettes, sky by the seeded hour; wind as the cloud layer's speed, so one
+- **The rest of the strip**: parallax silhouettes, sky by the seeded hour; wind as the cloud layer's speed, so one
   direction is faster than the other, with balloons drifting in it; clouds in
   front of the plane as well as behind.
 - **Weather**: rain, thunder, snow.

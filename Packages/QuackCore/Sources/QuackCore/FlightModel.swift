@@ -32,14 +32,18 @@ public struct FlightModel: Equatable, Sendable {
         p.heading = FlightModel.wrap(p.heading)
 
         // Energy: thrust minus drag minus the vertical component of gravity.
+        // Up high the air thins: the engine pushes less and the wing needs more
+        // speed, so climbs flatten out toward the ceiling.
+        let density = t.airDensity(at: p.y)
+        let stallSpeed = t.stallSpeed / density.squareRoot()
         var accel = -t.drag * p.speed * p.speed - sin(p.heading) * t.gravity
-        if input.power { accel += t.thrust }
+        if input.power { accel += t.thrust * density }
         p.speed = max(0, p.speed + accel * dt)
 
         // Stall: too slow to fly. The plane sinks at once and the nose falls
         // toward straight down, both reaching full strength a band below stall
         // speed so the break is decisive and fading as airspeed returns.
-        let stallDepth = max(0, min(1, (t.stallSpeed - p.speed) / t.stallBand))
+        let stallDepth = max(0, min(1, (stallSpeed - p.speed) / t.stallBand))
         if stallDepth > 0 {
             let down = -Double.pi / 2
             var toward = FlightModel.shortestTurn(from: p.heading, to: down)
