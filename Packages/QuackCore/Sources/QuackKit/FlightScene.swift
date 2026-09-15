@@ -144,6 +144,8 @@ public final class FlightScene: SKScene {
             let node = SKNode()
             node.addChild(SceneArt.approachCones(practice.model, field: local, scale: scale))
             node.addChild(SceneArt.airfieldNode(local, scale: scale, palette: look.palette))
+            SceneArt.setWindsock(
+                in: node, step: practice.windStep, direction: practice.windDirection)
             fieldLayer.addChild(node)
             return node
         }
@@ -235,7 +237,6 @@ public final class FlightScene: SKScene {
         }
         for (node, field) in zip(fieldNodes, strip.airfields) {
             node.position = CGPoint(x: near(field.start), y: field.elevation * scale)
-            SceneArt.setWindsock(in: node, wind: practice.wind)
         }
         for (i, b) in practice.balloons.enumerated() {
             if b.popped && balloonNodes[i].parent != nil && !balloonNodes[i].hasActions() {

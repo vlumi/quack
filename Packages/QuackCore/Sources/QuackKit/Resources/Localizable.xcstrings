@@ -356,6 +356,17 @@
         }
       }
     },
+    "Full strength above" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full strength above"
+          }
+        }
+      }
+    },
     "Gravity" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -550,6 +561,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Round life"
+          }
+        }
+      }
+    },
+    "Share at the ground" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share at the ground"
           }
         }
       }

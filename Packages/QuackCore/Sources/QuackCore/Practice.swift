@@ -37,9 +37,9 @@ public struct Practice: Equatable, Sendable {
     public let seed: UInt64
     /// The hour the run is flown at, from the seed.
     public let hour: TimeOfDay
-    /// The share of the strongest wind this run gets, from the seed: -1...1.
-    public let windShare: Double
-    public var windTuning = WindTuning()
+    /// How hard this run's wind blows and which way, from the seed.
+    public let windStep: WindStep
+    public let windDirection: Double
     /// Clouds at the plane's depth, drifting with the wind.
     public var clouds: [Cloud]
     /// Metres the air has moved since the start.
@@ -60,7 +60,8 @@ public struct Practice: Equatable, Sendable {
     {
         self.seed = seed
         hour = TimeOfDay(seed: seed)
-        windShare = Wind.share(seed: seed)
+        windStep = Wind.step(seed: seed)
+        windDirection = Wind.direction(seed: seed)
         let strip = Practice.strip(seed: seed, fieldLength: fieldLength)
         model = AirfieldModel(strip: strip)
         plane = model.parkingSpot

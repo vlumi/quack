@@ -214,6 +214,12 @@ public struct TuningDial: Identifiable {
             id: "wind.strength", section: .wind, keyPath: \.wind.strength, range: 0...32, step: 1,
             decimals: 0),
         TuningDial(
+            id: "wind.groundShare", section: .wind, keyPath: \.wind.groundShare, range: 0...1,
+            step: 0.1, decimals: 1),
+        TuningDial(
+            id: "wind.layer", section: .wind, keyPath: \.wind.layer, range: 5...100, step: 5,
+            decimals: 0),
+        TuningDial(
             id: "wind.balloonDrift", section: .wind, keyPath: \.wind.balloonDrift, range: 0...1,
             step: 0.1, decimals: 1),
         TuningDial(

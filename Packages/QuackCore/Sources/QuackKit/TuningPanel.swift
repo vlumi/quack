@@ -236,6 +236,8 @@ struct TuningPanel: View {
         case "gun.rearmRate": return Text("Rearm rate", bundle: .module)
         case "feel.rollDuration": return Text("Roll time", bundle: .module)
         case "wind.strength": return Text("Strongest wind", bundle: .module)
+        case "wind.groundShare": return Text("Share at the ground", bundle: .module)
+        case "wind.layer": return Text("Full strength above", bundle: .module)
         case "wind.balloonDrift": return Text("Balloon drift", bundle: .module)
         case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
         default: return Text(verbatim: id)

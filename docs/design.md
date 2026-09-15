@@ -193,19 +193,33 @@ so the turn back and the approach are part of the time.
 - **Wind is the cloud layer's speed.** No gauge. On a wraparound strip that
   makes the two directions genuinely different: headwind one way, tailwind the
   other; later, gusts push the approach and drift bombs. Each seed gives one
-  steady wind, up to 16 m/s either way, two fifths of cruise; any strength
-  up to that is as likely as any other. The air moves and a
-  hand-flown plane moves with it, so what changes is the ground: the time
-  round the strip, where a glide comes down, how a hill comes at you. The
-  clouds drift at the wind's speed, the far clouds with them, and the
-  windsocks point downwind, stretched out or hanging by how strong it is.
-  Balloons drift slowly, at 0.4 of it, rising over hills that drift under
-  them, which shows the wind before anything else in the sky does. Rounds
-  carry the wind like the plane.
-- **The assist and the ground ignore the wind.** The landing assist flies its
-  glide over the ground, and a plane on the ground does not drift, so a
-  landing in a gale still stops on the field. Taking the wind into the
-  approach, and gusts, can come once flying it says the approach is too easy.
+  steady wind in one of five steps, calm, low, medium, strong or gale, each as
+  likely as the others, either way. A gale is 16 m/s, two fifths of cruise:
+  about what a Camel's pilots flew in, and a plane should always be much
+  faster than the wind. Five steps rather than a scale so the windsock says
+  which it is: hanging in a calm, drooping, half out, nearly straight, and
+  straight out flapping in a gale. In the air the plane moves with the air,
+  so its airspeed, lift and handling are as in calm air and what changes is
+  the ground: the time round the strip, where a glide comes down, how a hill
+  comes at you. The clouds drift at the wind's speed, the far clouds with
+  them. Balloons drift slowly, at 0.4 of it, rising over hills that drift
+  under them, which shows the wind before anything else in the sky does.
+  Rounds carry the wind like the plane. 8 m/s at most was barely felt on a
+  device (2026-09-15) and 24 felt good; 16 is the compromise, with the dial
+  to 32.
+- **The wind fades toward the ground**: half strength at wheel height, full
+  at 30 m. That is where the wind turns into lift. On its wheels the plane
+  feels the ground-level wind as airspeed, so a takeoff into the wind lifts
+  off after a short roll and one downwind after a long one, and a landing
+  into the wind rolls out slow. Climbing through the fade into a headwind
+  gains airspeed, climbing out downwind loses it, and a descent does the
+  reverse: wind shear, and the reason to take off and land into the wind,
+  which the windsock shows. It also means nothing jumps: the plane leaves
+  the ground at the speed it rolled, and the landing assist, which glides
+  through the moving air like a pilot and re-takes its aim every step, takes
+  over without a lurch and still comes down at its aim and stops on the
+  field either way. Gusts can come once flying it says the approach is too
+  easy.
 - **Clouds in front of the plane as well as behind**, a little translucent, so
   a plane can hide in them: seven poster cumulus clouds at the plane's depth,
   60 to 220 m up, drawn over the plane and the balloons. Only a look until

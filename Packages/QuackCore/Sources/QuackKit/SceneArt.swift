@@ -98,14 +98,31 @@ enum SceneArt {
     /// rolling past it reads as passing in front rather than through it.
     static let sockName = "windsock"
 
-    /// Point a field's windsock downwind: stretched out in a strong wind,
-    /// hanging down the pole in a calm. `strongest` is the metres a second that fill it.
-    static func setWindsock(in field: SKNode, wind: Double, strongest: Double = 16) {
+    /// Point a field's windsock downwind, one shape per wind step so a glance
+    /// says which: hanging down the pole in a calm, drooping in a low wind,
+    /// half out, nearly straight, and straight out and flapping in a gale.
+    static func setWindsock(in field: SKNode, step: WindStep, direction: Double) {
         guard let sock = field.childNode(withName: "//\(sockName)") else { return }
-        let filled = CGFloat(min(1, abs(wind) / max(0.1, strongest)))
-        let way: CGFloat = wind < 0 ? -1 : 1
-        sock.xScale = way * (0.55 + 0.45 * filled)
-        sock.zRotation = -way * (1 - filled) * 1.2
+        let key = "\(step.rawValue)\(direction)"
+        guard sock.userData?["wind"] as? String != key else { return }
+        sock.userData = ["wind": key]
+        sock.removeAllActions()
+        let way: CGFloat = direction < 0 ? -1 : 1
+        let droop: CGFloat
+        switch step {
+        case .calm: droop = 1.45
+        case .low: droop = 1.0
+        case .medium: droop = 0.55
+        case .strong: droop = 0.18
+        case .gale: droop = 0
+        }
+        sock.xScale = way * (0.55 + 0.45 * (1 - droop / 1.45))
+        sock.zRotation = -way * droop
+        if step == .gale {
+            let up = SKAction.rotate(byAngle: way * 0.1, duration: 0.18)
+            let down = SKAction.rotate(byAngle: -way * 0.1, duration: 0.22)
+            sock.run(.repeatForever(.sequence([up, down])))
+        }
     }
 
     static func airfieldNode(_ field: Airfield, scale: CGFloat, palette: Palette) -> SKNode {
