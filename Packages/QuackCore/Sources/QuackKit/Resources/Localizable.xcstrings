@@ -114,6 +114,17 @@
         }
       }
     },
+    "A duck, a biplane, and the mail to carry." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A duck, a biplane, and the mail to carry."
+          }
+        }
+      }
+    },
     "All popped: land to stop the clock" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -147,13 +158,13 @@
         }
       }
     },
-    "Balloon run (0 = courier)" : {
+    "Balloon run" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Balloon run (0 = courier)"
+            "value" : "Balloon run"
           }
         }
       }
@@ -620,6 +631,28 @@
         }
       }
     },
+    "Pause" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        }
+      }
+    },
+    "Paused" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused"
+          }
+        }
+      }
+    },
     "Pitch rate" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -631,6 +664,17 @@
         }
       }
     },
+    "Pull the thumb toward you for nose down instead of up." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pull the thumb toward you for nose down instead of up."
+          }
+        }
+      }
+    },
     "Pull up to take off, push to turn around" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -638,6 +682,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pull up to take off, push to turn around"
+          }
+        }
+      }
+    },
+    "Quack Express" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quack Express"
+          }
+        }
+      }
+    },
+    "Quit to title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit to title"
           }
         }
       }
@@ -682,6 +748,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reset to defaults"
+          }
+        }
+      }
+    },
+    "Resume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
           }
         }
       }

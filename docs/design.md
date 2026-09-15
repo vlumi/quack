@@ -33,6 +33,12 @@ the property to keep: **few inputs, endless technique, nothing to author.**
   sees further than the screen, just not as clearly.
 - **Don't take it seriously.** A duck flies the plane. Modes are called
   Duckfight and Daily Drop.
+- **The title screen is a card over the living world.** Two modes needed a
+  way to choose (2026-09-15), so the front door is a poster-board card over
+  the seeded strip running behind it, which is the attract mode for free.
+  It carries the one setting a player needs, invert pitch; everything else
+  stays on the tuning panel. A pause control sits at the bottom middle of
+  the screen, the one place neither thumb lands.
 
 ## Controls
 

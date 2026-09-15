@@ -47,6 +47,15 @@ extension FlightScene {
         }
     }
 
+    /// The readouts, gauges, minimap and chevrons, off behind the title screen.
+    func setHUDHidden(_ hidden: Bool) {
+        let chrome: [SKNode] = [
+            countLabel, clockLabel, ammoLabel, statusLabel, speedLabel, altitudeLabel, minimap,
+            speedDial, altitudeDial, markerLayer,
+        ]
+        for node in chrome { node.isHidden = hidden }
+    }
+
     func layoutHUD() {
         let left = -size.width / 2 + 24
         let top = size.height * 0.7 - 24
