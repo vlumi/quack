@@ -78,6 +78,14 @@ the property to keep: **few inputs, endless technique, nothing to author.**
   ride on the free thumb. If that ever feels wrong, the war era is its own
   game, not a mode.
 
+The approach guide is drawn soft on purpose: an amber glow brightest at the
+threshold and gone by the far end, feathered at the edges. The first
+drawing, a white translucent wedge with an outline and a dashed centre line
+(0.2), read as a rule to obey and clashed with the night sky (2026-09-15);
+the cone's real edges are generous, and the drawing should promise no more
+precision than that. It is gone while the plane is on the ground, where it
+means nothing.
+
 ## The balloon run
 
 The first thing to do with a gun, and the milestone-1 feel test with a score:

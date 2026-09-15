@@ -54,7 +54,7 @@ final class SkyNode: SKNode {
 
     private static func gradient(_ sky: [RGB]) -> SKTexture {
         let height = 256
-        return SkyNode.texture(width: 4, height: height) { ctx in
+        return SceneArt.texture(width: 4, height: height) { ctx in
             for row in 0..<height {
                 // Row 0 is the bottom of the image; the gradient fills the top 75%.
                 let fromTop = 1 - Double(row) / Double(height - 1)
@@ -65,19 +65,6 @@ final class SkyNode: SKNode {
                 ctx.fill(CGRect(x: 0, y: row, width: 4, height: 1))
             }
         }
-    }
-
-    /// A texture drawn into a bitmap, or a blank one if the bitmap cannot be made.
-    private static func texture(width: Int, height: Int, draw: (CGContext) -> Void) -> SKTexture {
-        guard
-            let ctx = CGContext(
-                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-                space: CGColorSpaceCreateDeviceRGB(),
-                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-        else { return SKTexture() }
-        draw(ctx)
-        guard let image = ctx.makeImage() else { return SKTexture() }
-        return SKTexture(cgImage: image)
     }
 
     private func stars(_ palette: Palette, box: CGSize) -> SKNode {
@@ -140,7 +127,7 @@ final class SkyNode: SKNode {
     /// A soft glow fading out from a quarter of the texture's width to its edge.
     private static func glow(_ c: RGB) -> SKTexture {
         let size = 128
-        return SkyNode.texture(width: size, height: size) { ctx in
+        return SceneArt.texture(width: size, height: size) { ctx in
             let colours = [
                 CGColor(red: c.r, green: c.g, blue: c.b, alpha: 0.35),
                 CGColor(red: c.r, green: c.g, blue: c.b, alpha: 0),

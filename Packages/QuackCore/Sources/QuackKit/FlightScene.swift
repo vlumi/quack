@@ -144,7 +144,9 @@ public final class FlightScene: SKScene {
             // Drawn with the field starting at 0; `render` places it.
             let local = Airfield(start: 0, length: field.length, name: field.name)
             let node = SKNode()
-            node.addChild(SceneArt.approachCones(practice.model, field: local, scale: scale))
+            let cones = SceneArt.approachCones(practice.model, field: local, scale: scale)
+            cones.name = "cones"
+            node.addChild(cones)
             node.addChild(SceneArt.airfieldNode(local, scale: scale, palette: look.palette))
             SceneArt.setWindsock(
                 in: node, step: practice.windStep, direction: practice.windDirection)
@@ -238,9 +240,7 @@ public final class FlightScene: SKScene {
         let near = { (x: Double) -> CGFloat in
             CGFloat(plane.x + strip.offset(from: plane.x, to: x)) * self.scale
         }
-        for (node, field) in zip(fieldNodes, strip.airfields) {
-            node.position = CGPoint(x: near(field.start), y: field.elevation * scale)
-        }
+        placeFields(near: near)
         for (i, b) in practice.balloons.enumerated() {
             if b.popped && balloonNodes[i].parent != nil && !balloonNodes[i].hasActions() {
                 SceneArt.burst(balloonNodes[i])
@@ -307,6 +307,23 @@ public final class FlightScene: SKScene {
         guard case .taxiing(let steps, _) = practice.phase, case .turn(let elapsed) = steps.first
         else { return 1 }
         return CGFloat(cos(.pi * min(1, elapsed / max(0.01, tuning.landing.turnTime))))
+    }
+
+    /// Each field at its lap nearest the plane. The approach guides are for
+    /// the air: they fade out while the plane is on the ground or wrecked, and
+    /// back in once it flies.
+    private func placeFields(near: (Double) -> CGFloat) {
+        let inTheAir: CGFloat
+        switch practice.phase {
+        case .flying, .approach, .goAround: inTheAir = 1
+        default: inTheAir = 0
+        }
+        for (node, field) in zip(fieldNodes, practice.model.strip.airfields) {
+            node.position = CGPoint(x: near(field.start), y: field.elevation * scale)
+            if let cones = node.childNode(withName: "cones") {
+                cones.alpha += (inTheAir - cones.alpha) * 0.08
+            }
+        }
     }
 
     private func follow(_ plane: PlaneState) {

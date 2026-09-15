@@ -171,9 +171,12 @@ of the plane, a lit band over a shaded body; scenery stands behind its edge;
 a hangar sits behind each field, left of the windsock, and is not solid. The
 readouts turn pale at night. Each field is drawn by `SceneArt` at its
 elevation: a tan strip in the ground line with
-threshold bars, a windsock beside the middle, and the approach cone over each
-end, drawn from `inCone`'s own floor and ceiling with the approach angle
-dashed, redrawn when the landing dials change. Everything on the strip (fields,
+threshold bars, a windsock beside the middle, and the approach guide over each
+end: the cone's own floor and ceiling from `inCone`, drawn once into a texture
+as a soft amber glow, feathered at its edges and fading out toward the far
+end, added over whatever is behind it, so it reads as a rough guide rather
+than a rule; rebuilt when the landing dials change, and faded out while the
+plane is on the ground or wrecked. Everything on the strip (fields,
 balloons, rounds) is placed every frame at its lap nearest the plane, so the
 seam never shows. `Minimap`, under the status line, draws the whole world shrunk
 into a box, squeezed harder side to side than up and down, as tall as the
