@@ -102,6 +102,7 @@ public final class FlightScene: SKScene {
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
         world.addChild(planeNode)
+        world.addChild(look.clouds)
         markerLayer.zPosition = 50
         markerLayer.addChild(fieldMarker)
         addChild(markerLayer)
@@ -127,6 +128,7 @@ public final class FlightScene: SKScene {
         practice.model.flight.tuning = tuning.flight
         practice.model.landing = tuning.landing
         practice.gun = tuning.gun
+        practice.windTuning = tuning.wind
         controls.throwDistance = CGFloat(tuning.throwDistance)
         controls.minimumThrow = CGFloat(tuning.minimumThrow)
         controls.invertedPitch = tuning.invertedPitch
@@ -233,6 +235,7 @@ public final class FlightScene: SKScene {
         }
         for (node, field) in zip(fieldNodes, strip.airfields) {
             node.position = CGPoint(x: near(field.start), y: field.elevation * scale)
+            SceneArt.setWindsock(in: node, wind: practice.wind)
         }
         for (i, b) in practice.balloons.enumerated() {
             if b.popped && balloonNodes[i].parent != nil && !balloonNodes[i].hasActions() {

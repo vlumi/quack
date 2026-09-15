@@ -125,6 +125,17 @@
         }
       }
     },
+    "Balloon drift" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balloon drift"
+          }
+        }
+      }
+    },
     "Belt size" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -609,6 +620,17 @@
         }
       }
     },
+    "Strongest wind" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strongest wind"
+          }
+        }
+      }
+    },
     "Takeoff push" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -704,6 +726,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turn time"
+          }
+        }
+      }
+    },
+    "Wind" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wind"
           }
         }
       }

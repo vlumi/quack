@@ -52,8 +52,9 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   noon, evening, night); three parallax layers with villages; houses and trees
   on the strip, solid.
 - [ ] Fly it at every hour on a device (the hour dial on the tuning panel).
-- [ ] Wind = the cloud layer's speed; headwind one way, tailwind the other;
+- [x] Wind = the cloud layer's speed; headwind one way, tailwind the other;
   balloons drift with it. Clouds in front of the plane too, translucent.
+- [ ] Fly the wind: is 8 m/s at most right, and should the assist feel it?
 
 ## 0.4 — Courier
 

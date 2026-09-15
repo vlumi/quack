@@ -96,6 +96,18 @@ enum SceneArt {
     /// A mown strip in the ground line: a tan band, threshold bars at both ends,
     /// and a windsock beside the middle, faded back so a plane landing or
     /// rolling past it reads as passing in front rather than through it.
+    static let sockName = "windsock"
+
+    /// Point a field's windsock downwind: stretched out in a strong wind,
+    /// hanging down the pole in a calm. `strongest` is the metres a second that fill it.
+    static func setWindsock(in field: SKNode, wind: Double, strongest: Double = 8) {
+        guard let sock = field.childNode(withName: "//\(sockName)") else { return }
+        let filled = CGFloat(min(1, abs(wind) / max(0.1, strongest)))
+        let way: CGFloat = wind < 0 ? -1 : 1
+        sock.xScale = way * (0.55 + 0.45 * filled)
+        sock.zRotation = -way * (1 - filled) * 1.2
+    }
+
     static func airfieldNode(_ field: Airfield, scale: CGFloat, palette: Palette) -> SKNode {
         let n = SKNode()
         let x0 = CGFloat(field.start) * scale, x1 = CGFloat(field.end) * scale
@@ -130,15 +142,17 @@ enum SceneArt {
         pole.fillColor = ink
         pole.strokeColor = .clear
         windsock.addChild(pole)
+        // The sock hangs from the pole's top, pointing downwind; the scene
+        // turns it for the wind (`SceneArt.setWindsock`).
         let sock = CGMutablePath()
-        let top = CGPoint(x: mid + 0.1 * scale, y: 6 * scale)
         sock.addLines(between: [
-            top, CGPoint(x: top.x + 3 * scale, y: top.y - 0.35 * scale),
-            CGPoint(x: top.x + 3 * scale, y: top.y - 0.9 * scale),
-            CGPoint(x: top.x, y: top.y - 1.25 * scale),
+            .zero, CGPoint(x: 3 * scale, y: -0.35 * scale), CGPoint(x: 3 * scale, y: -0.9 * scale),
+            CGPoint(x: 0, y: -1.25 * scale),
         ])
         sock.closeSubpath()
         let sockNode = SKShapeNode(path: sock)
+        sockNode.name = SceneArt.sockName
+        sockNode.position = CGPoint(x: mid + 0.1 * scale, y: 6 * scale)
         sockNode.fillColor = palette.lit(Palette.Base.sock).color()
         sockNode.strokeColor = ink
         sockNode.lineWidth = 0.1 * scale

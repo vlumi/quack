@@ -12,6 +12,10 @@ public struct AirfieldModel: Equatable, Sendable {
     public var flight: FlightModel
     public var landing: LandingTuning
     public var strip: Strip
+    /// Metres a second the air moves along the strip. A plane flown by hand
+    /// drifts with it; the landing assist flies its glide over the ground, and
+    /// on the ground the wind does nothing.
+    public var wind: Double = 0
 
     public init(
         flight: FlightModel = FlightModel(), landing: LandingTuning = LandingTuning(), strip: Strip
@@ -80,9 +84,11 @@ public struct AirfieldModel: Equatable, Sendable {
             }
             phase = .goAround
             s = flight.advance(s, input: input, dt: dt)
+            s.x += wind * dt
             return .assistAborted
         }
         s = flight.advance(s, input: input, dt: dt)
+        s.x += wind * dt
         if clearance(s) <= 0 { return touchGround(&s, &phase) }
         if phase == .goAround {
             if !inCone(s) { phase = .flying }

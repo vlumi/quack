@@ -192,11 +192,23 @@ so the turn back and the approach are part of the time.
   windsock are part of the field and not solid.
 - **Wind is the cloud layer's speed.** No gauge. On a wraparound strip that
   makes the two directions genuinely different: headwind one way, tailwind the
-  other; later, gusts push the approach and drift bombs. Balloons drift with it
-  slowly, which shows the wind before anything else in the sky does.
+  other; later, gusts push the approach and drift bombs. Each seed gives one
+  steady wind, up to 8 m/s either way, a fifth of cruise. The air moves and a
+  hand-flown plane moves with it, so what changes is the ground: the time
+  round the strip, where a glide comes down, how a hill comes at you. The
+  clouds drift at the wind's speed, the far clouds with them, and the
+  windsocks point downwind, stretched out or hanging by how strong it is.
+  Balloons drift slowly, at 0.4 of it, rising over hills that drift under
+  them, which shows the wind before anything else in the sky does. Rounds
+  carry the wind like the plane.
+- **The assist and the ground ignore the wind.** The landing assist flies its
+  glide over the ground, and a plane on the ground does not drift, so a
+  landing in a gale still stops on the field. Taking the wind into the
+  approach, and gusts, can come once flying it says the approach is too easy.
 - **Clouds in front of the plane as well as behind**, a little translucent, so
-  a plane can hide in them. Only a look until something can see it; a real
-  tactic once there are gunners and Duckfight.
+  a plane can hide in them: seven poster cumulus clouds at the plane's depth,
+  60 to 220 m up, drawn over the plane and the balloons. Only a look until
+  something can see it; a real tactic once there are gunners and Duckfight.
 - **The hour is part of the seed**, not the device's clock, so a seed always
   gives the same world: the Daily Drop needs that. Dawn, noon, evening or
   night, evenly. At night the windows are lit and the readouts turn pale.
