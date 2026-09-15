@@ -100,7 +100,7 @@ enum SceneArt {
 
     /// Point a field's windsock downwind: stretched out in a strong wind,
     /// hanging down the pole in a calm. `strongest` is the metres a second that fill it.
-    static func setWindsock(in field: SKNode, wind: Double, strongest: Double = 8) {
+    static func setWindsock(in field: SKNode, wind: Double, strongest: Double = 16) {
         guard let sock = field.childNode(withName: "//\(sockName)") else { return }
         let filled = CGFloat(min(1, abs(wind) / max(0.1, strongest)))
         let way: CGFloat = wind < 0 ? -1 : 1

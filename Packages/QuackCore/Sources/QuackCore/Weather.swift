@@ -44,7 +44,7 @@ public enum Wind {
 /// How strong the wind can be and how the balloons take it.
 public struct WindTuning: Equatable, Sendable {
     /// Metres a second of the strongest wind a seed can give.
-    public var strength: Double = 8
+    public var strength: Double = 16
     /// The share of the wind's speed the balloons drift at: they are slow to get going.
     public var balloonDrift: Double = 0.4
     /// Metres a second a balloon rises to keep clear of a hill drifting under it.

@@ -193,7 +193,8 @@ so the turn back and the approach are part of the time.
 - **Wind is the cloud layer's speed.** No gauge. On a wraparound strip that
   makes the two directions genuinely different: headwind one way, tailwind the
   other; later, gusts push the approach and drift bombs. Each seed gives one
-  steady wind, up to 8 m/s either way, a fifth of cruise. The air moves and a
+  steady wind, up to 16 m/s either way, two fifths of cruise; any strength
+  up to that is as likely as any other. The air moves and a
   hand-flown plane moves with it, so what changes is the ground: the time
   round the strip, where a glide comes down, how a hill comes at you. The
   clouds drift at the wind's speed, the far clouds with them, and the

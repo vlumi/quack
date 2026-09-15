@@ -54,7 +54,8 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 - [ ] Fly it at every hour on a device (the hour dial on the tuning panel).
 - [x] Wind = the cloud layer's speed; headwind one way, tailwind the other;
   balloons drift with it. Clouds in front of the plane too, translucent.
-- [ ] Fly the wind: is 8 m/s at most right, and should the assist feel it?
+- [ ] Fly the wind: 8 m/s at most was barely felt and 24 felt good, so 16 for
+  now with the dial to 32; should the assist feel it?
 
 ## 0.4 — Courier
 

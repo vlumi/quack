@@ -211,7 +211,7 @@ public struct TuningDial: Identifiable {
             id: "gun.rearmRate", section: .gun, keyPath: \.gun.rearmRate, range: 2...100, step: 2,
             decimals: 0),
         TuningDial(
-            id: "wind.strength", section: .wind, keyPath: \.wind.strength, range: 0...25, step: 1,
+            id: "wind.strength", section: .wind, keyPath: \.wind.strength, range: 0...32, step: 1,
             decimals: 0),
         TuningDial(
             id: "wind.balloonDrift", section: .wind, keyPath: \.wind.balloonDrift, range: 0...1,
