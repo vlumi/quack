@@ -62,6 +62,12 @@ the property to keep: **few inputs, endless technique, nothing to author.**
   the square of speed, balancing at cruise. Diving gains speed, a shallow
   climb holds it, a steep one bleeds to a stall. Speed is managed with the
   elevators, which is what makes the approach a skill.
+- **The air thins with height**, so there is a ceiling without a wall. Above
+  120 m the engine's push and the wing's grip fade together (thrust scales with
+  the air's density, stall speed with one over its square root), until at the
+  250 m ceiling full power just holds level at stall speed. A climb flattens out
+  on its own below it; above it the plane cannot stay up. It reads as altitude
+  above sea level, so a hill does not raise the ceiling.
 - **Rejected:** a two-axis virtual stick (vertical pitch, horizontal throttle)
   — closest to Sopwith's keys, but a third thing for the thumb to get right,
   and the easy-to-learn rule wins. **Hold-for-power, release-to-glide** —
@@ -164,14 +170,20 @@ so the turn back and the approach are part of the time.
 - **A minimap of the whole world**, very small, under the status line: the
   strip shrunk into a box, squeezed more side to side than up and down so
   height still reads, with the ground and its fields along the bottom, a dot per
-  balloon at its height, and the plane at its height; the hills will show in it
-  too. The view shows 124 m of a
+  balloon at its height, and the plane at its height, the hills filling the
+  bottom and the box as tall as the ceiling. The view shows 124 m of a
   2.4 km world, so the edge chevrons alone cannot say where you are overall.
 - **The balloon run on the strip**: start at home, balloons spread round the
   whole strip (clear of the fields' approaches), and finish by landing at *any*
   field, so which way round and where to come down are part of the time.
-- **Noise terrain**, fields placed on flat ground, bridges over gaps, AA guns
-  by rules. Parallax silhouettes, a sky gradient for the hour.
+- **Noise terrain**: rolling hills from a few octaves of seamless value noise,
+  up to about 75 m, each field on a flat shelf cut into them (70 m of apron each
+  end, blended smoothly into the hill over 80 m more), so a field can sit in a
+  valley or on a ridge and its approach is clear. Flying into a hillside is a
+  crash; rounds stop in it; balloons float 18 to 118 m above the ground under
+  them, out of the thin air unless the hill itself is high. Bridges over gaps
+  and AA guns by rules come later. Parallax silhouettes, a sky gradient for
+  the hour.
 - **Wind is the cloud layer's speed.** No gauge. On a wraparound strip that
   makes the two directions genuinely different: headwind one way, tailwind the
   other; later, gusts push the approach and drift bombs. Balloons drift with it

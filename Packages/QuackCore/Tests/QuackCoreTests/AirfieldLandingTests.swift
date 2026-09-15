@@ -178,6 +178,44 @@ final class AirfieldLandingTests: AirfieldTestCase {
         XCTAssertTrue((10...70).contains(s.x))
     }
 
+    func testALandingOnARaisedFieldStopsAtItsElevation() {
+        // The whole strip 30 m up: the field and its approaches with it.
+        let strip = Strip(
+            length: 10_000, airfields: [Airfield(start: 0, length: 60, elevation: 30)],
+            heights: [30, 30, 30, 30],
+            spacing: 2500)
+        let m = AirfieldModel(strip: strip)
+        var s = PlaneState(x: -40, y: 30 + gear + 6, heading: -8 * .pi / 180, speed: 30)
+        var phase = FlightPhase.flying
+        var events: [FlightEvent] = []
+        for _ in 0..<1200 {
+            if let e = m.advance(&s, &phase, input: .idle) { events.append(e) }
+            if phase == .parked(repair: 0) { break }
+        }
+        XCTAssertEqual(events, [.assistEngaged, .touchdown, .parked])
+        XCTAssertEqual(s.y, 30 + gear, accuracy: 1e-9)
+        XCTAssertEqual(m.parkingSpot.y, 30 + gear, accuracy: 1e-9)
+    }
+
+    func testFlyingIntoAHillsideIsACrash() {
+        // Ground rising to 40 m ahead of a plane flying level at 20 m.
+        let strip = Strip(
+            length: 10_000, airfields: [Airfield(start: 5000, length: 60)],
+            heights: [0, 0, 40, 40, 0, 0, 0, 0],
+            spacing: 50)
+        let m = AirfieldModel(strip: strip)
+        var s = PlaneState(x: 0, y: 20 + gear, heading: 0, speed: 35)
+        var phase = FlightPhase.flying
+        var events: [FlightEvent] = []
+        for _ in 0..<600 {
+            if let e = m.advance(&s, &phase, input: PlaneInput(power: true)) { events.append(e) }
+            if case .wrecked = phase { break }
+        }
+        XCTAssertEqual(events, [.crash])
+        XCTAssertGreaterThan(
+            m.clearance(PlaneState(x: s.x, y: s.y + 0.01)), -1e-6, "left standing on the hill")
+    }
+
     // MARK: Touching down by hand
 
     struct Graded {

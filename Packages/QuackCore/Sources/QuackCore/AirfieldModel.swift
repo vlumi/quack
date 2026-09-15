@@ -36,7 +36,12 @@ public struct AirfieldModel: Equatable, Sendable {
 
     /// Where a plane waits at the start and comes back to after a crash.
     public var parkingSpot: PlaneState {
-        PlaneState(x: home.start + 6, y: landing.gearHeight, heading: 0, speed: 0)
+        PlaneState(x: home.start + 6, y: home.elevation + landing.gearHeight, heading: 0, speed: 0)
+    }
+
+    /// Metres from the plane's wheels down to the ground under it.
+    public func clearance(_ s: PlaneState) -> Double {
+        s.y - landing.gearHeight - strip.groundHeight(at: s.x)
     }
 
     /// Speed at which a plane on the takeoff roll can lift off.
@@ -78,7 +83,7 @@ public struct AirfieldModel: Equatable, Sendable {
             return .assistAborted
         }
         s = flight.advance(s, input: input, dt: dt)
-        if s.y <= landing.gearHeight { return touchGround(&s, &phase) }
+        if clearance(s) <= 0 { return touchGround(&s, &phase) }
         if phase == .goAround {
             if !inCone(s) { phase = .flying }
             return nil
@@ -97,7 +102,7 @@ public struct AirfieldModel: Equatable, Sendable {
     /// ± band, `coneLength` long, with a low throat over the threshold.
     public func inCone(_ s: PlaneState) -> Bool {
         guard let airfield = fieldAhead(s) else { return false }
-        let height = s.y - landing.gearHeight
+        let height = s.y - landing.gearHeight - airfield.elevation
         let outward = s.direction > 0 ? airfield.start - s.x : s.x - airfield.end
         guard height > 0, outward >= -landing.throatLength, outward <= landing.coneLength else {
             return false
@@ -143,7 +148,7 @@ public struct AirfieldModel: Equatable, Sendable {
         else { return nil }
         guard let airfield = fieldAhead(s) else { return nil }
         let dir = s.direction
-        let height = s.y - landing.gearHeight
+        let height = s.y - landing.gearHeight - airfield.elevation
         let near = dir > 0 ? airfield.start : airfield.end
         let earliest = near + dir * 5
         let reachable =
@@ -191,7 +196,8 @@ public struct AirfieldModel: Equatable, Sendable {
     )
         -> FlightEvent?
     {
-        let height = s.y - landing.gearHeight
+        let elevation = strip.nearestAirfield(to: aim)?.elevation ?? 0
+        let height = s.y - landing.gearHeight - elevation
         let dir = s.direction
         let steepest = steepestGlide
         let target: Double
@@ -209,7 +215,7 @@ public struct AirfieldModel: Equatable, Sendable {
         s.inverted = dir < 0
         s.x += dir * cos(gamma) * s.speed * dt
         s.y += sin(gamma) * s.speed * dt
-        if s.y <= landing.gearHeight {
+        if s.y <= landing.gearHeight + elevation {
             level(&s)
             phase = .rollout(repair: 0)
             return .touchdown
@@ -234,7 +240,7 @@ public struct AirfieldModel: Equatable, Sendable {
             let vy = -s.vy * 0.35
             s.speed = hypot(vx, vy)
             s.heading = atan2(vy, vx)
-            s.y = landing.gearHeight + 0.05
+            s.y = strip.groundHeight(at: s.x) + landing.gearHeight + 0.05
             phase = .flying
             return .bounce
         }
@@ -251,12 +257,12 @@ public struct AirfieldModel: Equatable, Sendable {
         let dir = s.direction
         s.heading = dir > 0 ? 0 : .pi
         s.inverted = dir < 0
-        s.y = landing.gearHeight
+        s.y = strip.groundHeight(at: s.x) + landing.gearHeight
     }
 
     func crash(_ s: inout PlaneState, _ phase: inout FlightPhase) -> FlightEvent {
         s.speed = 0
-        s.y = max(s.y, landing.gearHeight)
+        s.y = max(s.y, strip.groundHeight(at: s.x) + landing.gearHeight)
         phase = .wrecked(remaining: landing.wreckTime)
         return .crash
     }

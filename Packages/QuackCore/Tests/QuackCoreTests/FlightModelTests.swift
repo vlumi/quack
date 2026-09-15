@@ -33,7 +33,7 @@ final class FlightModelTests: XCTestCase {
     }
 
     func testDiveGainsSpeedPastCruise() {
-        let start = PlaneState(x: 0, y: 500, heading: -0.5, speed: 40)
+        let start = PlaneState(x: 0, y: 100, heading: -0.5, speed: 40)
         let s = run(start, PlaneInput(pitch: 0, power: true), ticks: 300)
         XCTAssertGreaterThan(s.speed, model.tuning.cruiseSpeed + 5)
     }
@@ -67,24 +67,24 @@ final class FlightModelTests: XCTestCase {
         let t = model.tuning
         // Level and fully stalled: one second later the plane is well below
         // where it started, more than the slow-glide lift deficit accounts for.
-        let stalled = PlaneState(x: 0, y: 200, heading: 0, speed: t.stallSpeed - t.stallBand)
+        let stalled = PlaneState(x: 0, y: 100, heading: 0, speed: t.stallSpeed - t.stallBand)
         let after = model.advance(stalled, input: .idle)
         XCTAssertLessThan(
             after.y - stalled.y, -0.8 * t.stallSink * FlightModel.dt, "sinks on tick one")
         XCTAssertEqual(
             after.heading, stalled.heading, accuracy: 0.1, "before the nose has gone far")
         let s = run(stalled, .idle, ticks: 60)
-        XCTAssertLessThan(s.y, 200 - 10)
+        XCTAssertLessThan(s.y, 100 - 10)
         // Just above stall speed the only sink is the lift deficit.
-        let flying = PlaneState(x: 0, y: 200, heading: 0, speed: t.stallSpeed + 1)
+        let flying = PlaneState(x: 0, y: 100, heading: 0, speed: t.stallSpeed + 1)
         let f = run(flying, PlaneInput(pitch: 0, power: true), ticks: 60)
-        XCTAssertGreaterThan(f.y, 200 - 5)
+        XCTAssertGreaterThan(f.y, 100 - 5)
         XCTAssertEqual(f.heading, 0, accuracy: 1e-9)
     }
 
     func testStallBreakIsDecisiveBelowTheBand() {
         let t = model.tuning
-        let start = PlaneState(x: 0, y: 200, heading: .pi / 2, speed: t.stallSpeed - t.stallBand)
+        let start = PlaneState(x: 0, y: 100, heading: .pi / 2, speed: t.stallSpeed - t.stallBand)
         let s = run(start, .idle, ticks: 30)
         // Half a second at the full drop rate: the nose has moved by about that much.
         XCTAssertEqual(.pi / 2 - s.heading, t.stallDropRate * 0.5, accuracy: 0.15)
@@ -105,14 +105,14 @@ final class FlightModelTests: XCTestCase {
     }
 
     func testGlidingLosesSpeedAndHeight() {
-        let start = PlaneState(x: 0, y: 200, heading: 0, speed: 40)
+        let start = PlaneState(x: 0, y: 100, heading: 0, speed: 40)
         let s = run(start, .idle, ticks: 120)
         XCTAssertLessThan(s.speed, 40)
         XCTAssertLessThan(s.y, 200)
     }
 
     func testStallDropsTheNose() {
-        let start = PlaneState(x: 0, y: 200, heading: 0.3, speed: 5)
+        let start = PlaneState(x: 0, y: 100, heading: 0.3, speed: 5)
         let s = run(start, .idle, ticks: 120)
         XCTAssertLessThan(s.heading, -0.5, "a stalled plane should be pointing well below level")
     }
@@ -148,4 +148,35 @@ final class FlightModelTests: XCTestCase {
         XCTAssertEqual(FlightModel.wrap(-3 * .pi), .pi, accuracy: 1e-12)
         XCTAssertEqual(FlightModel.wrap(0.5), 0.5, accuracy: 1e-12)
     }
+
+    // MARK: Thin air
+
+    func testTheAirIsFullBelowWhereItThinsAndJustHoldsLevelAtTheCeiling() {
+        let t = model.tuning
+        XCTAssertEqual(t.airDensity(at: t.thinAirFrom), 1)
+        XCTAssertEqual(t.airDensity(at: -10), 1)
+        XCTAssertEqual(t.airDensity(at: t.ceiling), t.stallSpeed / t.cruiseSpeed, accuracy: 1e-9)
+        // At the ceiling the fastest level speed, cruise × √density, is the stall speed there.
+        let d = t.airDensity(at: t.ceiling)
+        XCTAssertEqual(
+            t.cruiseSpeed * d.squareRoot(), t.stallSpeed / d.squareRoot(), accuracy: 1e-9)
+        XCTAssertEqual(t.airDensity(at: 10_000), 0.2, "never thinner than a fifth")
+    }
+
+    func testAClimbFlattensOutBelowTheCeiling() {
+        let t = model.tuning
+        let s = run(
+            PlaneState(x: 0, y: 50, heading: 20 * .pi / 180, speed: 40), PlaneInput(power: true),
+            ticks: 60 * 120)
+        XCTAssertGreaterThan(s.y, t.thinAirFrom, "climbs into the thin air")
+        XCTAssertLessThan(s.y, t.ceiling, "but levels off under the ceiling")
+    }
+
+    func testAboveTheCeilingThePlaneCannotHoldLevel() {
+        let t = model.tuning
+        let start = PlaneState(x: 0, y: t.ceiling + 40, heading: 0, speed: 40)
+        let s = run(start, PlaneInput(power: true), ticks: 60 * 10)
+        XCTAssertLessThan(s.y, start.y - 20)
+    }
+
 }

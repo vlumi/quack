@@ -208,6 +208,8 @@ struct TuningPanel: View {
         case "flight.thrust": return Text("Thrust", bundle: .module)
         case "flight.cruiseSpeed": return Text("Cruise speed", bundle: .module)
         case "flight.pitchRate": return Text("Pitch rate", bundle: .module)
+        case "flight.thinAirFrom": return Text("Thin air from", bundle: .module)
+        case "flight.ceiling": return Text("Ceiling", bundle: .module)
         case "flight.liftDeficitSink": return Text("Slow-flight sink", bundle: .module)
         case "stall.speed": return Text("Stall speed", bundle: .module)
         case "stall.band": return Text("Stall band", bundle: .module)

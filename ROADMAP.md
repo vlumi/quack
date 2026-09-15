@@ -46,8 +46,8 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 
 - [x] A 2.4 km wraparound strip with four fields from the seed; the balloon run
   spread round it, finishing at any field; a tiny minimap of the whole strip.
-- [ ] Noise terrain: fields on flat ground, hills to crash into, balloons
-  above the ground.
+- [x] Noise terrain: fields on flat shelves, hills to crash into, balloons
+  above the ground; the air thins above 120 m to a 250 m ceiling.
 - [ ] The look, mockups first: parallax silhouettes, buildings and trees, sky
   gradient for the seeded hour.
 - [ ] Wind = the cloud layer's speed; headwind one way, tailwind the other;

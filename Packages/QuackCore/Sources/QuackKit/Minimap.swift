@@ -3,14 +3,15 @@ import SpriteKit
 
 /// The whole world shrunk into a small box under the status line: the strip
 /// squeezed far harder side to side than up and down, so height still reads.
-/// The ground runs along the bottom with the fields on it, each balloon still
-/// up is a dot at its height, and the plane is a marker pointing the way it
-/// flies. The box's left and right edges are the same place.
+/// The hills fill the bottom with the fields on their shelves, each balloon
+/// still up is a dot at its height, and the plane is a marker pointing the way
+/// it flies. The box is as tall as the ceiling. Its left and right edges are
+/// the same place.
 final class Minimap: SKNode {
-    /// Metres of height the box shows; a plane above it rides the top edge.
-    static let heightShown: Double = 150
-
     private let size: CGSize
+    private let terrain = SKShapeNode()
+    /// What the terrain was last drawn for: the strip and the height shown.
+    private var drawn: (strip: Strip, height: Double)?
     private var fieldMarks: [SKShapeNode] = []
     private var balloonDots: [SKShapeNode] = []
     private let planeMark = SKShapeNode()
@@ -26,12 +27,10 @@ final class Minimap: SKNode {
         frame.strokeColor = ink.withAlphaComponent(0.5)
         frame.lineWidth = 1.5
         addChild(frame)
-        let ground = SKShapeNode(
-            rect: CGRect(x: -size.width / 2, y: 0, width: size.width, height: 2))
-        ground.fillColor = SKColor(red: 0.25, green: 0.45, blue: 0.2, alpha: 1)
-        ground.strokeColor = .clear
-        ground.zPosition = 1
-        addChild(ground)
+        terrain.fillColor = SKColor(red: 0.25, green: 0.45, blue: 0.2, alpha: 1)
+        terrain.strokeColor = .clear
+        terrain.zPosition = 1
+        addChild(terrain)
         let tri = CGMutablePath()
         tri.addLines(between: [CGPoint(x: 6, y: 0), CGPoint(x: -4, y: 4), CGPoint(x: -4, y: -4)])
         tri.closeSubpath()
@@ -48,10 +47,11 @@ final class Minimap: SKNode {
 
     /// Rebuild the marks for a new run: its fields, and a dot per balloon in its colour.
     func reset(strip: Strip, balloonColours: [SKColor]) {
+        drawn = nil
         fieldMarks.forEach { $0.removeFromParent() }
         fieldMarks = strip.airfields.map { field in
             let w = max(4, CGFloat(field.length / strip.length) * size.width)
-            let mark = SKShapeNode(rect: CGRect(x: -w / 2, y: 0, width: w, height: 3))
+            let mark = SKShapeNode(rect: CGRect(x: -w / 2, y: -1.5, width: w, height: 3))
             mark.fillColor = SKColor(red: 0.78, green: 0.68, blue: 0.48, alpha: 1)
             mark.strokeColor = ink
             mark.lineWidth = 0.8
@@ -77,11 +77,17 @@ final class Minimap: SKNode {
         let across = { (x: Double) -> CGFloat in
             (CGFloat(strip.wrap(x) / strip.length) - 0.5) * self.size.width
         }
+        let shown = practice.model.flight.tuning.ceiling
         let up = { (height: Double) -> CGFloat in
-            CGFloat(min(1, max(0, height / Minimap.heightShown))) * (self.size.height - 4) + 2
+            CGFloat(min(1, max(0, height / shown))) * (self.size.height - 4) + 2
+        }
+        if drawn?.strip != strip || drawn?.height != shown {
+            drawTerrain(strip, up: up)
+            drawn = (strip, shown)
         }
         for (mark, field) in zip(fieldMarks, strip.airfields) {
-            mark.position = CGPoint(x: across(field.start + field.length / 2), y: 1)
+            mark.position = CGPoint(
+                x: across(field.start + field.length / 2), y: up(field.elevation))
         }
         for (dot, balloon) in zip(balloonDots, practice.balloons) {
             dot.isHidden = balloon.popped
@@ -91,8 +97,22 @@ final class Minimap: SKNode {
         planeMark.position = CGPoint(x: across(plane.x), y: up(plane.y - gear))
         // Pointing the way the plane flies, as it would look in the squeezed box.
         let sx = size.width / CGFloat(strip.length)
-        let sy = (size.height - 4) / CGFloat(Minimap.heightShown)
+        let sy = (size.height - 4) / CGFloat(shown)
         planeMark.zRotation = atan2(
             CGFloat(sin(plane.heading)) * sy, CGFloat(cos(plane.heading)) * sx)
+    }
+
+    /// The hills as a filled silhouette, a sample per point across the box.
+    private func drawTerrain(_ strip: Strip, up: (Double) -> CGFloat) {
+        let path = CGMutablePath()
+        let left = -size.width / 2
+        path.move(to: CGPoint(x: left, y: 0))
+        for i in 0...Int(size.width) {
+            let x = Double(i) / Double(size.width) * strip.length
+            path.addLine(to: CGPoint(x: left + CGFloat(i), y: up(strip.groundHeight(at: x))))
+        }
+        path.addLine(to: CGPoint(x: -left, y: 0))
+        path.closeSubpath()
+        terrain.path = path
     }
 }

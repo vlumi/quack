@@ -26,6 +26,8 @@ fields and wind.
 - The balloon run spreads its balloons round the whole strip and finishes when you land at any field, not only at home.
 - A tiny minimap under the status line shows the whole world shrunk into a box, squeezed more side to side than up and down: the ground with its fields, the balloons still up at their heights, and your plane at its height, pointing the way it flies.
 - The edge chevrons point the shorter way round, and keep clear of the readouts, the status line and the gauges.
+- Hills: the strip rolls up to about 75 m, generated from the seed. Each field sits on a flat shelf cut into them, so some are in valleys and some on ridges. Flying into a hillside is a crash, rounds stop in the ground, and balloons float above the hills. The minimap shows the hills too.
+- The air thins as you climb: above 120 m the engine pulls less and the plane stalls at a higher speed, until at about 250 m full power only just holds it up. The altimeter reads height above sea level and marks the thin air in red. Where the air starts to thin and the ceiling are on the tuning panel.
 
 ## [0.2.0]
 

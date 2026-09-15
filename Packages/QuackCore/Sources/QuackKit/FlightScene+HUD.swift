@@ -72,6 +72,7 @@ extension FlightScene {
     func updateHUD(at now: TimeInterval) {
         let plane = practice.plane
         let kmh = Int((plane.speed * 3.6).rounded())
+        // Above sea level, which is what thins the air; on a field it reads the field's elevation.
         let metres = Int((plane.y - practice.model.landing.gearHeight).rounded())
         speedDial.value = CGFloat(kmh)
         altitudeDial.value = CGFloat(metres)
@@ -141,7 +142,7 @@ extension FlightScene {
         }
         if let field = strip.nearestAirfield(to: plane.x) {
             let nearest = min(max(plane.x, field.start), field.end)
-            place(fieldMarker, at: nearest, 0, hidden: false, from: plane)
+            place(fieldMarker, at: nearest, field.elevation, hidden: false, from: plane)
         }
     }
 

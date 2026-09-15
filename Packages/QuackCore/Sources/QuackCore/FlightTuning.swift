@@ -32,6 +32,23 @@ public struct FlightTuning: Equatable, Sendable {
     public var liftDeficitSink: Double = 6
     /// Radians per second of pitch at full elevator.
     public var pitchRate: Double = 3
+    /// Metres above sea level where the air starts to thin: above the highest
+    /// balloons, so everything so far is flown in full air.
+    public var thinAirFrom: Double = 120
+    /// Metres above sea level where the air is so thin the plane can only just
+    /// hold level at full throttle; above it, it cannot. A soft ceiling.
+    public var ceiling: Double = 250
+
+    /// How dense the air is at `altitude`, from 1 at `thinAirFrom` down to the
+    /// density at which the fastest level speed meets the stall speed at the
+    /// `ceiling`, and thinner still above it (never below a fifth). Thrust scales
+    /// with it; the stall speed rises as one over its square root.
+    public func airDensity(at altitude: Double) -> Double {
+        guard altitude > thinAirFrom else { return 1 }
+        let atCeiling = min(1, stallSpeed / cruiseSpeed)
+        let t = (altitude - thinAirFrom) / max(1, ceiling - thinAirFrom)
+        return max(0.2, 1 - (1 - atCeiling) * t)
+    }
 
     /// Drag as a fraction of speed squared per metre, set so thrust and drag
     /// cancel exactly at cruise.

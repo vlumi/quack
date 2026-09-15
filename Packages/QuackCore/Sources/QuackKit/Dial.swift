@@ -1,7 +1,7 @@
 import SpriteKit
 
 /// A cockpit gauge: a ring of ticks and a needle that sweeps 270° clockwise
-/// from the lower left, with an optional red arc for the range to stay out of.
+/// from the lower left, with optional red arcs for the ranges to stay out of.
 final class Dial: SKNode {
     private let needle = SKShapeNode()
     private let redArc = SKShapeNode()
@@ -17,6 +17,10 @@ final class Dial: SKNode {
     /// The top of the red range, or nil for none. Settable, so a tuned stall
     /// speed moves the arc with it.
     var redBelow: CGFloat? {
+        didSet { drawRedArc() }
+    }
+    /// The bottom of a red range that runs to the maximum, or nil for none.
+    var redAbove: CGFloat? {
         didSet { drawRedArc() }
     }
 
@@ -73,15 +77,21 @@ final class Dial: SKNode {
     required init?(coder: NSCoder) { fatalError("not used") }
 
     private func drawRedArc() {
-        guard let red = redBelow else {
-            redArc.path = nil
-            return
-        }
         let p = CGMutablePath()
-        p.addArc(
-            center: .zero, radius: radius * 0.8, startAngle: angle(0), endAngle: angle(red),
-            clockwise: true)
-        redArc.path = p
+        if let red = redBelow {
+            p.addArc(
+                center: .zero, radius: radius * 0.8, startAngle: angle(0), endAngle: angle(red),
+                clockwise: true)
+        }
+        if let red = redAbove {
+            // A fresh subpath, or the arc would join the other one with a line.
+            p.move(
+                to: CGPoint(x: cos(angle(red)) * radius * 0.8, y: sin(angle(red)) * radius * 0.8))
+            p.addArc(
+                center: .zero, radius: radius * 0.8, startAngle: angle(red),
+                endAngle: angle(maximum), clockwise: true)
+        }
+        redArc.path = p.isEmpty ? nil : p
     }
 
     /// Needle angle for a value: clockwise from the lower left, clamped to the dial.

@@ -12,7 +12,10 @@ final class PracticeTests: XCTestCase {
         XCTAssertGreaterThan(
             (a.map(\.x).max() ?? 0) - (a.map(\.x).min() ?? 0), strip.length / 2, "spread round")
         for (i, p) in a.enumerated() {
-            XCTAssertTrue((0..<strip.length).contains(p.x) && (18...118).contains(p.y))
+            XCTAssertTrue((0..<strip.length).contains(p.x))
+            let above = p.y - strip.groundHeight(at: p.x)
+            XCTAssertTrue((18...118).contains(above), "\(above) m above the ground")
+            XCTAssertTrue(p.y <= 150 || above == 18, "out of the thinning air")
             for f in strip.airfields {
                 XCTAssertGreaterThanOrEqual(
                     abs(strip.offset(from: p.x, to: f.start + f.length / 2)), 100)
@@ -38,7 +41,8 @@ final class PracticeTests: XCTestCase {
         XCTAssertEqual(
             p.model.strip.airfield(under: p.plane.x)?.start ?? .nan, p.model.home.start,
             accuracy: 1e-9)
-        XCTAssertEqual(p.plane.y, p.model.landing.gearHeight)
+        XCTAssertEqual(
+            p.plane.y, p.model.home.elevation + p.model.landing.gearHeight, accuracy: 1e-9)
         XCTAssertEqual(p.plane.speed, 0)
     }
 
@@ -169,6 +173,39 @@ final class PracticeTests: XCTestCase {
         p.phase = .parked(repair: 0)
         p.advance(input: .idle)
         XCTAssertTrue(p.isFinished)
+    }
+
+    func testHillsStopRounds() {
+        var p = airborne(balloons: 0)
+        p.balloons = []
+        // A wall of ground 60 m high everywhere: a level round at 40 m ends at once.
+        p.model.strip.heights = [60, 60, 60, 60]
+        p.model.strip.spacing = p.model.strip.length / 4
+        p.advance(input: PlaneInput(power: true, fire: true))
+        XCTAssertTrue(p.bullets.isEmpty)
+    }
+
+    func testResizingTheFieldsDigsEachANewShelfAndKeepsBalloonsAboveGround() {
+        var p = Practice(seed: 5)
+        p.plane.x += 10
+        p.resizeFields(to: 180)
+        let strip = p.model.strip
+        XCTAssertEqual(strip, Practice(seed: 5, fieldLength: 180).model.strip)
+        for f in strip.airfields {
+            XCTAssertEqual(f.length, 180)
+            for x in stride(from: f.start, through: f.end, by: 5) {
+                XCTAssertEqual(strip.groundHeight(at: x), f.elevation, accuracy: 1e-3)
+            }
+        }
+        XCTAssertTrue(p.balloons.allSatisfy { $0.y >= strip.groundHeight(at: $0.x) + 18 - 1e-9 })
+        XCTAssertEqual(p.plane, p.model.parkingSpot, "off the moved ground, back to parking")
+        let before = p
+        p.resizeFields(to: 180)
+        XCTAssertEqual(p, before, "the same length changes nothing")
+        var flying = airborne(balloons: 0)
+        flying.resizeFields(to: 40)
+        XCTAssertEqual(flying.phase, .flying)
+        XCTAssertEqual(flying.plane.x, 0)
     }
 
     // MARK: Ammunition
