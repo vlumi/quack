@@ -1,10 +1,12 @@
 import Foundation
 
 /// A job between two fields: pick up here, deliver there, and the pay falls
-/// with time. Mail does not care how it is flown; passengers will.
+/// with time. Mail does not care how it is flown; a passenger does, and pays
+/// more for the trouble.
 public struct Contract: Equatable, Sendable {
     public enum Kind: String, CaseIterable, Sendable {
         case mail
+        case passenger
     }
 
     public var kind: Kind
@@ -39,6 +41,8 @@ public enum CourierEvent: Equatable, Sendable {
     case loaded(Contract)
     case delivered(Contract, pay: Double)
     case lost(Contract)
+    /// The passenger has had enough of the flying: comfort fell through a quarter mark.
+    case complaint
 }
 
 /// How contracts are priced.
@@ -51,18 +55,36 @@ public struct CourierTuning: Equatable, Sendable {
     /// cruise, plus the seconds for a takeoff and a landing.
     public var windowFactor: Double = 4
     public var windowExtra: Double = 20
-    /// Offers on the board at a field.
+    /// Offers on the board at a field: one mail, one passenger.
     public var offersPerField: Int = 2
+    /// What a passenger pays over the mail for the same trip.
+    public var passengerPremium: Double = 1.6
+    /// Comfort lost a second flying inverted, or rolling.
+    public var invertedCost: Double = 0.12
+    /// Comfort lost per radian of turn beyond the gentle rate.
+    public var turnCost: Double = 0.08
+    /// Radians a second of pitch a passenger does not mind.
+    public var gentleTurn: Double = 0.9
+    /// Comfort lost a second in a stall.
+    public var stallCost: Double = 0.15
+    /// Comfort lost to a bounce or a broken undercarriage.
+    public var bumpCost: Double = 0.2
 
     public init() {}
 }
 
 extension Practice {
-    /// What the contract aboard pays if delivered now.
+    /// What the contract aboard pays if delivered now: the fare fallen with
+    /// time, and for a passenger cut by how the flight has been.
     public var payNow: Double? {
         guard let contract, let acceptedAt else { return nil }
-        return contract.pay(after: time - acceptedAt)
+        let pay = contract.pay(after: time - acceptedAt)
+        return contract.kind == .passenger ? pay * comfort : pay
     }
+
+    /// A passenger's comfort: 1 at pickup, falling with aerobatics to a floor
+    /// of a quarter. Mail has no opinion.
+    public var comfort: Double { max(0.25, 1 - discomfort) }
 
     /// The offer the trigger has picked at this field, if any.
     public var chosen: Contract? {
@@ -84,6 +106,7 @@ extension Practice {
         guard !others.isEmpty else { return [] }
         var rng = SeededRNG(seed: seed ^ 0xC0A7_2AC7 ^ UInt64(from) << 8 ^ UInt64(deliveries) << 16)
         var pool = others
+        var out: [Contract] = []
         return (0..<min(courierTuning.offersPerField, others.count)).map { _ in
             let to = pool.remove(at: min(pool.count - 1, Int(rng.unit() * Double(pool.count))))
             let a = strip.airfields[from], b = strip.airfields[to]
@@ -92,7 +115,13 @@ extension Practice {
             let fare = (courierTuning.baseFare + distance * courierTuning.farePerMetre).rounded()
             let straight = distance / model.flight.tuning.cruiseSpeed
             let window = courierTuning.windowFactor * straight + courierTuning.windowExtra
-            return Contract(kind: .mail, from: from, to: to, fare: fare, window: window)
+            // The first offer is mail, the second a passenger, and so on.
+            let kind: Contract.Kind = out.count % 2 == 0 ? .mail : .passenger
+            let premium = kind == .passenger ? courierTuning.passengerPremium : 1
+            let contract = Contract(
+                kind: kind, from: from, to: to, fare: (fare * premium).rounded(), window: window)
+            out.append(contract)
+            return contract
         }
     }
 
@@ -108,6 +137,7 @@ extension Practice {
             strip.image(of: $0, near: plane.x).contains(plane.x)
         }
         settle(here: here)
+        ride(input: input)
         // The board: posted while parked with nothing aboard, cleared otherwise.
         if case .parked = phase, contract == nil, let here {
             if offers.isEmpty || offers[0].from != here {
@@ -122,6 +152,33 @@ extension Practice {
         }
     }
 
+    /// A passenger's ride this step: inverted, hard turns, stalls and bumps all
+    /// cost comfort, and each quarter lost is a complaint.
+    private mutating func ride(input: PlaneInput) {
+        guard let contract, contract.kind == .passenger else {
+            discomfort = 0
+            lastHeading = plane.heading
+            return
+        }
+        let dt = FlightModel.dt
+        let t = courierTuning
+        var cost = 0.0
+        if !phase.isOnGround {
+            if !plane.upright { cost += t.invertedCost * dt }
+            // Lift-off and touchdown snap the heading; that is not a turn.
+            let snapped = lastEvent == .liftoff || lastEvent == .touchdown
+            let turn = abs(FlightModel.shortestTurn(from: lastHeading, to: plane.heading)) / dt
+            if turn > t.gentleTurn && !snapped { cost += (turn - t.gentleTurn) * dt * t.turnCost }
+            if plane.speed < model.flight.tuning.stallSpeed { cost += t.stallCost * dt }
+        }
+        if lastEvent == .bounce || lastEvent == .brokenUndercarriage { cost += t.bumpCost }
+        lastHeading = plane.heading
+        guard cost > 0 else { return }
+        let before = Int(discomfort * 4)
+        discomfort = min(0.75, discomfort + cost)
+        if Int(discomfort * 4) > before && courierEvent == nil { courierEvent = .complaint }
+    }
+
     /// What this step's flight event does to the bag: loaded at lift-off, paid
     /// when parked at its field, lost in a crash.
     private mutating func settle(here: Int?) {
@@ -134,8 +191,7 @@ extension Practice {
             }
             offers = []
         case .parked:
-            if let contract, let acceptedAt, here == contract.to {
-                let pay = contract.pay(after: time - acceptedAt)
+            if let contract, acceptedAt != nil, here == contract.to, let pay = payNow {
                 money += pay
                 deliveries += 1
                 courierEvent = .delivered(contract, pay: pay)

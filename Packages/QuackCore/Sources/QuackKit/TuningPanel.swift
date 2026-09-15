@@ -245,6 +245,10 @@ struct TuningPanel: View {
         case "courier.windowFactor":
             return Text("Fare falls over (× straight run)", bundle: .module)
         case "courier.windowExtra": return Text("Fare falls over (+ seconds)", bundle: .module)
+        case "courier.passengerPremium": return Text("Passenger premium", bundle: .module)
+        case "courier.invertedCost": return Text("Comfort lost a second inverted", bundle: .module)
+        case "courier.turnCost": return Text("Comfort lost per hard radian", bundle: .module)
+        case "courier.gentleTurn": return Text("Gentle turn (rad/s)", bundle: .module)
         case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
         default: return Text(verbatim: id)
         }

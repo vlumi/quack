@@ -60,7 +60,9 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 
 - [x] Mail contracts between fields: a board at each field, the trigger picks,
   lift-off loads, landing at the destination pays what is left of the fare.
-- [ ] Passengers: the same jobs, but aerobatics cut the fare.
+- [x] Passengers: the same jobs at a premium, but inverted flight, hard
+  turns, stalls and bumps cut the fare.
+- [ ] Fly a passenger: is the cut too harsh or too kind?
 - [ ] Fuel: a range clock; costs money and time to refill. An empty tank
   stops the engine and the plane glides to a field, or does not.
 - [ ] Rounds cost money at the field.

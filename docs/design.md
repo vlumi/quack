@@ -256,7 +256,15 @@ so the turn back and the approach are part of the time.
   the bag, and the plane comes back at home. Money is the day's, not yet
   kept between runs. Fields have village names so a job can say where.
 - **Mailbags don't care how you fly; passengers do.** Aerobatics with a
-  passenger cut the fare. Two contract types, two ways to fly.
+  passenger cut the fare. Two contract types, two ways to fly. As built: a
+  passenger pays 1.6 times the mail fare and starts fully comfortable;
+  flying inverted, turning harder than 0.9 rad/s, stalling, bouncing and
+  breaking the undercarriage each cost comfort, and the pay is the fare
+  times the comfort, floored at a quarter. Lift-off and touchdown snap the
+  heading and are not turns. A complaint flashes at each quarter lost, so
+  the player learns what the passenger minds. Every board has one of each,
+  so the choice is always there: the quick money with a loop turn, or the
+  premium flown gently.
 - **Fuel is a range clock**: it drains as long as the engine runs, which is
   always. Refuelling costs money and a stop.
 - Fares buy a bigger tank, a stronger engine, a second seat.

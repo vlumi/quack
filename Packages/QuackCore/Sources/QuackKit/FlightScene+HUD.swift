@@ -89,17 +89,30 @@ extension FlightScene {
     func show(_ event: CourierEvent, at now: TimeInterval) {
         let text: String
         switch event {
+        case .loaded(let c) where c.kind == .passenger:
+            text = String(localized: "Passenger to \(name(c.to)) aboard", bundle: .module)
         case .loaded(let c):
             text = String(localized: "Mail for \(name(c.to)) aboard", bundle: .module)
         case .delivered(_, let pay):
             text = String(localized: "Delivered: \(francs(pay))", bundle: .module)
+        case .lost(let c) where c.kind == .passenger:
+            text = String(localized: "The passenger walks home", bundle: .module)
         case .lost:
             text = String(localized: "The mail is lost", bundle: .module)
+        case .complaint:
+            text = String(localized: "The passenger is not enjoying this", bundle: .module)
         }
         flash = (text, now + 2)
     }
 
     func name(_ field: Int) -> String { practice.model.strip.airfields[field].name }
+
+    /// "Mail for X" or "Passenger to X".
+    func job(_ c: Contract) -> String {
+        c.kind == .passenger
+            ? String(localized: "Passenger to \(name(c.to))", bundle: .module)
+            : String(localized: "Mail for \(name(c.to))", bundle: .module)
+    }
 
     func francs(_ amount: Double) -> String {
         String(localized: "\(Int(amount.rounded())) fr", bundle: .module)
@@ -118,8 +131,7 @@ extension FlightScene {
         if practice.mode == .courier {
             countLabel.text = francs(practice.money)
             if let contract = practice.contract, let pay = practice.payNow {
-                clockLabel.text = String(
-                    localized: "Mail for \(name(contract.to)): \(francs(pay))", bundle: .module)
+                clockLabel.text = job(contract) + ": " + francs(pay)
             } else {
                 clockLabel.text = String(localized: "\(seconds) s", bundle: .module)
             }
@@ -160,14 +172,15 @@ extension FlightScene {
         case .parked(let repair) where repair > 0:
             return String(localized: "Repairing", bundle: .module)
         case .parked where practice.mode == .courier && practice.contract != nil:
-            return String(localized: "Mail still aboard: pull up to fly on", bundle: .module)
+            return practice.contract?.kind == .passenger
+                ? String(localized: "Passenger still aboard: pull up to fly on", bundle: .module)
+                : String(localized: "Mail still aboard: pull up to fly on", bundle: .module)
         case .parked where practice.mode == .courier:
             guard let pick = practice.chosen else {
                 return String(localized: "No work here: pull up to fly on", bundle: .module)
             }
             return String(
-                localized:
-                    "Mail for \(name(pick.to)), \(francs(pick.fare)). Fire for another, pull up to go",
+                localized: "\(job(pick)), \(francs(pick.fare)). Fire for another, pull up to go",
                 bundle: .module)
         case .parked where !practice.isFinished:
             return String(localized: "Pull up to take off, push to turn around", bundle: .module)
