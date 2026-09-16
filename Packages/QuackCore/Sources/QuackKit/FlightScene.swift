@@ -238,12 +238,12 @@ public final class FlightScene: SKScene {
                 )
             }
             engineWasRunning = practice.engineRunning
+            accumulator -= FlightModel.dt
         }
         // The till is banked whenever the plane is parked, which is where money changes hands.
         if practice.mode == .courier, case .parked = practice.phase, practice.money != moneyTold {
             moneyTold = practice.money
             onMoneyChange?(practice.money)
-            accumulator -= FlightModel.dt
         }
         render(at: currentTime)
     }
