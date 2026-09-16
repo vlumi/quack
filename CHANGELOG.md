@@ -22,6 +22,7 @@ fields and wind.
 
 ### Unreleased (next build)
 
+- Fuel: a third gauge shows the tank, 150 seconds of engine, which burns whenever the engine runs and fills while parked at a field, ten seconds of fuel a second, for a tenth of a franc each. Empty, the engine stops and the plane glides: reach a field or crash. A broke courier is filled on credit, and the balloon run pays nothing. Tank, refuel rate and price are on the tuning panel.
 - Passengers: every board now offers one mail job and one passenger, who pays 1.6 times the mail fare for the same trip but minds the flying. Inverted flight, hard turns, stalls, bounces and a broken undercarriage cost comfort, down to a quarter of the fare, and the passenger complains at each quarter lost. The pay readout shows the cut as it happens. A crash sends the passenger walking home. The costs are on the tuning panel's Courier section.
 - The approach guides are soft amber glows now, fading out toward their far end with no hard edge, in a colour that reads at every hour, and they fade away while the plane is on the ground.
 - A title screen over the running world: Courier or Balloon run, and the invert-pitch switch, which is kept between launches. A pause button at the bottom of the screen (Escape on the Mac) freezes a run, with resume and quit to title.

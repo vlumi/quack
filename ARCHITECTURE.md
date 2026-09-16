@@ -146,6 +146,13 @@ of the display's refresh rate.
   or a broken undercarriage, floored at a quarter, with a `.complaint`
   event at each quarter lost. Fields carry village `name`s
   from `Strip.fieldNames`.
+- `FuelTuning` — the tank in seconds of engine (`Fuel.swift`):
+  `burnAndRefuel` drains a second a second whenever the plane is not parked
+  or wrecked and fills while parked at `refuelRate`, charging `price` a
+  second down to no money and then on credit; the balloon run pays nothing.
+  An empty tank forces `power` off before the model sees the input, so the
+  engine dies and the plane glides; a takeoff roll without power coasts to
+  a stop and parks.
 - `Backdrop` — what lies behind the strip, from the seed: three
   `BackdropLayer`s (far ridge, village hills, hedgerows), each a ridge profile
   with the `BackdropProp`s standing on it (houses, a church, windmills, round
@@ -200,8 +207,9 @@ status line and minimap, and the gauges.
 top to bottom, aspect-fit into whatever screen or window it gets (the Mac
 window keeps a 16:9 game area inside a dark frame; on iOS the letterbox bars
 stay touch surface). It runs the balloon run: the ground, the plane, the balloons, the rounds, a two-line clock, two cockpit
-gauges top right (`Dial`: airspeed with the stall range in red, and altitude
-above sea level to 300 m with the thinning air in red),
+gauges top right (`Dial`: fuel as a share of the tank with the last fifth
+in red, airspeed with the stall range in red, and altitude above sea level
+to 300 m with the thinning air in red),
 and a chevron on
 the box's edge for each balloon outside it, on the line from the plane, bolder
 and bigger the nearer it is; camera following sideways always, keeping the lowest ground near the plane on

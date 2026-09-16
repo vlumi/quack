@@ -69,6 +69,9 @@ public struct Practice: Equatable, Sendable {
     public var model: AirfieldModel
     public var gun = GunTuning()
     public var courierTuning = CourierTuning()
+    public var fuelTuning = FuelTuning()
+    /// Seconds of engine left in the tank.
+    public var fuel: Double
     /// Metres from the plane's centre that count as a ram.
     public var planeRadius: Double = 1.6
     /// Metres of field: short enough to see end to end from its middle.
@@ -96,7 +99,9 @@ public struct Practice: Equatable, Sendable {
         clouds = Wind.clouds(seed: seed, count: 7, strip: strip)
         // Every stored property is set before `capacity` reads the gun.
         ammo = 0
+        fuel = 0
         ammo = capacity
+        fuel = fuelTuning.tank
     }
 
     private static func strip(seed: UInt64, fieldLength: Double) -> Strip {
@@ -170,9 +175,13 @@ public struct Practice: Equatable, Sendable {
     }
 
     /// One fixed step.
-    public mutating func advance(input: PlaneInput, dt: Double = FlightModel.dt) {
+    public mutating func advance(input given: PlaneInput, dt: Double = FlightModel.dt) {
         time += dt
-        if startedAt == nil && input.isActive && !isFinished { startedAt = time }
+        if startedAt == nil && given.isActive && !isFinished { startedAt = time }
+        // An empty tank is a dead engine, whatever the throttle.
+        var input = given
+        if !engineRunning { input.power = false }
+        burnAndRefuel(dt: dt)
         model.wind = wind
         advanceWeather(dt: dt)
         lastEvent = model.advance(&plane, &phase, input: input, dt: dt)
@@ -204,6 +213,18 @@ public struct Practice: Equatable, Sendable {
             bullets[i].age += dt
         }
 
+        popBalloons()
+        bullets.removeAll { $0.age >= gun.bulletLife || $0.y < model.strip.surfaceHeight(at: $0.x) }
+
+        if mode == .balloons, finishedAt == nil, startedAt != nil, remaining == 0,
+            case .parked = phase
+        {
+            finishedAt = time
+        }
+    }
+
+    /// Balloons the plane rams or a round hits pop; the round is spent.
+    private mutating func popBalloons() {
         for b in balloons.indices where !balloons[b].popped {
             let bl = balloons[b]
             let r2 = bl.radius * bl.radius
@@ -218,13 +239,6 @@ public struct Practice: Equatable, Sendable {
                 balloons[b].popped = true
                 bullets.remove(at: hit)
             }
-        }
-        bullets.removeAll { $0.age >= gun.bulletLife || $0.y < model.strip.surfaceHeight(at: $0.x) }
-
-        if mode == .balloons, finishedAt == nil, startedAt != nil, remaining == 0,
-            case .parked = phase
-        {
-            finishedAt = time
         }
     }
 

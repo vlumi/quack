@@ -157,6 +157,14 @@ extension AirfieldModel {
         _ s: inout PlaneState, _ phase: inout FlightPhase, input: PlaneInput, dt: Double
     ) -> FlightEvent? {
         let dir = s.direction
+        guard input.power else {
+            // The engine has died on the roll: coast to a stop and sit there.
+            s.speed = max(0, s.speed - landing.braking * dt)
+            s.x += dir * s.speed * dt
+            s.y = strip.groundHeight(at: s.x) + landing.gearHeight
+            if s.speed == 0 { phase = .parked(repair: 0) }
+            return s.speed == 0 ? .parked : nil
+        }
         s.speed = min(flight.tuning.cruiseSpeed, s.speed + landing.takeoffAcceleration * dt)
         s.x += dir * s.speed * dt
         s.y = strip.groundHeight(at: s.x) + landing.gearHeight
