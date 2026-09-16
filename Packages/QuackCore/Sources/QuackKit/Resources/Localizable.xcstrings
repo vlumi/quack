@@ -12,40 +12,6 @@
         }
       }
     },
-    "%@, %@. Fire for another, pull up to go" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@, %@. Fire for another, pull up to go"
-          }
-        }
-      }
-    },
-    "%lld balloons left" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld balloon left"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld balloons left"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "%lld fr" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -86,52 +52,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld m"
-          }
-        }
-      }
-    },
-    "%lld rounds" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld round"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld rounds"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld rounds, rearming" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld round, rearming"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld rounds, rearming"
-                }
-              }
-            }
           }
         }
       }
@@ -517,6 +437,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Field length"
+          }
+        }
+      }
+    },
+    "Fire for another job, pull up to go" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fire for another job, pull up to go"
           }
         }
       }
@@ -924,6 +855,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rearm rate"
+          }
+        }
+      }
+    },
+    "Rearming" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rearming"
           }
         }
       }

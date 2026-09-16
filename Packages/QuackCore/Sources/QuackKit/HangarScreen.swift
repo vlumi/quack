@@ -20,6 +20,7 @@ struct HangarScreen: View {
                     row(upgrade)
                 }
             }
+            .frame(width: 440)
             MenuButton(title: Text("Back", bundle: .module), primary: false, action: close)
         }
         .padding(.vertical, 22)
@@ -67,7 +68,6 @@ struct HangarScreen: View {
                     .foregroundStyle(TitleScreen.ink.opacity(0.6))
             }
         }
-        .frame(minWidth: 380)
     }
 
     private func name(_ upgrade: Career.Upgrade) -> Text {

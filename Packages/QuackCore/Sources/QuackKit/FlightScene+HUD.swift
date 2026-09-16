@@ -13,7 +13,7 @@ extension FlightScene {
             label.zPosition = 100
             addChild(label)
         }
-        ammoLabel.fontSize = 24
+        ammoLabel.fontSize = 20
         ammoLabel.horizontalAlignmentMode = .left
         ammoLabel.verticalAlignmentMode = .top
         ammoLabel.zPosition = 100
@@ -34,8 +34,18 @@ extension FlightScene {
         }
         minimap.zPosition = 100
         addChild(minimap)
-        for dial in [speedDial, altitudeDial, fuelDial] {
+        for tally in [balloonTally, roundTally] {
+            tally.zPosition = 100
+            addChild(tally)
+        }
+        let ink = SKColor(white: 0.12, alpha: 1)
+        let symbols = [
+            (fuelDial, "fuelpump.fill"), (speedDial, "speedometer"),
+            (altitudeDial, "arrow.up.to.line"),
+        ]
+        for (dial, symbol) in symbols {
             dial.zPosition = 100
+            dial.setIcon(SceneArt.symbol(symbol, pointSize: 22, colour: ink), size: 18)
             addChild(dial)
         }
     }
@@ -51,9 +61,18 @@ extension FlightScene {
     func setHUDHidden(_ hidden: Bool) {
         let chrome: [SKNode] = [
             countLabel, clockLabel, ammoLabel, statusLabel, speedLabel, altitudeLabel, minimap,
-            speedDial, altitudeDial, fuelDial, fuelLabel, markerLayer,
+            speedDial, altitudeDial, fuelDial, fuelLabel, markerLayer, balloonTally, roundTally,
         ]
         for node in chrome { node.isHidden = hidden }
+    }
+
+    /// One mark per balloon in its colour, one per round in the belt, for the run.
+    func resetTallies() {
+        balloonTally.reset(colours: practice.balloons.indices.map { look.palette.balloon($0) })
+        roundTally.reset(
+            colours: Array(
+                repeating: SKColor(red: 0.85, green: 0.7, blue: 0.3, alpha: 1),
+                count: practice.capacity))
     }
 
     func layoutHUD() {
@@ -61,9 +80,11 @@ extension FlightScene {
         let top = size.height * 0.7 - 24
         countLabel.position = CGPoint(x: left, y: top)
         clockLabel.position = CGPoint(x: left, y: top - 40)
-        ammoLabel.position = CGPoint(x: left, y: top - 80)
+        balloonTally.position = CGPoint(x: left + 6, y: top - 56)
+        roundTally.position = CGPoint(x: left + 3, y: top - 92)
+        ammoLabel.position = CGPoint(x: roundTally.position.x + 8, y: top - 78)
         statusLabel.position = CGPoint(x: 0, y: top)
-        minimap.position = CGPoint(x: 0, y: top - 84)
+        minimap.position = CGPoint(x: 0, y: top - 108)
         let right = size.width / 2 - 24
         altitudeDial.position = CGPoint(x: right - 44, y: top - 44)
         speedDial.position = CGPoint(x: right - 44 - 112, y: top - 44)
@@ -140,6 +161,8 @@ extension FlightScene {
             countLabel.text = francs(practice.money)
             if let contract = practice.contract, let pay = practice.payNow {
                 clockLabel.text = job(contract) + ": " + francs(pay)
+            } else if let pick = practice.chosen {
+                clockLabel.text = job(pick) + ", " + francs(pick.fare)
             } else {
                 clockLabel.text = String(localized: "\(seconds) s", bundle: .module)
             }
@@ -148,10 +171,13 @@ extension FlightScene {
                 localized: "Landed in \(seconds) s. Fire to go again.", bundle: .module)
             clockLabel.text = ""
         } else {
-            countLabel.text = String(
-                localized: "\(practice.remaining) balloons left", bundle: .module)
-            clockLabel.text = String(localized: "\(seconds) s", bundle: .module)
+            // The balloons left are the row of balloons; the clock takes the top line.
+            countLabel.text = String(localized: "\(seconds) s", bundle: .module)
+            clockLabel.text = ""
         }
+        balloonTally.isHidden = practice.mode != .balloons || practice.isFinished
+        balloonTally.update(present: practice.balloons.map { !$0.popped })
+        roundTally.update(count: practice.ammo)
         updateAmmo()
         minimap.update(practice)
         statusLabel.text = status(at: now)
@@ -159,16 +185,15 @@ extension FlightScene {
 
     /// Rounds left; red and a hint when the belt is empty, a note while it loads.
     private func updateAmmo() {
-        let ink = hudInk
+        // The belt is the row of rounds; words only when there is something to say.
         if practice.ammo == 0 && !practice.isRearming {
             ammoLabel.text = String(localized: "Out of rounds: land to rearm", bundle: .module)
             ammoLabel.fontColor = SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1)
         } else if practice.isRearming {
-            ammoLabel.text = String(localized: "\(practice.ammo) rounds, rearming", bundle: .module)
-            ammoLabel.fontColor = ink
+            ammoLabel.text = String(localized: "Rearming", bundle: .module)
+            ammoLabel.fontColor = hudInk
         } else {
-            ammoLabel.text = String(localized: "\(practice.ammo) rounds", bundle: .module)
-            ammoLabel.fontColor = ink
+            ammoLabel.text = ""
         }
     }
 
@@ -184,12 +209,10 @@ extension FlightScene {
                 ? String(localized: "Passenger still aboard: pull up to fly on", bundle: .module)
                 : String(localized: "Mail still aboard: pull up to fly on", bundle: .module)
         case .parked where practice.mode == .courier:
-            guard let pick = practice.chosen else {
+            guard practice.chosen != nil else {
                 return String(localized: "No work here: pull up to fly on", bundle: .module)
             }
-            return String(
-                localized: "\(job(pick)), \(francs(pick.fare)). Fire for another, pull up to go",
-                bundle: .module)
+            return String(localized: "Fire for another job, pull up to go", bundle: .module)
         case .parked where !practice.isFinished:
             return String(localized: "Pull up to take off, push to turn around", bundle: .module)
         case .taxiing:
@@ -215,8 +238,10 @@ extension FlightScene {
                 markerNodes[i], at: plane.x + strip.offset(from: plane.x, to: b.x), b.y,
                 hidden: b.popped, from: plane)
         }
-        // The chevron points at the destination while carrying, else the nearest field.
-        let target = practice.destination.map { strip.image(of: $0, near: plane.x) }
+        // The chevron points at the destination, aboard or being picked, else the nearest field.
+        let target = (practice.contract ?? practice.chosen).map {
+            strip.image(of: strip.airfields[$0.to], near: plane.x)
+        }
         if let field = target ?? strip.nearestAirfield(to: plane.x) {
             let nearest = min(max(plane.x, field.start), field.end)
             place(fieldMarker, at: nearest, field.elevation, hidden: false, from: plane)
@@ -246,7 +271,7 @@ extension FlightScene {
         // the corner readouts or gauges slides down the side below them.
         let gauges = CGRect(x: right - 362, y: top - 150, width: 412, height: 200)
         let readouts = CGRect(x: left - 20, y: top - 130, width: 380, height: 180)
-        let status = CGRect(x: -440, y: top - 100, width: 880, height: 150)
+        let status = CGRect(x: -440, y: top - 180, width: 880, height: 230)
         if status.contains(at) {
             at.x = at.x < 0 ? status.minX : status.maxX
         }

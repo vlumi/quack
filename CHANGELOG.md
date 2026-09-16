@@ -22,6 +22,7 @@ till and a hangar.
 
 ### Unreleased (next build)
 
+- Readouts: the balloons left are a row of balloons and the belt a row of rounds, instead of counts. The three gauges carry icons, and the altimeter's band is amber where the air thins and red only past the ceiling. The minimap is bigger, opaque and higher in contrast, and it lights the destination of the job being picked as well as the one aboard, as does the chevron. The hangar keeps its width on a wide window, and the menu buttons take a tap anywhere on the capsule.
 - The company: money earned as a courier is kept on the device between runs, and a new courier run starts with it. Rounds now cost a quarter of a franc each at the field, on credit when broke; the balloon run pays nothing.
 - The hangar, from the title screen: buy a bigger tank (three levels, 50 s of engine each), a stronger engine (three levels), or a second seat, which carries two passengers a job for two fares. Upgrades apply to every run after.
 - Fuel: a third gauge shows the tank, 150 seconds of engine, which burns whenever the engine runs and fills while parked at a field, ten seconds of fuel a second, for a tenth of a franc each. Empty, the engine stops and the plane glides: reach a field or crash. A broke courier is filled on credit, and the balloon run pays nothing. Tank, refuel rate and price are on the tuning panel.
