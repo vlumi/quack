@@ -241,11 +241,20 @@ struct TuningPanel: View {
         case "wind.groundShare": return Text("Share at the ground", bundle: .module)
         case "wind.layer": return Text("Full strength above", bundle: .module)
         case "wind.balloonDrift": return Text("Balloon drift", bundle: .module)
+        default: return moneyLabel(for: id)
+        }
+    }
+
+    // swiftlint:disable:next cyclomatic_complexity
+    /// The courier's, the tank's and the hour's dials.
+    private func moneyLabel(for id: String) -> Text {
+        switch id {
         case "courier.baseFare": return Text("Base fare", bundle: .module)
         case "courier.farePerMetre": return Text("Fare per metre", bundle: .module)
         case "courier.windowFactor":
             return Text("Fare falls over (× straight run)", bundle: .module)
         case "courier.windowExtra": return Text("Fare falls over (+ seconds)", bundle: .module)
+        case "courier.roundPrice": return Text("Price per round", bundle: .module)
         case "courier.passengerPremium": return Text("Passenger premium", bundle: .module)
         case "courier.invertedCost": return Text("Comfort lost a second inverted", bundle: .module)
         case "courier.turnCost": return Text("Comfort lost per hard radian", bundle: .module)

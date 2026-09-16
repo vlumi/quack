@@ -239,6 +239,9 @@ public struct TuningDial: Identifiable {
             id: "courier.windowExtra", section: .courier, keyPath: \.courier.windowExtra,
             range: 0...60, step: 5, decimals: 0),
         TuningDial(
+            id: "courier.roundPrice", section: .courier, keyPath: \.courier.roundPrice,
+            range: 0...2, step: 0.05, decimals: 2),
+        TuningDial(
             id: "courier.passengerPremium", section: .courier, keyPath: \.courier.passengerPremium,
             range: 1...3, step: 0.1, decimals: 1),
         TuningDial(

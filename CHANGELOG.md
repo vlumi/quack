@@ -22,6 +22,8 @@ fields and wind.
 
 ### Unreleased (next build)
 
+- The company: money earned as a courier is kept on the device between runs, and a new courier run starts with it. Rounds now cost a quarter of a franc each at the field, on credit when broke; the balloon run pays nothing.
+- The hangar, from the title screen: buy a bigger tank (three levels, 50 s of engine each), a stronger engine (three levels), or a second seat, which carries two passengers a job for two fares. Upgrades apply to every run after.
 - Fuel: a third gauge shows the tank, 150 seconds of engine, which burns whenever the engine runs and fills while parked at a field, ten seconds of fuel a second, for a tenth of a franc each. Empty, the engine stops and the plane glides: reach a field or crash. A broke courier is filled on credit, and the balloon run pays nothing. Tank, refuel rate and price are on the tuning panel.
 - Passengers: every board now offers one mail job and one passenger, who pays 1.6 times the mail fare for the same trip but minds the flying. Inverted flight, hard turns, stalls, bounces and a broken undercarriage cost comfort, down to a quarter of the fare, and the passenger complains at each quarter lost. The pay readout shows the cut as it happens. A crash sends the passenger walking home. The costs are on the tuning panel's Courier section.
 - The approach guides are soft amber glows now, fading out toward their far end with no hard edge, in a colour that reads at every hour, and they fade away while the plane is on the ground.

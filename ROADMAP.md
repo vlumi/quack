@@ -66,8 +66,11 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 - [x] Fuel: a range clock; costs money and time to refill. An empty tank
   stops the engine and the plane glides to a field, or does not.
 - [ ] Fly the tank: is 150 s the right range for a 2.4 km strip?
-- [ ] Rounds cost money at the field.
-- [ ] Money buys a bigger tank, a stronger engine, a second seat.
+- [x] Rounds cost money at the field.
+- [x] Money buys a bigger tank, a stronger engine, a second seat: the
+  hangar, from the title screen; the company's till and upgrades are kept
+  on the device.
+- [ ] Fly a career: are the prices and the pace of earning right?
 
 ## 0.5 — Hazards
 

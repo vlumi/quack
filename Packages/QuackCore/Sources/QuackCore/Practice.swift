@@ -43,7 +43,9 @@ public struct Practice: Equatable, Sendable {
     public var rearmProgress: Double = 0
     /// Whether the trigger was held last step, to catch a fresh pull.
     var wasFiring = false
-    /// The courier's day: money made, the contract aboard, and the offers at the field.
+    /// The company the run flies for: its upgrades, and where its money starts.
+    public let career: Career
+    /// The courier's day: money in the till, the contract aboard, and the offers at the field.
     public var money: Double = 0
     public var contract: Contract?
     public var acceptedAt: Double?
@@ -83,10 +85,12 @@ public struct Practice: Equatable, Sendable {
 
     public init(
         seed: UInt64, mode: Mode = .balloons, balloons count: Int = 12,
-        fieldLength: Double = Practice.fieldLength
+        fieldLength: Double = Practice.fieldLength, career: Career = Career()
     ) {
         self.seed = seed
         self.mode = mode
+        self.career = career
+        money = mode == .courier ? career.money : 0
         hour = TimeOfDay(seed: seed)
         windStep = Wind.step(seed: seed)
         windDirection = Wind.direction(seed: seed)
@@ -101,7 +105,9 @@ public struct Practice: Equatable, Sendable {
         ammo = 0
         fuel = 0
         ammo = capacity
-        fuel = fuelTuning.tank
+        fuel = fuelTuning.tank + career.tankBonus
+        fuelTuning.tank = fuel
+        model.flight.tuning.thrust += career.thrustBonus
     }
 
     private static func strip(seed: UInt64, fieldLength: Double) -> Strip {
@@ -244,6 +250,8 @@ public struct Practice: Equatable, Sendable {
 
     /// Parked on the field, the belt fills a round at a time; anywhere else the
     /// part-loaded round is lost. A belt over a lowered capacity is cut down.
+    /// The courier pays for each round, on credit when broke; the balloon run
+    /// pays nothing.
     private mutating func rearm(dt: Double) {
         ammo = min(ammo, capacity)
         guard isRearming else {
@@ -252,6 +260,9 @@ public struct Practice: Equatable, Sendable {
         }
         rearmProgress += gun.rearmRate * dt
         let loaded = min(Int(rearmProgress), capacity - ammo)
+        if mode == .courier {
+            money = max(0, money - Double(loaded) * courierTuning.roundPrice)
+        }
         ammo += loaded
         rearmProgress -= Double(loaded)
         if ammo == capacity { rearmProgress = 0 }

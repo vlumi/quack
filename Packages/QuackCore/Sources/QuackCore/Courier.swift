@@ -59,6 +59,8 @@ public struct CourierTuning: Equatable, Sendable {
     public var offersPerField: Int = 2
     /// What a passenger pays over the mail for the same trip.
     public var passengerPremium: Double = 1.6
+    /// Francs a round costs at the field.
+    public var roundPrice: Double = 0.25
     /// Comfort lost a second flying inverted, or rolling.
     public var invertedCost: Double = 0.12
     /// Comfort lost per radian of turn beyond the gentle rate.
@@ -117,7 +119,9 @@ extension Practice {
             let window = courierTuning.windowFactor * straight + courierTuning.windowExtra
             // The first offer is mail, the second a passenger, and so on.
             let kind: Contract.Kind = out.count % 2 == 0 ? .mail : .passenger
-            let premium = kind == .passenger ? courierTuning.passengerPremium : 1
+            // A second seat carries two passengers, who pay two fares.
+            let seats = kind == .passenger ? Double(career.seats) : 1
+            let premium = (kind == .passenger ? courierTuning.passengerPremium : 1) * seats
             let contract = Contract(
                 kind: kind, from: from, to: to, fare: (fare * premium).rounded(), window: window)
             out.append(contract)

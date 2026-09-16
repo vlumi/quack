@@ -273,7 +273,14 @@ so the turn back and the approach are part of the time.
   full. Empty, the throttle does nothing and the plane glides, which the
   model already knew how to do. A courier with no money is filled anyway,
   since a stranded plane is a dead end, not a lesson.
-- Fares buy a bigger tank, a stronger engine, a second seat.
+- Fares buy a bigger tank, a stronger engine, a second seat. As built: the
+  company is a till and a list of levels bought, kept on the device; the
+  till is banked whenever the plane is parked, which is where money changes
+  hands, so a crash mid-job loses the job but not the day's earnings. The
+  hangar is a screen off the title, not something in the world, so the
+  flight never grows a shop. A second seat means two passengers a job for
+  two fares, minding the flying just the same; carrying two separate jobs
+  can come if the choice ever needs it.
 - **Hazards as economics, not activity.** AA guns threaten routes; dodging
   costs time, shooting them costs ammunition bought at the field. The courier
   stays a courier; shooting is occasional and instrumental.

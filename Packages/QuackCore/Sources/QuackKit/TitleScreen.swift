@@ -6,6 +6,7 @@ import SwiftUI
 struct TitleScreen: View {
     @ObservedObject var store: TuningStore
     let play: (Practice.Mode) -> Void
+    let hangar: () -> Void
 
     var body: some View {
         VStack(spacing: 18) {
@@ -24,6 +25,7 @@ struct TitleScreen: View {
                 MenuButton(title: Text("Balloon run", bundle: .module), primary: false) {
                     play(.balloons)
                 }
+                MenuButton(title: Text("Hangar", bundle: .module), primary: false, action: hangar)
             }
             Toggle(isOn: $store.tuning.invertedPitch) {
                 Text("Invert pitch", bundle: .module)
