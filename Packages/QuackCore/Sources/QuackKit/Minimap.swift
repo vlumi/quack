@@ -24,21 +24,22 @@ final class Minimap: SKNode {
         let frame = SKShapeNode(
             rect: CGRect(x: -size.width / 2, y: 0, width: size.width, height: size.height),
             cornerRadius: 3)
-        frame.fillColor = SKColor(white: 1, alpha: 0.28)
-        frame.strokeColor = ink.withAlphaComponent(0.5)
-        frame.lineWidth = 1.5
+        // Opaque, so no star or cloud behind it passes for a balloon.
+        frame.fillColor = SKColor(red: 0.62, green: 0.78, blue: 0.92, alpha: 1)
+        frame.strokeColor = ink.withAlphaComponent(0.7)
+        frame.lineWidth = 2
         addChild(frame)
-        terrain.fillColor = SKColor(red: 0.25, green: 0.45, blue: 0.2, alpha: 1)
+        terrain.fillColor = SKColor(red: 0.22, green: 0.42, blue: 0.18, alpha: 1)
         terrain.strokeColor = .clear
         terrain.zPosition = 1
         addChild(terrain)
         let tri = CGMutablePath()
-        tri.addLines(between: [CGPoint(x: 6, y: 0), CGPoint(x: -4, y: 4), CGPoint(x: -4, y: -4)])
+        tri.addLines(between: [CGPoint(x: 9, y: 0), CGPoint(x: -6, y: 6), CGPoint(x: -6, y: -6)])
         tri.closeSubpath()
         planeMark.path = tri
         planeMark.fillColor = .white
         planeMark.strokeColor = ink
-        planeMark.lineWidth = 1.2
+        planeMark.lineWidth = 1.8
         planeMark.zPosition = 3
         addChild(planeMark)
     }
@@ -51,21 +52,21 @@ final class Minimap: SKNode {
         drawn = nil
         fieldMarks.forEach { $0.removeFromParent() }
         fieldMarks = strip.airfields.map { field in
-            let w = max(4, CGFloat(field.length / strip.length) * size.width)
-            let mark = SKShapeNode(rect: CGRect(x: -w / 2, y: -1.5, width: w, height: 3))
+            let w = max(8, CGFloat(field.length / strip.length) * size.width)
+            let mark = SKShapeNode(rect: CGRect(x: -w / 2, y: -2.5, width: w, height: 5))
             mark.fillColor = Minimap.fieldTan
             mark.strokeColor = ink
-            mark.lineWidth = 0.8
+            mark.lineWidth = 1.2
             mark.zPosition = 2
             addChild(mark)
             return mark
         }
         balloonDots.forEach { $0.removeFromParent() }
         balloonDots = balloonColours.map { colour in
-            let dot = SKShapeNode(circleOfRadius: 2.2)
+            let dot = SKShapeNode(circleOfRadius: 3.5)
             dot.fillColor = colour
-            dot.strokeColor = ink.withAlphaComponent(0.6)
-            dot.lineWidth = 0.6
+            dot.strokeColor = SKColor(white: 1, alpha: 0.9)
+            dot.lineWidth = 1.2
             dot.zPosition = 2
             addChild(dot)
             return dot
@@ -89,8 +90,8 @@ final class Minimap: SKNode {
         for (i, (mark, field)) in zip(fieldMarks, strip.airfields).enumerated() {
             mark.position = CGPoint(
                 x: across(field.start + field.length / 2), y: up(field.elevation))
-            // The destination's mark is lit red.
-            let isDestination = practice.contract?.to == i
+            // The destination's mark is lit red: the job aboard, or the one being picked.
+            let isDestination = (practice.contract ?? practice.chosen)?.to == i
             mark.fillColor =
                 isDestination
                 ? SKColor(red: 0.85, green: 0.2, blue: 0.2, alpha: 1) : Minimap.fieldTan

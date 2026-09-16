@@ -38,7 +38,7 @@ public final class FlightScene: SKScene {
     let world = SKNode()
     let planeNode: PlaneNode
     /// The sky, the backdrop, the ground and the scenery, for the run's hour.
-    private let look = StripLook()
+    let look = StripLook()
     /// Readout ink for the hour: dark by day, pale at night.
     var hudInk = SKColor(white: 0.12, alpha: 1)
     /// One node per field, each holding its strip and its two approach cones,
@@ -55,7 +55,10 @@ public final class FlightScene: SKScene {
     var markerNodes: [SKShapeNode] = []
     let fieldMarker: SKShapeNode
     /// The whole world, tiny, under the status line.
-    let minimap = Minimap(size: CGSize(width: 320, height: 40))
+    let minimap = Minimap(size: CGSize(width: 400, height: 64))
+    /// One balloon per balloon, one round per round, under the readouts.
+    let balloonTally = Tally(icon: .balloon, pitch: 17)
+    let roundTally = Tally(icon: .round, pitch: 7)
     let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     let clockLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     /// Rounds left, and whether they are being loaded.
@@ -148,7 +151,9 @@ public final class FlightScene: SKScene {
         rollDuration = tuning.rollDuration
         speedDial.redBelow = CGFloat(tuning.flight.stallSpeed * 3.6)
         practice.resizeFields(to: tuning.fieldLength)
-        altitudeDial.redAbove = CGFloat(tuning.flight.thinAirFrom)
+        // Amber where the air thins, red past the ceiling, where full power just holds level.
+        altitudeDial.amberAbove = CGFloat(tuning.flight.thinAirFrom)
+        altitudeDial.redAbove = CGFloat(tuning.flight.ceiling)
         applyLook()
         fieldNodes.forEach { $0.removeFromParent() }
         fieldNodes = practice.model.strip.airfields.map { field in
@@ -167,6 +172,7 @@ public final class FlightScene: SKScene {
         minimap.reset(
             strip: practice.model.strip,
             balloonColours: practice.balloons.indices.map { look.palette.balloon($0) })
+        resetTallies()
     }
 
     /// Build the world's look again if the run, its hour or its scenery changed,

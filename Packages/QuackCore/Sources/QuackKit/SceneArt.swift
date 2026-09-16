@@ -98,6 +98,29 @@ enum SceneArt {
     /// rolling past it reads as passing in front rather than through it.
     static let sockName = "windsock"
 
+    /// A system symbol as a texture in one colour, or nil if the platform lacks it.
+    static func symbol(_ name: String, pointSize: CGFloat, colour: SKColor) -> SKTexture? {
+        #if canImport(UIKit)
+        let config = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .bold)
+        guard let image = UIImage(systemName: name, withConfiguration: config) else { return nil }
+        let tinted = image.withTintColor(colour, renderingMode: .alwaysOriginal)
+        return SKTexture(image: tinted)
+        #else
+        guard let image = NSImage(systemSymbolName: name, accessibilityDescription: nil) else {
+            return nil
+        }
+        let config = NSImage.SymbolConfiguration(pointSize: pointSize, weight: .bold)
+        let sized = image.withSymbolConfiguration(config) ?? image
+        let tinted = NSImage(size: sized.size, flipped: false) { rect in
+            sized.draw(in: rect)
+            colour.set()
+            rect.fill(using: .sourceAtop)
+            return true
+        }
+        return SKTexture(image: tinted)
+        #endif
+    }
+
     /// Point a field's windsock downwind, one shape per wind step so a glance
     /// says which: hanging down the pole in a calm, drooping in a low wind,
     /// half out, nearly straight, and straight out and flapping in a gale.

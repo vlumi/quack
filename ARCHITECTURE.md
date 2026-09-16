@@ -215,9 +215,11 @@ status line and minimap, and the gauges.
 top to bottom, aspect-fit into whatever screen or window it gets (the Mac
 window keeps a 16:9 game area inside a dark frame; on iOS the letterbox bars
 stay touch surface). It runs the balloon run: the ground, the plane, the balloons, the rounds, a two-line clock, two cockpit
-gauges top right (`Dial`: fuel as a share of the tank with the last fifth
-in red, airspeed with the stall range in red, and altitude above sea level
-to 300 m with the thinning air in red),
+gauges top right (`Dial`, each with a symbol on its face: fuel as a share of
+the tank with the last fifth in red, airspeed with the stall range in red,
+and altitude above sea level to 300 m with the thinning air in amber and
+the ceiling upward in red), a `Tally` of balloons left and one of rounds in
+the belt under the readouts,
 and a chevron on
 the box's edge for each balloon outside it, on the line from the plane, bolder
 and bigger the nearer it is; camera following sideways always, keeping the lowest ground near the plane on

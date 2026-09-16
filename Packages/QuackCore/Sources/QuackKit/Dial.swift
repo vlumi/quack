@@ -23,6 +23,11 @@ final class Dial: SKNode {
     var redAbove: CGFloat? {
         didSet { drawRedArc() }
     }
+    /// The bottom of an amber band that runs up to the red, or nil for none.
+    var amberAbove: CGFloat? {
+        didSet { drawRedArc() }
+    }
+    private let amberArc = SKShapeNode()
 
     /// `redBelow` marks 0…value in red; `majorEvery` places the long ticks.
     init(radius: CGFloat, maximum: CGFloat, majorEvery: CGFloat, redBelow: CGFloat? = nil) {
@@ -39,6 +44,9 @@ final class Dial: SKNode {
         redArc.strokeColor = SKColor(red: 0.8, green: 0.15, blue: 0.15, alpha: 0.9)
         redArc.lineWidth = radius * 0.12
         addChild(redArc)
+        amberArc.strokeColor = SKColor(red: 0.95, green: 0.7, blue: 0.1, alpha: 0.9)
+        amberArc.lineWidth = radius * 0.12
+        addChild(amberArc)
         drawRedArc()
         let ticks = CGMutablePath()
         var v: CGFloat = 0
@@ -83,6 +91,16 @@ final class Dial: SKNode {
                 center: .zero, radius: radius * 0.8, startAngle: angle(0), endAngle: angle(red),
                 clockwise: true)
         }
+        let amber = CGMutablePath()
+        if let low = amberAbove {
+            let high = min(maximum, redAbove ?? maximum)
+            amber.move(
+                to: CGPoint(x: cos(angle(low)) * radius * 0.8, y: sin(angle(low)) * radius * 0.8))
+            amber.addArc(
+                center: .zero, radius: radius * 0.8, startAngle: angle(low), endAngle: angle(high),
+                clockwise: true)
+        }
+        amberArc.path = amber.isEmpty ? nil : amber
         if let red = redAbove {
             // A fresh subpath, or the arc would join the other one with a line.
             p.move(
@@ -92,6 +110,19 @@ final class Dial: SKNode {
                 endAngle: angle(maximum), clockwise: true)
         }
         redArc.path = p.isEmpty ? nil : p
+    }
+
+    /// A small picture of what the gauge reads, on the face below the hub.
+    func setIcon(_ texture: SKTexture?, size: CGFloat) {
+        childNode(withName: "icon")?.removeFromParent()
+        guard let texture else { return }
+        let icon = SKSpriteNode(texture: texture)
+        icon.name = "icon"
+        icon.size = CGSize(width: size, height: size)
+        icon.position = CGPoint(x: 0, y: -radius * 0.45)
+        icon.alpha = 0.55
+        icon.zPosition = -0.5
+        addChild(icon)
     }
 
     /// Needle angle for a value: clockwise from the lower left, clamped to the dial.
