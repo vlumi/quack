@@ -146,6 +146,14 @@ of the display's refresh rate.
   or a broken undercarriage, floored at a quarter, with a `.complaint`
   event at each quarter lost. Fields carry village `name`s
   from `Strip.fieldNames`.
+- `Career` — the company between runs (`Career.swift`): the till and the
+  levels bought of each `Upgrade` (tank: 50 s of engine a level, three
+  levels; engine: 1.5 thrust a level, three levels; seat: one level,
+  passenger jobs carry two for two fares), with prices, `buy`, and the
+  bonuses. `Codable` with a version. A `Practice` is made with a career: a
+  courier run's till starts from it, its tank and thrust carry the bonuses,
+  and `apply(_:)` lays the panel's dials under them. `roundPrice` on
+  `CourierTuning` is what the courier pays per round rearmed.
 - `FuelTuning` — the tank in seconds of engine (`Fuel.swift`):
   `burnAndRefuel` drains a second a second whenever the plane is not parked
   or wrecked and fills while parked at `refuelRate`, charging `price` a
@@ -230,9 +238,15 @@ same mirrored, which is the sim's `inverted`; the scene eases between them
 over a third of a second, top toward the camera both ways. A gloss layer's
 alpha follows the plane's attitude against a fixed sun.
 
+**The company** lives in `CareerStore` (UserDefaults, JSON; a career from
+another version is dropped): the scene is given the career before each
+`start` and tells `onMoneyChange` the till whenever it changes while
+parked, which the store keeps. `HangarScreen`, off the title, shows the till
+and each upgrade's level and next price, and buys.
+
 **The title screen** (`TitleScreen`, SwiftUI) sits over the scene, which
 keeps running the seeded world with inputs ignored (`FlightScene.attract`):
-the name, Courier or Balloon run (`FlightScene.start(_:)`, which keeps the
+the name, Courier, Balloon run or Hangar (`FlightScene.start(_:)`, which keeps the
 untouched run behind the title when its mode matches), and the invert-pitch
 switch, the one player setting, which `TuningStore` keeps in UserDefaults in
 every build. `GameView` holds the screen state: title, playing (a

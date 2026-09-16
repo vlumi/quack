@@ -57,6 +57,17 @@
         }
       }
     },
+    "%lld fr in the till" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld fr in the till"
+          }
+        }
+      }
+    },
     "%lld km/h" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -213,6 +224,28 @@
         }
       }
     },
+    "Bigger tank" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bigger tank"
+          }
+        }
+      }
+    },
+    "Bought" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bought"
+          }
+        }
+      }
+    },
     "Bounce margin" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -253,6 +286,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Broken undercarriage"
+          }
+        }
+      }
+    },
+    "Buy, %lld fr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy, %lld fr"
           }
         }
       }
@@ -554,6 +598,17 @@
         }
       }
     },
+    "Hangar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hangar"
+          }
+        }
+      }
+    },
     "Hour (0 = seed's)" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -594,6 +649,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Landing"
+          }
+        }
+      }
+    },
+    "Level %lld of %lld: +%lld s of engine each" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld of %lld: +%lld s of engine each"
+          }
+        }
+      }
+    },
+    "Level %lld of %lld: more thrust each" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld of %lld: more thrust each"
           }
         }
       }
@@ -774,6 +851,17 @@
         }
       }
     },
+    "Price per round" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Price per round"
+          }
+        }
+      }
+    },
     "Price per second of fuel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -917,6 +1005,17 @@
         }
       }
     },
+    "Second seat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Second seat"
+          }
+        }
+      }
+    },
     "Share at the ground" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -990,6 +1089,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Steepest entry"
+          }
+        }
+      }
+    },
+    "Stronger engine" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stronger engine"
           }
         }
       }
@@ -1144,6 +1254,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turn time"
+          }
+        }
+      }
+    },
+    "Two passengers a job, two fares" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Two passengers a job, two fares"
           }
         }
       }

@@ -21,6 +21,11 @@ public final class FlightScene: SKScene {
     private var run: UInt64 = 1
     /// What the runs are for; the title screen sets it.
     public private(set) var mode = Practice.Mode.courier
+    /// The company a courier run flies for. Set before `start`.
+    public var career = Career()
+    /// Told the till's money whenever it changes while parked, so the company keeps it.
+    public var onMoneyChange: ((Double) -> Void)?
+    private var moneyTold: Double?
     /// Behind the title screen the world runs but nobody is flying: inputs
     /// are ignored and the readouts are off.
     public var attract = false {
@@ -136,12 +141,7 @@ public final class FlightScene: SKScene {
     }
 
     private func applyTuning() {
-        practice.model.flight.tuning = tuning.flight
-        practice.model.landing = tuning.landing
-        practice.gun = tuning.gun
-        practice.windTuning = tuning.wind
-        practice.courierTuning = tuning.courier
-        practice.fuelTuning = tuning.fuel
+        practice.apply(tuning)
         controls.throwDistance = CGFloat(tuning.throwDistance)
         controls.minimumThrow = CGFloat(tuning.minimumThrow)
         controls.invertedPitch = tuning.invertedPitch
@@ -198,7 +198,9 @@ public final class FlightScene: SKScene {
     }
 
     private func startRun() {
-        practice = Practice(seed: run, mode: mode, fieldLength: tuning.fieldLength)
+        practice = Practice(
+            seed: run, mode: mode, fieldLength: tuning.fieldLength, career: career)
+        moneyTold = nil
         applyTuning()
         // A new run starts with the tuned belt, not the default one.
         practice.ammo = practice.capacity
@@ -236,6 +238,11 @@ public final class FlightScene: SKScene {
                 )
             }
             engineWasRunning = practice.engineRunning
+        }
+        // The till is banked whenever the plane is parked, which is where money changes hands.
+        if practice.mode == .courier, case .parked = practice.phase, practice.money != moneyTold {
+            moneyTold = practice.money
+            onMoneyChange?(practice.money)
             accumulator -= FlightModel.dt
         }
         render(at: currentTime)

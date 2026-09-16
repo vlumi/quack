@@ -11,12 +11,14 @@ public struct GameView: View {
     /// Where the player is: at the title, flying, or paused.
     enum Screen {
         case title
+        case hangar
         case playing
         case paused
     }
 
     @StateObject private var overlay: ThumbOverlayState
     @StateObject private var tuning: TuningStore
+    @StateObject private var careers: CareerStore
     @State private var scene: FlightScene
     @State private var screen = Screen.title
     #if os(macOS)
@@ -26,11 +28,15 @@ public struct GameView: View {
     public init() {
         let overlay = ThumbOverlayState()
         let tuning = TuningStore()
+        let careers = CareerStore()
         let scene = FlightScene(overlay: overlay)
+        scene.career = careers.career
+        scene.onMoneyChange = { careers.career.money = $0 }
         scene.tuning = tuning.tuning
         scene.attract = true
         _overlay = StateObject(wrappedValue: overlay)
         _tuning = StateObject(wrappedValue: tuning)
+        _careers = StateObject(wrappedValue: careers)
         _scene = State(initialValue: scene)
     }
 
@@ -51,11 +57,17 @@ public struct GameView: View {
     @ViewBuilder private var menus: some View {
         switch screen {
         case .title:
-            TitleScreen(store: tuning) { mode in
-                scene.start(mode)
-                scene.attract = false
-                screen = .playing
-            }
+            TitleScreen(
+                store: tuning,
+                play: { mode in
+                    scene.career = careers.career
+                    scene.start(mode)
+                    scene.attract = false
+                    screen = .playing
+                },
+                hangar: { screen = .hangar })
+        case .hangar:
+            HangarScreen(store: careers) { screen = .title }
         case .playing:
             VStack {
                 Spacer()
