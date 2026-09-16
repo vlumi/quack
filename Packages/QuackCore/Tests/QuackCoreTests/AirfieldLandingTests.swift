@@ -130,7 +130,7 @@ final class AirfieldLandingTests: AirfieldTestCase {
         var phase = FlightPhase.parked(repair: 0)
         var events: [FlightEvent] = []
         for _ in 0..<600 {
-            if let e = short.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true)) {
+            if let e = short.advance(&s, &phase, input: PlaneInput(power: true, takeOff: 1)) {
                 events.append(e)
             }
             if phase == .flying { break }

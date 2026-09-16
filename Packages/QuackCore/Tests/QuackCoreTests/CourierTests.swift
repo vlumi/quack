@@ -59,24 +59,24 @@ final class CourierTests: XCTestCase {
         XCTAssertEqual(p.chosen, p.offers[0])
     }
 
-    func testTheTriggerCyclesTheBoardOnTheGroundAndFiresNothing() {
+    func testPickingFromTheBoardAndTheGunStaysQuietOnTheGround() {
         var p = day()
-        p.advance(input: PlaneInput(fire: true))
+        p.pick(1)
         XCTAssertEqual(p.chosen, p.offers[1])
+        p.pick(7)
+        XCTAssertEqual(p.chosen, p.offers[1], "no such offer, nothing changes")
+        p.advance(input: PlaneInput(fire: true))
         XCTAssertTrue(p.bullets.isEmpty, "the gun stays quiet on the ground")
         XCTAssertEqual(p.ammo, p.capacity)
-        p.advance(input: PlaneInput(fire: true))
-        XCTAssertEqual(p.chosen, p.offers[1], "held, not pulled again")
-        p.advance(input: .idle)
-        p.advance(input: PlaneInput(fire: true))
-        XCTAssertEqual(p.chosen, p.offers[0], "round again")
+        p.pick(0)
+        XCTAssertEqual(p.chosen, p.offers[0])
     }
 
     /// Take off, and the pick comes aboard.
     private func takeOff(_ p: inout Practice) -> Contract {
         let pick = p.chosen!
         for _ in 0..<600 where p.contract == nil {
-            p.advance(input: PlaneInput(pitch: 1, power: true))
+            p.advance(input: PlaneInput(power: true, takeOff: 1))
         }
         XCTAssertEqual(p.contract, pick)
         XCTAssertTrue(p.offers.isEmpty)

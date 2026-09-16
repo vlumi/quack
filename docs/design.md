@@ -15,7 +15,11 @@ the property to keep: **few inputs, endless technique, nothing to author.**
 ## Rules that filter everything
 
 - **Easy to learn, hard to master.** Two inputs at most, each doing one thing,
-  never a third simultaneous input. Difficulty lives in the generated world
+  never a third simultaneous input. That is a rule for the air. Parked is a
+  menu moment: the field's jobs are cards and take-off is two buttons, left
+  and right (2026-09-16), after pull-to-take-off, push-to-turn and
+  trigger-to-pick proved three hidden verbs on controls meant for flying.
+  Once rolling, the plane lifts off by itself at rotate speed. Difficulty lives in the generated world
   (shorter fields, wind, more guns), never in the controls.
 - **No content authoring.** Terrain, fields, contracts, weather and enemy
   placement are generated from a seed. Graphics are line art, silhouettes,

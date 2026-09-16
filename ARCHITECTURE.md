@@ -25,7 +25,8 @@ state, bit for bit. `FlightModel.advance(state, input:)` at `tickRate = 60`;
 the scene accumulates frame time and steps the model, so feel is independent
 of the display's refresh rate.
 
-- `PlaneInput` — elevator in -1…1 and power on/off. Plane-relative.
+- `PlaneInput` — elevator in -1…1, power on/off, and a takeoff request with
+  its direction, which only a parked plane hears. Plane-relative.
 - `PlaneState` — position, heading (radians, anticlockwise from +x), speed,
   and `inverted`, which says which way the cockpit faces relative to flight.
 - `FlightTuning` — every dial in one struct: gravity (well above Earth's, so
@@ -74,11 +75,12 @@ of the display's refresh rate.
   out of the cone. Braking and the takeoff roll are exaggerated so both fit the
   short field. Unassisted contact is graded by path angle:
   touchdown, bounce, broken undercarriage (a repair delay), or crash (a wreck
-  delay, then back at the parking spot). Parked, a pull takes off the way the plane faces,
-  taxiing back and swinging round first if there is not `takeoffRoom` ahead; a
-  push swings it round, taxiing out to room first if needed. Taxiing ignores
-  the stick. Lift-off needs rotate speed and the stick back; the field's end is
-  a crash. Heights for the cone and the flare are measured from the field's
+  delay, then back at the parking spot). Parked, `PlaneInput.takeOff` names
+  the way to go: facing it, the plane rolls, taxiing back and swinging round
+  first if there is not `takeoffRoom` that way; facing the other way it
+  swings round, taxiing out to room first if needed. The stick and the
+  trigger do nothing on the ground, and taxiing ignores everything. The roll
+  lifts off by itself at rotate speed; the field's end is a crash. Heights for the cone and the flare are measured from the field's
   elevation; everywhere else the plane meets the strip's `groundHeight`, so a
   hillside is a crash and the ground roll follows the shelf. The air half is
   `AirfieldModel.swift`, the ground half `AirfieldModel+Ground.swift`.
@@ -239,6 +241,13 @@ and the pilot is a sphere at head height. At 0 it is the side view, at π the
 same mirrored, which is the sim's `inverted`; the scene eases between them
 over a third of a second, top toward the camera both ways. A gloss layer's
 alpha follows the plane's attitude against a fixed sun.
+
+**The parked panel** (`ParkedPanel`, SwiftUI) sits at the bottom while the
+plane is parked: the board's jobs as cards (`FlightScene.pick`) and two
+take-off buttons (`FlightScene.takeOff(direction:)`, handed to the next
+step's input). The scene publishes what it needs through `HUDState`,
+touched only on a change. The thumb overlay hides while parked; on the Mac
+the arrow keys take off and the digits pick.
 
 **The company** lives in `CareerStore` (UserDefaults, JSON; a career from
 another version is dropped): the scene is given the career before each

@@ -20,7 +20,7 @@ final class FuelTests: XCTestCase {
         XCTAssertEqual(p.fuel, 149, accuracy: 1e-6)
         XCTAssertEqual(p.fuelShare, 149.0 / 150, accuracy: 1e-9)
         p.phase = .takeoffRoll
-        p.advance(input: PlaneInput(pitch: 1, power: true))
+        p.advance(input: PlaneInput(power: true, takeOff: 1))
         XCTAssertEqual(p.fuel, 149 - 1.0 / 60, accuracy: 1e-6, "the engine runs on the ground too")
     }
 
@@ -72,14 +72,14 @@ final class FuelTests: XCTestCase {
         p.windTuning.strength = 0
         p.fuel = 0.5
         for _ in 0..<600 where p.phase == .takeoffRoll || p.phase == .parked(repair: 0) {
-            p.advance(input: PlaneInput(pitch: 1, power: true))
+            p.advance(input: PlaneInput(power: true, takeOff: 1))
             if p.fuel == 0 { break }
         }
         XCTAssertEqual(p.phase, .takeoffRoll)
         XCTAssertGreaterThan(p.plane.speed, 0)
         var ticks = 0
         while p.phase == .takeoffRoll && ticks < 600 {
-            p.advance(input: PlaneInput(pitch: 1, power: true))
+            p.advance(input: PlaneInput(power: true, takeOff: 1))
             ticks += 1
         }
         XCTAssertEqual(p.phase, .parked(repair: 0), "coasted to a stop")
