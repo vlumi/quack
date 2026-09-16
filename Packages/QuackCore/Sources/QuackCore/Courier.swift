@@ -129,12 +129,16 @@ extension Practice {
         }
     }
 
+    /// Pick an offer from the board, by its place on it.
+    public mutating func pick(_ index: Int) {
+        guard offers.indices.contains(index) else { return }
+        chosenOffer = index
+    }
+
     /// The courier's step: the board at a field the plane is parked on, the
-    /// trigger picking from it, the pick loaded at lift-off, paid at the
-    /// destination, and lost in a crash.
+    /// pick loaded at lift-off, paid at the destination, and lost in a crash.
     mutating func advanceCourier(input: PlaneInput) {
         courierEvent = nil
-        defer { wasFiring = input.fire }
         guard mode == .courier else { return }
         let strip = model.strip
         let here = strip.airfields.firstIndex {
@@ -147,9 +151,6 @@ extension Practice {
             if offers.isEmpty || offers[0].from != here {
                 offers = offers(at: here)
                 chosenOffer = 0
-            }
-            if input.fire && !wasFiring && !offers.isEmpty {
-                chosenOffer = (chosenOffer + 1) % offers.count
             }
         } else if !phase.isOnGround {
             offers = []

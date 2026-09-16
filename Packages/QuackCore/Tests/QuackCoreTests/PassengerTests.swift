@@ -8,11 +8,11 @@ final class PassengerTests: XCTestCase {
         var p = Practice(seed: 1, mode: .courier)
         p.windTuning.strength = 0
         p.advance(input: .idle)
-        p.advance(input: PlaneInput(fire: true))
+        p.pick(1)
         let pick = p.chosen!
         XCTAssertEqual(pick.kind, .passenger)
         for _ in 0..<600 where p.contract == nil {
-            p.advance(input: PlaneInput(pitch: 1, power: true))
+            p.advance(input: PlaneInput(power: true, takeOff: 1))
         }
         p.plane = PlaneState(x: 300, y: 60, heading: 0, speed: 40)
         p.lastHeading = 0
@@ -44,7 +44,7 @@ final class PassengerTests: XCTestCase {
         mail.windTuning.strength = 0
         mail.advance(input: .idle)
         for _ in 0..<600 where mail.contract == nil {
-            mail.advance(input: PlaneInput(pitch: 1, power: true))
+            mail.advance(input: PlaneInput(power: true, takeOff: 1))
         }
         XCTAssertEqual(mail.contract?.kind, .mail)
         mail.plane = PlaneState(x: 300, y: 80, heading: 0, speed: 40)

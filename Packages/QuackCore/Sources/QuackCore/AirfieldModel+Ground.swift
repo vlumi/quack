@@ -32,9 +32,10 @@ extension AirfieldModel {
         strip.airfield(under: s.x) ?? strip.nearestAirfield(to: s.x) ?? home
     }
 
-    /// Parked: wait out any repair. Then a pull takes off the way the plane
-    /// faces, taxiing back first if there is no room; a push turns it around,
-    /// taxiing forward first if there would be no room the other way.
+    /// Parked: wait out any repair. Then a takeoff request names the way to
+    /// go: facing it already, the plane rolls, taxiing back and swinging round
+    /// first if there is no room; facing the other way, it swings round, after
+    /// taxiing forward to room if it needs to.
     func parked(
         _ s: inout PlaneState, _ phase: inout FlightPhase, repair: Double, input: PlaneInput,
         dt: Double
@@ -43,28 +44,27 @@ extension AirfieldModel {
             phase = .parked(repair: max(0, repair - dt))
             return
         }
+        guard input.takeOff != 0 else { return }
+        let way: Double = input.takeOff > 0 ? 1 : -1
         let facing = s.direction
         let airfield = groundField(s)
-        if input.pitch > 0 {
-            if room(on: airfield, at: s.x, facing: facing) >= takeoffRoom(facing: facing) {
+        let room = room(on: airfield, at: s.x, facing: way) >= takeoffRoom(facing: way)
+        if way == facing {
+            if room {
                 phase = .takeoffRoll
             } else {
                 let steps: [TaxiStep] = [
-                    .turn(elapsed: 0), .taxi(to: takeoffSpot(on: airfield, facing: facing)),
+                    .turn(elapsed: 0), .taxi(to: takeoffSpot(on: airfield, facing: way)),
                     .turn(elapsed: 0),
                 ]
                 phase = .taxiing(steps: steps, thenTakeoff: true)
             }
-        } else if input.pitch < 0 {
-            if room(on: airfield, at: s.x, facing: -facing) >= takeoffRoom(facing: -facing) {
-                phase = .taxiing(steps: [.turn(elapsed: 0)], thenTakeoff: false)
-            } else {
-                phase = .taxiing(
-                    steps: [
-                        .taxi(to: takeoffSpot(on: airfield, facing: -facing)), .turn(elapsed: 0),
-                    ],
-                    thenTakeoff: false)
-            }
+        } else if room {
+            phase = .taxiing(steps: [.turn(elapsed: 0)], thenTakeoff: true)
+        } else {
+            phase = .taxiing(
+                steps: [.taxi(to: takeoffSpot(on: airfield, facing: way)), .turn(elapsed: 0)],
+                thenTakeoff: true)
         }
     }
 
@@ -170,8 +170,9 @@ extension AirfieldModel {
         s.y = strip.groundHeight(at: s.x) + landing.gearHeight
         if strip.airfield(under: s.x) == nil { return crash(&s, &phase) }
         // Airspeed on the roll: speed over the ground less any wind from behind.
+        // At rotate speed the plane lifts off by itself: the roll is the field's.
         let airspeed = s.speed - groundWind(facing: dir)
-        if airspeed >= rotateSpeed && input.pitch > 0 {
+        if airspeed >= rotateSpeed {
             let climb = 0.12
             s.heading = dir > 0 ? climb : .pi - climb
             s.inverted = dir < 0

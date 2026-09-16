@@ -41,8 +41,6 @@ public struct Practice: Equatable, Sendable {
     public var ammo: Int
     /// Part of the next round loaded while parked.
     public var rearmProgress: Double = 0
-    /// Whether the trigger was held last step, to catch a fresh pull.
-    var wasFiring = false
     /// The company the run flies for: its upgrades, and where its money starts.
     public let career: Career
     /// The courier's day: money in the till, the contract aboard, and the offers at the field.
@@ -200,8 +198,8 @@ public struct Practice: Equatable, Sendable {
 
         rearm(dt: dt)
         gunCooldown = max(0, gunCooldown - dt)
-        // A courier on the ground uses the trigger to pick a contract, not to shoot.
-        let gunFree = mode == .balloons || !phase.isOnGround
+        // The gun is for the air: parked, the trigger does nothing.
+        let gunFree = !phase.isOnGround
         if input.fire && gunFree && gunCooldown == 0 && ammo > 0 {
             ammo -= 1
             let m = plane.muzzle(gun)

@@ -25,6 +25,10 @@ public final class FlightScene: SKScene {
     public var career = Career()
     /// Told the till's money whenever it changes while parked, so the company keeps it.
     public var onMoneyChange: ((Double) -> Void)?
+    /// What the SwiftUI layer shows over the scene: the parked panel's state.
+    public let hud = HUDState()
+    /// A takeoff asked for by the panel, handed to the next step.
+    var takeOffRequest: Double = 0
     private var moneyTold: Double?
     /// Behind the title screen the world runs but nobody is flying: inputs
     /// are ignored and the readouts are off.
@@ -44,7 +48,7 @@ public final class FlightScene: SKScene {
     /// One node per field, each holding its strip and its two approach cones,
     /// placed every frame at the field's lap nearest the plane.
     private let fieldLayer = SKNode()
-    private var fieldNodes: [SKNode] = []
+    var fieldNodes: [SKNode] = []
     private let balloonLayer = SKNode()
     private let bulletLayer = SKNode()
     private var balloonNodes: [SKNode] = []
@@ -81,11 +85,11 @@ public final class FlightScene: SKScene {
     private var wasFiring = false
 
     /// The roll shown, 0 upright to 1 inverted, chasing the sim's `inverted`.
-    private var rollShown: CGFloat = 0
-    private var rollFrom: CGFloat = 0
-    private var rollStart: TimeInterval?
+    var rollShown: CGFloat = 0
+    var rollFrom: CGFloat = 0
+    var rollStart: TimeInterval?
     /// How long the plane takes to roll when it rights itself.
-    private var rollDuration: TimeInterval = 0.35
+    var rollDuration: TimeInterval = 0.35
 
     /// The dials in force. Set by the tuning panel; applied at once, and again
     /// to every new run.
@@ -227,6 +231,8 @@ public final class FlightScene: SKScene {
         guard let last = lastTime, !simulationPaused else { return }
         accumulator += min(currentTime - last, 0.25)
         input = attract ? .idle : controls.input
+        input.takeOff = takeOffRequest
+        takeOffRequest = 0
         // Once the run is done, the next pull of the trigger starts the next one.
         if practice.isFinished && input.fire && !wasFiring {
             run += 1
@@ -252,6 +258,7 @@ public final class FlightScene: SKScene {
             onMoneyChange?(practice.money)
         }
         render(at: currentTime)
+        publishHUD()
     }
 
     private func render(at now: TimeInterval) {
@@ -313,57 +320,6 @@ public final class FlightScene: SKScene {
             practice, planePoints: planeNode.position, cameraY: cameraY, scale: scale, box: size)
         updateMarkers()
         updateHUD(at: now)
-    }
-
-    /// The sim flips instantly; the drawing rolls, top toward the camera, with a
-    /// little easing, and rolls back the same way in reverse. On the ground a
-    /// plane never rolls: it swings round (`swingScale`), so the drawing snaps.
-    private func updateRoll(inverted: Bool, at now: TimeInterval) {
-        let target: CGFloat = inverted ? 1 : 0
-        if practice.phase.isOnGround {
-            rollShown = target
-            rollStart = nil
-        }
-        if rollShown != target && rollStart == nil {
-            rollStart = now
-            rollFrom = rollShown
-        }
-        if let start = rollStart {
-            let t = min(1, (now - start) / rollDuration)
-            let eased = t < 0.5 ? 2 * t * t : 1 - pow(-2 * t + 2, 2) / 2
-            rollShown = rollFrom + (target - rollFrom) * CGFloat(eased)
-            if t >= 1 {
-                rollShown = target
-                rollStart = nil
-            }
-        }
-        planeNode.roll = rollShown * .pi
-    }
-
-    /// A plane swinging round on the ground is drawn narrowing to edge-on and
-    /// widening again mirrored: a yaw seen from the side. The sim flips its
-    /// facing at the end, where a mirrored drawing and a flipped one look the same.
-    private func swingScale() -> CGFloat {
-        guard case .taxiing(let steps, _) = practice.phase, case .turn(let elapsed) = steps.first
-        else { return 1 }
-        return CGFloat(cos(.pi * min(1, elapsed / max(0.01, tuning.landing.turnTime))))
-    }
-
-    /// Each field at its lap nearest the plane. The approach guides are for
-    /// the air: they fade out while the plane is on the ground or wrecked, and
-    /// back in once it flies.
-    private func placeFields(near: (Double) -> CGFloat) {
-        let inTheAir: CGFloat
-        switch practice.phase {
-        case .flying, .approach, .goAround: inTheAir = 1
-        default: inTheAir = 0
-        }
-        for (node, field) in zip(fieldNodes, practice.model.strip.airfields) {
-            node.position = CGPoint(x: near(field.start), y: field.elevation * scale)
-            if let cones = node.childNode(withName: "cones") {
-                cones.alpha += (inTheAir - cones.alpha) * 0.08
-            }
-        }
     }
 
     private func follow(_ plane: PlaneState) {

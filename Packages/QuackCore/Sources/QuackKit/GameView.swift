@@ -19,6 +19,7 @@ public struct GameView: View {
     @StateObject private var overlay: ThumbOverlayState
     @StateObject private var tuning: TuningStore
     @StateObject private var careers: CareerStore
+    @ObservedObject private var hud: HUDState
     @State private var scene: FlightScene
     @State private var screen = Screen.title
     #if os(macOS)
@@ -37,6 +38,7 @@ public struct GameView: View {
         _overlay = StateObject(wrappedValue: overlay)
         _tuning = StateObject(wrappedValue: tuning)
         _careers = StateObject(wrappedValue: careers)
+        hud = scene.hud
         _scene = State(initialValue: scene)
     }
 
@@ -71,6 +73,13 @@ public struct GameView: View {
         case .playing:
             VStack {
                 Spacer()
+                if hud.parked {
+                    ParkedPanel(
+                        state: hud, pick: { scene.pick($0) },
+                        takeOff: { scene.takeOff(direction: $0) }
+                    )
+                    .padding(.bottom, 8)
+                }
                 PauseButton { pause() }
                     .padding(.bottom, 12)
             }
@@ -114,6 +123,16 @@ public struct GameView: View {
                 if press.phase == .down { pause() }
                 return .handled
             }
+            // Parked, the arrows are the takeoff buttons and the digits pick from the board.
+            if hud.parked && press.phase == .down {
+                switch press.key {
+                case .leftArrow: scene.takeOff(direction: -1)
+                case .rightArrow: scene.takeOff(direction: 1)
+                case "1": scene.pick(0)
+                case "2": scene.pick(1)
+                default: break
+                }
+            }
             scene.keyboard(press)
             return .handled
         }
@@ -124,7 +143,7 @@ public struct GameView: View {
             .overlay(
                 ThumbOverlay(state: overlay, pitchInverted: tuning.tuning.invertedPitch)
                     .ignoresSafeArea()
-                    .opacity(screen == .playing ? 1 : 0))
+                    .opacity(screen == .playing && !hud.parked ? 1 : 0))
         #endif
     }
 }

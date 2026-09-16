@@ -441,17 +441,6 @@
         }
       }
     },
-    "Fire for another job, pull up to go" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fire for another job, pull up to go"
-          }
-        }
-      }
-    },
     "Fire interval" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -628,17 +617,6 @@
         }
       }
     },
-    "Mail still aboard: pull up to fly on" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mail still aboard: pull up to fly on"
-          }
-        }
-      }
-    },
     "Minimum throw" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -657,17 +635,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Muzzle speed"
-          }
-        }
-      }
-    },
-    "No work here: pull up to fly on" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No work here: pull up to fly on"
           }
         }
       }
@@ -712,17 +679,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Passenger premium"
-          }
-        }
-      }
-    },
-    "Passenger still aboard: pull up to fly on" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passenger still aboard: pull up to fly on"
           }
         }
       }
@@ -815,17 +771,6 @@
         }
       }
     },
-    "Pull up to take off, push to turn around" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pull up to take off, push to turn around"
-          }
-        }
-      }
-    },
     "Quack Express" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -877,6 +822,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Refuel rate (seconds a second)"
+          }
+        }
+      }
+    },
+    "Refuelling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refuelling"
           }
         }
       }
@@ -1057,6 +1013,17 @@
         }
       }
     },
+    "Take off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take off"
+          }
+        }
+      }
+    },
     "Takeoff push" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1218,6 +1185,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wind"
+          }
+        }
+      }
+    },
+    "aboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "aboard"
           }
         }
       }

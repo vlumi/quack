@@ -122,7 +122,7 @@ final class PracticeTests: XCTestCase {
 
     func testACrashPutsThePlaneBackOnTheFieldAndKeepsTheBalloonsAndTheClock() {
         var p = Practice(seed: 3)
-        p.advance(input: PlaneInput(pitch: 1, power: true, fire: true))
+        p.advance(input: PlaneInput(power: true, fire: true, takeOff: 1))
         let started = p.startedAt
         p.plane = PlaneState(x: -300, y: 2, heading: -0.5, speed: 40)
         p.phase = .flying
@@ -248,9 +248,9 @@ final class PracticeTests: XCTestCase {
         for _ in 0..<15 { p.advance(input: .idle) }
         let loaded = p.ammo
         XCTAssertEqual(loaded, 5)
-        p.advance(input: PlaneInput(pitch: 1, power: true))
+        p.advance(input: PlaneInput(power: true, takeOff: 1))
         XCTAssertEqual(p.phase, .takeoffRoll)
-        for _ in 0..<60 { p.advance(input: PlaneInput(pitch: 1, power: true)) }
+        for _ in 0..<60 { p.advance(input: PlaneInput(power: true, takeOff: 1)) }
         XCTAssertEqual(p.ammo, loaded, "nothing more loads once the plane is moving")
         XCTAssertFalse(p.isRearming)
         XCTAssertEqual(p.rearmProgress, 0)

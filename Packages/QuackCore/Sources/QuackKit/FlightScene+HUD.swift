@@ -57,6 +57,26 @@ extension FlightScene {
         }
     }
 
+    /// The parked panel's buttons.
+    public func takeOff(direction: Double) { takeOffRequest = direction }
+    public func pick(_ index: Int) { practice.pick(index) }
+
+    /// Keep the SwiftUI layer's view of the run current, touching it only on a change.
+    func publishHUD() {
+        let parked: Bool
+        if case .parked(let repair) = practice.phase, repair == 0, !attract {
+            parked = true
+        } else {
+            parked = false
+        }
+        if hud.parked != parked { hud.parked = parked }
+        if hud.board != practice.offers { hud.board = practice.offers }
+        if hud.chosen != practice.chosenOffer { hud.chosen = practice.chosenOffer }
+        if hud.carrying != practice.contract { hud.carrying = practice.contract }
+        let names = practice.model.strip.airfields.map(\.name)
+        if hud.fieldNames != names { hud.fieldNames = names }
+    }
+
     /// The readouts, gauges, minimap and chevrons, off behind the title screen.
     func setHUDHidden(_ hidden: Bool) {
         let chrome: [SKNode] = [
@@ -204,17 +224,10 @@ extension FlightScene {
             return String(localized: "Landing", bundle: .module)
         case .parked(let repair) where repair > 0:
             return String(localized: "Repairing", bundle: .module)
-        case .parked where practice.mode == .courier && practice.contract != nil:
-            return practice.contract?.kind == .passenger
-                ? String(localized: "Passenger still aboard: pull up to fly on", bundle: .module)
-                : String(localized: "Mail still aboard: pull up to fly on", bundle: .module)
-        case .parked where practice.mode == .courier:
-            guard practice.chosen != nil else {
-                return String(localized: "No work here: pull up to fly on", bundle: .module)
-            }
-            return String(localized: "Fire for another job, pull up to go", bundle: .module)
-        case .parked where !practice.isFinished:
-            return String(localized: "Pull up to take off, push to turn around", bundle: .module)
+        case .parked where practice.isRefuelling || practice.isRearming:
+            return practice.isRefuelling
+                ? String(localized: "Refuelling", bundle: .module)
+                : String(localized: "Rearming", bundle: .module)
         case .taxiing:
             return String(localized: "Taxiing", bundle: .module)
         default:

@@ -95,11 +95,11 @@ final class WindTests: AirfieldTestCase {
             var phase = FlightPhase.takeoffRoll
             for _ in 0..<600 {
                 let before = s.x
-                let event = m.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true))
+                let event = m.advance(&s, &phase, input: PlaneInput(power: true, takeOff: 1))
                 if event == .liftoff {
                     // The speed over the ground on the lifting step and the first flying one.
                     let liftX = s.x
-                    _ = m.advance(&s, &phase, input: PlaneInput(pitch: 1, power: true))
+                    _ = m.advance(&s, &phase, input: PlaneInput(power: true, takeOff: 1))
                     rolls[wind] = Roll(
                         roll: liftX - 5, groundBefore: (liftX - before) * 60,
                         groundAfter: (s.x - liftX) * 60)
