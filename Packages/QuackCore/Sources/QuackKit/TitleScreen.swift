@@ -57,20 +57,28 @@ struct MenuButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            title
-                .font(.custom("AvenirNext-Bold", size: 20, relativeTo: .title2))
-                .frame(minWidth: 200)
-                .padding(.vertical, 9)
-                .padding(.horizontal, 24)
-                .foregroundStyle(primary ? Color.white : TitleScreen.ink)
-                .background(
-                    primary ? TitleScreen.trim : Color.clear,
-                    in: Capsule()
-                )
-                .overlay(Capsule().strokeBorder(TitleScreen.trim, lineWidth: 2.5))
-        }
-        .buttonStyle(.plain)
+        Button(action: action) { title }
+            .buttonStyle(MenuButtonStyle(primary: primary))
+    }
+}
+
+/// The capsule is the button: the whole of it takes the tap, and pressing
+/// dims it. Drawn here rather than by the platform's own style, which lays
+/// its own highlight over the label.
+private struct MenuButtonStyle: ButtonStyle {
+    let primary: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.custom("AvenirNext-Bold", size: 20, relativeTo: .title2))
+            .frame(minWidth: 200)
+            .padding(.vertical, 9)
+            .padding(.horizontal, 24)
+            .foregroundStyle(primary ? Color.white : TitleScreen.ink)
+            .background(primary ? TitleScreen.trim : TitleScreen.card, in: Capsule())
+            .overlay(Capsule().strokeBorder(TitleScreen.trim, lineWidth: 2.5))
+            .contentShape(Capsule())
+            .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
 
