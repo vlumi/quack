@@ -245,8 +245,8 @@ struct TuningPanel: View {
         }
     }
 
+    // The courier's, the tank's and the hour's dials.
     // swiftlint:disable:next cyclomatic_complexity
-    /// The courier's, the tank's and the hour's dials.
     private func moneyLabel(for id: String) -> Text {
         switch id {
         case "courier.baseFare": return Text("Base fare", bundle: .module)
