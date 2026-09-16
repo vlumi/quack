@@ -62,6 +62,10 @@ public final class FlightScene: SKScene {
     /// altitude above sea level with the thin air in red.
     let speedDial: Dial
     let altitudeDial = Dial(radius: 44, maximum: 300, majorEvery: 100)
+    /// The tank as a share, the last fifth in red.
+    let fuelDial = Dial(radius: 44, maximum: 1, majorEvery: 0.25, redBelow: 0.2)
+    let fuelLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+    var engineWasRunning = true
     let speedLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     let altitudeLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let controls: ThumbControls
@@ -137,6 +141,7 @@ public final class FlightScene: SKScene {
         practice.gun = tuning.gun
         practice.windTuning = tuning.wind
         practice.courierTuning = tuning.courier
+        practice.fuelTuning = tuning.fuel
         controls.throwDistance = CGFloat(tuning.throwDistance)
         controls.minimumThrow = CGFloat(tuning.minimumThrow)
         controls.invertedPitch = tuning.invertedPitch
@@ -224,6 +229,13 @@ public final class FlightScene: SKScene {
             practice.advance(input: input)
             if let event = practice.lastEvent { show(event, at: currentTime) }
             if let event = practice.courierEvent { show(event, at: currentTime) }
+            if engineWasRunning && !practice.engineRunning {
+                flash = (
+                    String(localized: "Out of fuel: glide to a field", bundle: .module),
+                    currentTime + 3
+                )
+            }
+            engineWasRunning = practice.engineRunning
             accumulator -= FlightModel.dt
         }
         render(at: currentTime)

@@ -266,7 +266,13 @@ so the turn back and the approach are part of the time.
   so the choice is always there: the quick money with a loop turn, or the
   premium flown gently.
 - **Fuel is a range clock**: it drains as long as the engine runs, which is
-  always. Refuelling costs money and a stop.
+  always. Refuelling costs money and a stop. As built: 150 s of engine,
+  two and a half laps of the strip at cruise, so a day of short jobs needs
+  a fill every few and a long one needs planning; it fills at a field ten
+  times faster than it burns, a tenth of a franc a second, and stops when
+  full. Empty, the throttle does nothing and the plane glides, which the
+  model already knew how to do. A courier with no money is filled anyway,
+  since a stranded plane is a dead end, not a lesson.
 - Fares buy a bigger tank, a stronger engine, a second seat.
 - **Hazards as economics, not activity.** AA guns threaten routes; dodging
   costs time, shooting them costs ammunition bought at the field. The courier

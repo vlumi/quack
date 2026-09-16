@@ -199,6 +199,7 @@ struct TuningPanel: View {
         case .gun: return Text("Gun", bundle: .module)
         case .wind: return Text("Wind", bundle: .module)
         case .courier: return Text("Courier", bundle: .module)
+        case .fuel: return Text("Fuel", bundle: .module)
         case .feel: return Text("Feel", bundle: .module)
         }
     }
@@ -249,6 +250,9 @@ struct TuningPanel: View {
         case "courier.invertedCost": return Text("Comfort lost a second inverted", bundle: .module)
         case "courier.turnCost": return Text("Comfort lost per hard radian", bundle: .module)
         case "courier.gentleTurn": return Text("Gentle turn (rad/s)", bundle: .module)
+        case "fuel.tank": return Text("Tank (seconds of engine)", bundle: .module)
+        case "fuel.refuelRate": return Text("Refuel rate (seconds a second)", bundle: .module)
+        case "fuel.price": return Text("Price per second of fuel", bundle: .module)
         case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
         default: return Text(verbatim: id)
         }

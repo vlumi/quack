@@ -63,8 +63,9 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 - [x] Passengers: the same jobs at a premium, but inverted flight, hard
   turns, stalls and bumps cut the fare.
 - [ ] Fly a passenger: is the cut too harsh or too kind?
-- [ ] Fuel: a range clock; costs money and time to refill. An empty tank
+- [x] Fuel: a range clock; costs money and time to refill. An empty tank
   stops the engine and the plane glides to a field, or does not.
+- [ ] Fly the tank: is 150 s the right range for a 2.4 km strip?
 - [ ] Rounds cost money at the field.
 - [ ] Money buys a bigger tank, a stronger engine, a second seat.
 

@@ -12,6 +12,7 @@ public struct Tuning: Equatable, Sendable {
     public var gun = GunTuning()
     public var wind = WindTuning()
     public var courier = CourierTuning()
+    public var fuel = FuelTuning()
     /// Points of thumb drag for full elevator, at most.
     public var throwDistance: Double = 80
     /// The least the throw shrinks to near a screen edge.
@@ -93,6 +94,7 @@ public enum TuningSection: String, CaseIterable, Sendable {
     case gun
     case wind
     case courier
+    case fuel
     case feel
 }
 
@@ -248,6 +250,15 @@ public struct TuningDial: Identifiable {
         TuningDial(
             id: "courier.gentleTurn", section: .courier, keyPath: \.courier.gentleTurn,
             range: 0.1...3, step: 0.1, decimals: 1),
+        TuningDial(
+            id: "fuel.tank", section: .fuel, keyPath: \.fuel.tank, range: 30...600, step: 10,
+            decimals: 0),
+        TuningDial(
+            id: "fuel.refuelRate", section: .fuel, keyPath: \.fuel.refuelRate, range: 1...60,
+            step: 1, decimals: 0),
+        TuningDial(
+            id: "fuel.price", section: .fuel, keyPath: \.fuel.price, range: 0...1, step: 0.05,
+            decimals: 2),
         TuningDial(
             id: "feel.rollDuration", section: .feel, keyPath: \.rollDuration, range: 0.05...1,
             step: 0.05, decimals: 2),

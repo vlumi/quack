@@ -24,7 +24,7 @@ extension FlightScene {
         statusLabel.verticalAlignmentMode = .top
         statusLabel.zPosition = 100
         addChild(statusLabel)
-        for label in [speedLabel, altitudeLabel] {
+        for label in [speedLabel, altitudeLabel, fuelLabel] {
             label.fontSize = 20
             label.fontColor = SKColor(white: 0.12, alpha: 1)
             label.horizontalAlignmentMode = .center
@@ -34,7 +34,7 @@ extension FlightScene {
         }
         minimap.zPosition = 100
         addChild(minimap)
-        for dial in [speedDial, altitudeDial] {
+        for dial in [speedDial, altitudeDial, fuelDial] {
             dial.zPosition = 100
             addChild(dial)
         }
@@ -51,7 +51,7 @@ extension FlightScene {
     func setHUDHidden(_ hidden: Bool) {
         let chrome: [SKNode] = [
             countLabel, clockLabel, ammoLabel, statusLabel, speedLabel, altitudeLabel, minimap,
-            speedDial, altitudeDial, markerLayer,
+            speedDial, altitudeDial, fuelDial, fuelLabel, markerLayer,
         ]
         for node in chrome { node.isHidden = hidden }
     }
@@ -67,6 +67,8 @@ extension FlightScene {
         let right = size.width / 2 - 24
         altitudeDial.position = CGPoint(x: right - 44, y: top - 44)
         speedDial.position = CGPoint(x: right - 44 - 112, y: top - 44)
+        fuelDial.position = CGPoint(x: right - 44 - 224, y: top - 44)
+        fuelLabel.position = CGPoint(x: fuelDial.position.x, y: fuelDial.position.y - 52)
         altitudeLabel.position = CGPoint(
             x: altitudeDial.position.x, y: altitudeDial.position.y - 52)
         speedLabel.position = CGPoint(x: speedDial.position.x, y: speedDial.position.y - 52)
@@ -125,6 +127,12 @@ extension FlightScene {
         let metres = Int((plane.y - practice.model.landing.gearHeight).rounded())
         speedDial.value = CGFloat(kmh)
         altitudeDial.value = CGFloat(metres)
+        fuelDial.value = CGFloat(practice.fuelShare)
+        let left = Int(practice.fuel.rounded(.down))
+        fuelLabel.text = String(
+            localized: "\(left / 60):\(left % 60, specifier: "%02d") fuel", bundle: .module)
+        fuelLabel.fontColor =
+            practice.fuelShare < 0.2 ? SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1) : hudInk
         speedLabel.text = String(localized: "\(kmh) km/h", bundle: .module)
         altitudeLabel.text = String(localized: "\(metres) m", bundle: .module)
         let seconds = practice.elapsed.formatted(.number.precision(.fractionLength(1)))
@@ -236,7 +244,7 @@ extension FlightScene {
         // clock and rounds top left, the gauges top right. On the top edge a
         // marker slides sideways out of the status area; anything that lands on
         // the corner readouts or gauges slides down the side below them.
-        let gauges = CGRect(x: right - 250, y: top - 150, width: 300, height: 200)
+        let gauges = CGRect(x: right - 362, y: top - 150, width: 412, height: 200)
         let readouts = CGRect(x: left - 20, y: top - 130, width: 380, height: 180)
         let status = CGRect(x: -440, y: top - 100, width: 880, height: 150)
         if status.contains(at) {

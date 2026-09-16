@@ -125,6 +125,17 @@
         }
       }
     },
+    "%lld:%02lld fuel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld:%02lld fuel"
+          }
+        }
+      }
+    },
     "A duck, a biplane, and the mail to carry." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -488,6 +499,17 @@
         }
       }
     },
+    "Fuel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuel"
+          }
+        }
+      }
+    },
     "Full strength above" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -653,6 +675,17 @@
         }
       }
     },
+    "Out of fuel: glide to a field" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Out of fuel: glide to a field"
+          }
+        }
+      }
+    },
     "Out of rounds: land to rearm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -741,6 +774,17 @@
         }
       }
     },
+    "Price per second of fuel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Price per second of fuel"
+          }
+        }
+      }
+    },
     "Pull the thumb toward you for nose down instead of up." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -792,6 +836,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rearm rate"
+          }
+        }
+      }
+    },
+    "Refuel rate (seconds a second)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refuel rate (seconds a second)"
           }
         }
       }
@@ -957,6 +1012,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Takeoff push"
+          }
+        }
+      }
+    },
+    "Tank (seconds of engine)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tank (seconds of engine)"
           }
         }
       }
