@@ -22,6 +22,8 @@ till and a hangar.
 
 ### Unreleased (next build)
 
+### build 7 — 2026-09-16
+
 - Parked, the plane has buttons: a panel at the bottom with the field's jobs as cards to pick from and two take-off buttons, left and right. The stick and the trigger do nothing on the ground any more, and the roll lifts off by itself at rotate speed. On the Mac, the arrow keys take off and 1 and 2 pick.
 - Readouts: the balloons left are a row of balloons and the belt a row of rounds, instead of counts. The three gauges carry icons, and the altimeter's band is amber where the air thins and red only past the ceiling. The minimap is bigger, opaque and higher in contrast, and it lights the destination of the job being picked as well as the one aboard, as does the chevron. The hangar keeps its width on a wide window, and the menu buttons take a tap anywhere on the capsule.
 - The company: money earned as a courier is kept on the device between runs, and a new courier run starts with it. Rounds now cost a quarter of a franc each at the field, on credit when broke; the balloon run pays nothing.
