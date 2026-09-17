@@ -71,6 +71,8 @@ public struct CourierTuning: Equatable, Sendable {
     public var stallCost: Double = 0.15
     /// Comfort lost to a bounce or a broken undercarriage.
     public var bumpCost: Double = 0.2
+    /// Comfort lost to a shell bursting on the plane.
+    public var hitCost: Double = 0.25
 
     public init() {}
 }
@@ -177,6 +179,8 @@ extension Practice {
             if plane.speed < model.flight.tuning.stallSpeed { cost += t.stallCost * dt }
         }
         if lastEvent == .bounce || lastEvent == .brokenUndercarriage { cost += t.bumpCost }
+        // The guns' hit from the last step: a shell bursting on the plane frightens anyone.
+        if case .hit = hazardEvent { cost += t.hitCost }
         lastHeading = plane.heading
         guard cost > 0 else { return }
         let before = Int(discomfort * 4)

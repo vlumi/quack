@@ -85,6 +85,14 @@ final class PassengerTests: XCTestCase {
         XCTAssertEqual(q.discomfort, q.courierTuning.bumpCost, accuracy: 1e-9)
     }
 
+    func testAShellBurstingOnThePlaneFrightensThePassenger() {
+        var (p, _) = flying()
+        p.hazardEvent = .hit(x: p.plane.x, y: p.plane.y)
+        p.advanceCourier(input: .idle)
+        XCTAssertEqual(p.discomfort, p.courierTuning.hitCost, accuracy: 1e-9)
+        XCTAssertEqual(p.courierEvent, .complaint, "a quarter gone at once")
+    }
+
     func testDeliveryPaysTheCutFareAndTheNextRideStartsFresh() {
         var (p, pick) = flying()
         for _ in 0..<120 { p.advance(input: PlaneInput(pitch: 1, power: true)) }

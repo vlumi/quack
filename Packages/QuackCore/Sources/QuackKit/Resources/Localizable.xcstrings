@@ -265,6 +265,17 @@
         }
       }
     },
+    "Comfort lost to a hit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comfort lost to a hit"
+          }
+        }
+      }
+    },
     "Cone angle" : {
       "extractionState" : "manual",
       "localizations" : {

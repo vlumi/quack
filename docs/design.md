@@ -293,7 +293,9 @@ so the turn back and the approach are part of the time.
   little scatter, so a plane that keeps changing its path is hard to hit
   and one that flies straight past is not. A hit is never a crash: it adds
   four seconds of repair to the next stop, and three hits stop the engine
-  until then, a glide to the nearest field. Two rounds knock a gun out for
+  until then, a glide to the nearest field. A passenger aboard loses a
+  quarter of their comfort to each burst, so guns and passengers together
+  are the hardest money. Two rounds knock a gun out for
   the run. The balloon run stays a clean time trial.
 
 ## Duckfight (nearby multiplayer)

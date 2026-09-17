@@ -253,6 +253,9 @@ public struct TuningDial: Identifiable {
             id: "courier.turnCost", section: .courier, keyPath: \.courier.turnCost, range: 0...0.5,
             step: 0.01, decimals: 2),
         TuningDial(
+            id: "courier.hitCost", section: .courier, keyPath: \.courier.hitCost, range: 0...0.75,
+            step: 0.05, decimals: 2),
+        TuningDial(
             id: "courier.gentleTurn", section: .courier, keyPath: \.courier.gentleTurn,
             range: 0.1...3, step: 0.1, decimals: 1),
         TuningDial(

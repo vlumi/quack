@@ -145,7 +145,8 @@ of the display's refresh rate.
   `passengerPremium` times the mail fare and its `payNow` is cut by
   `comfort`: 1 minus the `discomfort` that `ride` adds each step for
   inverted flight, turning faster than `gentleTurn`, stalling, and bounces
-  or a broken undercarriage, floored at a quarter, with a `.complaint`
+  or a broken undercarriage, and a shell bursting on the plane
+  (`hitCost`), floored at a quarter, with a `.complaint`
   event at each quarter lost. Fields carry village `name`s
   from `Strip.fieldNames`.
 - `Career` — the company between runs (`Career.swift`): the till and the

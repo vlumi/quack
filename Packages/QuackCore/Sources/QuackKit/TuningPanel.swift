@@ -259,6 +259,7 @@ struct TuningPanel: View {
         case "courier.passengerPremium": return Text("Passenger premium", bundle: .module)
         case "courier.invertedCost": return Text("Comfort lost a second inverted", bundle: .module)
         case "courier.turnCost": return Text("Comfort lost per hard radian", bundle: .module)
+        case "courier.hitCost": return Text("Comfort lost to a hit", bundle: .module)
         case "courier.gentleTurn": return Text("Gentle turn (rad/s)", bundle: .module)
         case "fuel.tank": return Text("Tank (seconds of engine)", bundle: .module)
         case "fuel.refuelRate": return Text("Refuel rate (seconds a second)", bundle: .module)
