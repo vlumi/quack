@@ -80,6 +80,11 @@ public struct Practice: Equatable, Sendable {
     public var hazardEvent: HazardEvent?
     /// Which gun fired last, for the scene's muzzle flash.
     public var lastShotFrom: Int?
+    /// The rival pilot, in a courier run, and the rounds it has fired.
+    public var enemy: Enemy?
+    public var enemyBullets: [Bullet] = []
+    public var enemyTuning = EnemyTuning()
+    var enemyCooldown: Double = 0
     var aimRNG: SeededRNG
     /// Seconds of engine left in the tank.
     public var fuel: Double
@@ -113,6 +118,8 @@ public struct Practice: Equatable, Sendable {
         guns =
             mode == .courier
             ? Practice.guns(seed: seed, count: 3, strip: strip, health: 2) : []
+        enemy =
+            mode == .courier ? Practice.enemy(strip: strip, tuning: EnemyTuning(), health: 2) : nil
         clouds = Wind.clouds(seed: seed, count: 7, strip: strip)
         // Every stored property is set before `capacity` reads the gun.
         ammo = 0
@@ -211,6 +218,7 @@ public struct Practice: Equatable, Sendable {
         if case .wrecked = phase {
             bullets.removeAll()
             shells.removeAll()
+            enemyBullets.removeAll()
             hits = 0
             repairDue = 0
             return
@@ -240,6 +248,8 @@ public struct Practice: Equatable, Sendable {
 
         popBalloons()
         advanceHazards(dt: dt)
+        advanceEnemy(dt: dt)
+        advanceEnemyBullets(dt: dt)
         bullets.removeAll { $0.age >= gun.bulletLife || $0.y < model.strip.surfaceHeight(at: $0.x) }
 
         if mode == .balloons, finishedAt == nil, startedAt != nil, remaining == 0,

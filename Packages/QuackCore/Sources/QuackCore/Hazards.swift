@@ -172,4 +172,8 @@ extension Practice {
 public enum HazardEvent: Equatable, Sendable {
     case hit(x: Double, y: Double)
     case gunKnockedOut(Int)
+    /// A round found the rival; `down` when it was the last it could take.
+    case enemyHit(down: Bool)
+    /// The rival has met the ground.
+    case enemyDown
 }

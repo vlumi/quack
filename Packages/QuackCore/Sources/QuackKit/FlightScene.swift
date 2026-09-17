@@ -56,6 +56,10 @@ public final class FlightScene: SKScene {
     var gunNodes: [SKNode] = []
     var shellNodes: [SKNode] = []
     var engineWasShotOut = false
+    /// The rival pilot's plane, its rounds, and the chevron pointing at it.
+    let enemyNode: PlaneNode
+    var enemyBulletNodes: [SKNode] = []
+    let enemyMarker: SKShapeNode
     private var balloonNodes: [SKNode] = []
     private var bulletNodes: [SKNode] = []
     /// One chevron per balloon, and one for the field, on the edge of the box
@@ -112,6 +116,9 @@ public final class FlightScene: SKScene {
     /// The thumb overlay draws from `overlay`, which the controls keep current.
     public init(overlay: ThumbOverlayState) {
         planeNode = PlaneNode(livery: .courier, pointsPerMetre: scale)
+        enemyNode = PlaneNode(livery: .rival, pointsPerMetre: scale)
+        enemyMarker = SceneArt.markerNode(
+            scale: scale, colour: SKColor(red: 0.85, green: 0.15, blue: 0.15, alpha: 1))
         controls = ThumbControls(overlay: overlay)
         speedDial = Dial(radius: 44, maximum: 240, majorEvery: 60)
         fieldMarker = SceneArt.markerNode(scale: scale, colour: .white)
@@ -131,6 +138,8 @@ public final class FlightScene: SKScene {
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
         world.addChild(planeNode)
+        hazardLayer.addChild(enemyNode)
+        markerLayer.addChild(enemyMarker)
         world.addChild(look.clouds)
         markerLayer.zPosition = 50
         markerLayer.addChild(fieldMarker)
@@ -333,6 +342,7 @@ public final class FlightScene: SKScene {
         look.update(
             practice, planePoints: planeNode.position, cameraY: cameraY, scale: scale, box: size)
         placeHazards(near: near)
+        placeEnemy(near: near)
         updateMarkers()
         updateHUD(at: now)
     }

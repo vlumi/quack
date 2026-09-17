@@ -8,6 +8,7 @@ final class PassengerTests: XCTestCase {
         var p = Practice(seed: 1, mode: .courier)
         p.windTuning.strength = 0
         p.guns = []
+        p.enemy = nil
         p.advance(input: .idle)
         p.pick(1)
         let pick = p.chosen!
@@ -44,6 +45,7 @@ final class PassengerTests: XCTestCase {
         var mail = Practice(seed: 1, mode: .courier)
         mail.windTuning.strength = 0
         mail.guns = []
+        mail.enemy = nil
         mail.advance(input: .idle)
         for _ in 0..<600 where mail.contract == nil {
             mail.advance(input: PlaneInput(power: true, takeOff: 1))

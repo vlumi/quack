@@ -296,7 +296,13 @@ so the turn back and the approach are part of the time.
   until then, a glide to the nearest field. A passenger aboard loses a
   quarter of their comfort to each burst, so guns and passengers together
   are the hardest money. Two rounds knock a gun out for
-  the run. The balloon run stays a clean time trial.
+  the run. The balloon run stays a clean time trial. The rival pilot flies
+  the same plane and the same model with only the elevator, as the player
+  does: it patrols a stretch half a lap from home within a height band,
+  turns on a courier within 300 m with a little lead, and fires short
+  bursts when pointed within 120 m; a hit costs the same as a shell. It
+  takes two rounds and falls. It is a hazard on a route, not a duel: fly
+  round its stretch, or through it fast and jinking.
 
 ## Duckfight (nearby multiplayer)
 
