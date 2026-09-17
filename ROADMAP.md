@@ -74,9 +74,11 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 
 ## 0.5 — Hazards
 
-- [ ] AA guns on the strip; a simple enemy pilot. Dodging costs time,
-  shooting costs rounds bought at the field. Bombs/guns on a tap of the
-  thumb already in use — never a third input.
+- [x] AA guns on the strip: they lead the plane, a hit costs repair time at
+  the next stop, three stop the engine, two rounds knock one out.
+- [ ] Fly the guns: range, rate and scatter.
+- [ ] A simple enemy pilot. Bombs/guns on a tap of the thumb already in use —
+  never a third input.
 
 ## 0.6 — Duckfight
 

@@ -77,6 +77,58 @@ extension FlightScene {
         if hud.fieldNames != names { hud.fieldNames = names }
     }
 
+    /// Flash the guns' news: a hit, the engine gone, a gun knocked out.
+    func show(_ event: HazardEvent, at now: TimeInterval) {
+        switch event {
+        case .hit(let x, let y):
+            HazardArt.burst(at: CGPoint(x: x * scale, y: y * scale), scale: scale, in: hazardLayer)
+            flash = (
+                practice.engineShotOut
+                    ? String(localized: "Engine shot out: glide to a field", bundle: .module)
+                    : String(localized: "Hit! Repairs due at the next stop", bundle: .module),
+                now + 2
+            )
+        case .gunKnockedOut:
+            flash = (String(localized: "Gun knocked out", bundle: .module), now + 1.5)
+        }
+    }
+
+    /// A gun node per gun for the run, in the hour's light.
+    func resetHazards() {
+        gunNodes.forEach { $0.removeFromParent() }
+        gunNodes = practice.guns.map { _ in
+            let n = HazardArt.gunNode(scale: scale, palette: look.palette)
+            hazardLayer.addChild(n)
+            return n
+        }
+    }
+
+    /// Guns at their lap nearest the plane, barrels on it; shells re-laid each frame.
+    func placeHazards(near: (Double) -> CGFloat) {
+        let strip = practice.model.strip
+        let planePoint = planeNode.position
+        for (node, gun) in zip(gunNodes, practice.guns) {
+            node.position = CGPoint(
+                x: near(gun.x), y: CGFloat(strip.groundHeight(at: gun.x)) * scale)
+            HazardArt.aim(node, at: planePoint, alive: gun.isAlive)
+        }
+        while shellNodes.count < practice.shells.count {
+            let n = HazardArt.shellNode(scale: scale)
+            hazardLayer.addChild(n)
+            shellNodes.append(n)
+        }
+        for (i, n) in shellNodes.enumerated() {
+            if i < practice.shells.count {
+                let s = practice.shells[i]
+                n.isHidden = false
+                n.position = CGPoint(x: near(s.x), y: s.y * scale)
+                n.zRotation = atan2(s.vy, s.vx)
+            } else {
+                n.isHidden = true
+            }
+        }
+    }
+
     /// The readouts, gauges, minimap and chevrons, off behind the title screen.
     func setHUDHidden(_ hidden: Bool) {
         let chrome: [SKNode] = [

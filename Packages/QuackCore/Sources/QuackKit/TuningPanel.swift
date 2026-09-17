@@ -200,6 +200,7 @@ struct TuningPanel: View {
         case .wind: return Text("Wind", bundle: .module)
         case .courier: return Text("Courier", bundle: .module)
         case .fuel: return Text("Fuel", bundle: .module)
+        case .hazards: return Text("Guns", bundle: .module)
         case .feel: return Text("Feel", bundle: .module)
         }
     }
@@ -258,10 +259,16 @@ struct TuningPanel: View {
         case "courier.passengerPremium": return Text("Passenger premium", bundle: .module)
         case "courier.invertedCost": return Text("Comfort lost a second inverted", bundle: .module)
         case "courier.turnCost": return Text("Comfort lost per hard radian", bundle: .module)
+        case "courier.hitCost": return Text("Comfort lost to a hit", bundle: .module)
         case "courier.gentleTurn": return Text("Gentle turn (rad/s)", bundle: .module)
         case "fuel.tank": return Text("Tank (seconds of engine)", bundle: .module)
         case "fuel.refuelRate": return Text("Refuel rate (seconds a second)", bundle: .module)
         case "fuel.price": return Text("Price per second of fuel", bundle: .module)
+        case "hazards.range": return Text("Gun range", bundle: .module)
+        case "hazards.fireInterval": return Text("Seconds between shells", bundle: .module)
+        case "hazards.shellSpeed": return Text("Shell speed", bundle: .module)
+        case "hazards.scatter": return Text("Scatter (radians)", bundle: .module)
+        case "hazards.repairPerHit": return Text("Repair per hit (seconds)", bundle: .module)
         case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
         default: return Text(verbatim: id)
         }

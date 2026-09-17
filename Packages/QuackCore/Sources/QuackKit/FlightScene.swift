@@ -51,6 +51,11 @@ public final class FlightScene: SKScene {
     var fieldNodes: [SKNode] = []
     private let balloonLayer = SKNode()
     private let bulletLayer = SKNode()
+    /// The guns on the ground and their shells in the air.
+    let hazardLayer = SKNode()
+    var gunNodes: [SKNode] = []
+    var shellNodes: [SKNode] = []
+    var engineWasShotOut = false
     private var balloonNodes: [SKNode] = []
     private var bulletNodes: [SKNode] = []
     /// One chevron per balloon, and one for the field, on the edge of the box
@@ -122,6 +127,7 @@ public final class FlightScene: SKScene {
         world.addChild(look.ground)
         world.addChild(look.groundShade)
         world.addChild(fieldLayer)
+        world.addChild(hazardLayer)
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
         world.addChild(planeNode)
@@ -177,6 +183,7 @@ public final class FlightScene: SKScene {
             strip: practice.model.strip,
             balloonColours: practice.balloons.indices.map { look.palette.balloon($0) })
         resetTallies()
+        resetHazards()
     }
 
     /// Build the world's look again if the run, its hour or its scenery changed,
@@ -243,6 +250,13 @@ public final class FlightScene: SKScene {
             practice.advance(input: input)
             if let event = practice.lastEvent { show(event, at: currentTime) }
             if let event = practice.courierEvent { show(event, at: currentTime) }
+            if let event = practice.hazardEvent { show(event, at: currentTime) }
+            if let gun = practice.lastShotFrom, gunNodes.indices.contains(gun) {
+                HazardArt.burst(
+                    at: CGPoint(
+                        x: gunNodes[gun].position.x, y: gunNodes[gun].position.y + 2.5 * scale),
+                    scale: scale, in: hazardLayer, size: 1.5)
+            }
             if engineWasRunning && !practice.engineRunning {
                 flash = (
                     String(localized: "Out of fuel: glide to a field", bundle: .module),
@@ -318,6 +332,7 @@ public final class FlightScene: SKScene {
         follow(plane)
         look.update(
             practice, planePoints: planeNode.position, cameraY: cameraY, scale: scale, box: size)
+        placeHazards(near: near)
         updateMarkers()
         updateHUD(at: now)
     }

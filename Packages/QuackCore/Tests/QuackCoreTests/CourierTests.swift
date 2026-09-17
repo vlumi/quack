@@ -7,6 +7,7 @@ final class CourierTests: XCTestCase {
     private func day(seed: UInt64 = 1) -> Practice {
         var p = Practice(seed: seed, mode: .courier)
         p.windTuning.strength = 0
+        p.guns = []
         p.advance(input: .idle)
         return p
     }

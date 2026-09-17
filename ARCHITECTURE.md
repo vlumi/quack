@@ -145,7 +145,8 @@ of the display's refresh rate.
   `passengerPremium` times the mail fare and its `payNow` is cut by
   `comfort`: 1 minus the `discomfort` that `ride` adds each step for
   inverted flight, turning faster than `gentleTurn`, stalling, and bounces
-  or a broken undercarriage, floored at a quarter, with a `.complaint`
+  or a broken undercarriage, and a shell bursting on the plane
+  (`hitCost`), floored at a quarter, with a `.complaint`
   event at each quarter lost. Fields carry village `name`s
   from `Strip.fieldNames`.
 - `Career` — the company between runs (`Career.swift`): the till and the
@@ -156,6 +157,16 @@ of the display's refresh rate.
   courier run's till starts from it, its tank and thrust carry the bonuses,
   and `apply(_:)` lays the panel's dials under them. `roundPrice` on
   `CourierTuning` is what the courier pays per round rearmed.
+- `AAGun`, `Shell`, `HazardTuning`, `HazardEvent` — the guns
+  (`Hazards.swift`): `Practice.guns` are placed from the seed clear of the
+  fields, courier runs only; `advanceHazards` has each live gun in `range`
+  fire a `Shell` every `fireInterval` at the plane's led position (the
+  flight time re-taken a few times) with `scatter` from a seeded aim
+  generator, flies the shells, bursts one within `burstRadius` of the plane
+  as a hit (`hits`, `repairDue`), expires them, and lets rounds knock guns
+  out (`gunHealth`). `engineShotOut` at `hitsToStopEngine` forces power
+  off like an empty tank; `settleDamage` turns the repair due into a parked
+  repair and mends the hits at the next stop. A wreck clears it all.
 - `FuelTuning` — the tank in seconds of engine (`Fuel.swift`):
   `burnAndRefuel` drains a second a second whenever the plane is not parked
   or wrecked and fills while parked at `refuelRate`, charging `price` a
@@ -241,6 +252,11 @@ and the pilot is a sphere at head height. At 0 it is the side view, at π the
 same mirrored, which is the sim's `inverted`; the scene eases between them
 over a third of a second, top toward the camera both ways. A gloss layer's
 alpha follows the plane's attitude against a fixed sun.
+
+`HazardArt` draws each gun as a sandbag ring with a barrel that tracks the
+plane (drooping, faded, when knocked out), a muzzle puff when it fires, the
+shells as dark rounds with a short trail, and a burst where one hits; the
+status line flashes the hit, the engine going, and a gun knocked out.
 
 **The parked panel** (`ParkedPanel`, SwiftUI) sits at the bottom while the
 plane is parked: the board's jobs as cards (`FlightScene.pick`) and two

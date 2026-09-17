@@ -1,7 +1,7 @@
 /// SplitMix64: a small, fast generator with a 64-bit seed, so every generated
 /// thing (a balloon field today, a strip tomorrow) is reproducible from its
 /// seed on every platform and in every test.
-public struct SeededRNG: RandomNumberGenerator, Sendable {
+public struct SeededRNG: RandomNumberGenerator, Sendable, Equatable {
     private var state: UInt64
 
     public init(seed: UInt64) {

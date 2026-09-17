@@ -287,7 +287,16 @@ so the turn back and the approach are part of the time.
   can come if the choice ever needs it.
 - **Hazards as economics, not activity.** AA guns threaten routes; dodging
   costs time, shooting them costs ammunition bought at the field. The courier
-  stays a courier; shooting is occasional and instrumental.
+  stays a courier; shooting is occasional and instrumental. As built: three
+  guns a run, clear of the fields, each firing a shell every two seconds at
+  a plane within 220 m, aimed at where straight flight would put it with a
+  little scatter, so a plane that keeps changing its path is hard to hit
+  and one that flies straight past is not. A hit is never a crash: it adds
+  four seconds of repair to the next stop, and three hits stop the engine
+  until then, a glide to the nearest field. A passenger aboard loses a
+  quarter of their comfort to each burst, so guns and passengers together
+  are the hardest money. Two rounds knock a gun out for
+  the run. The balloon run stays a clean time trial.
 
 ## Duckfight (nearby multiplayer)
 

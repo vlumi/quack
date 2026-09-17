@@ -13,6 +13,7 @@ public struct Tuning: Equatable, Sendable {
     public var wind = WindTuning()
     public var courier = CourierTuning()
     public var fuel = FuelTuning()
+    public var hazards = HazardTuning()
     /// Points of thumb drag for full elevator, at most.
     public var throwDistance: Double = 80
     /// The least the throw shrinks to near a screen edge.
@@ -95,6 +96,7 @@ public enum TuningSection: String, CaseIterable, Sendable {
     case wind
     case courier
     case fuel
+    case hazards
     case feel
 }
 
@@ -251,6 +253,9 @@ public struct TuningDial: Identifiable {
             id: "courier.turnCost", section: .courier, keyPath: \.courier.turnCost, range: 0...0.5,
             step: 0.01, decimals: 2),
         TuningDial(
+            id: "courier.hitCost", section: .courier, keyPath: \.courier.hitCost, range: 0...0.75,
+            step: 0.05, decimals: 2),
+        TuningDial(
             id: "courier.gentleTurn", section: .courier, keyPath: \.courier.gentleTurn,
             range: 0.1...3, step: 0.1, decimals: 1),
         TuningDial(
@@ -262,6 +267,21 @@ public struct TuningDial: Identifiable {
         TuningDial(
             id: "fuel.price", section: .fuel, keyPath: \.fuel.price, range: 0...1, step: 0.05,
             decimals: 2),
+        TuningDial(
+            id: "hazards.range", section: .hazards, keyPath: \.hazards.range, range: 50...600,
+            step: 10, decimals: 0),
+        TuningDial(
+            id: "hazards.fireInterval", section: .hazards, keyPath: \.hazards.fireInterval,
+            range: 0.5...6, step: 0.25, decimals: 2),
+        TuningDial(
+            id: "hazards.shellSpeed", section: .hazards, keyPath: \.hazards.shellSpeed,
+            range: 30...200, step: 5, decimals: 0),
+        TuningDial(
+            id: "hazards.scatter", section: .hazards, keyPath: \.hazards.scatter, range: 0...0.3,
+            step: 0.01, decimals: 2),
+        TuningDial(
+            id: "hazards.repairPerHit", section: .hazards, keyPath: \.hazards.repairPerHit,
+            range: 0...20, step: 1, decimals: 0),
         TuningDial(
             id: "feel.rollDuration", section: .feel, keyPath: \.rollDuration, range: 0.05...1,
             step: 0.05, decimals: 2),

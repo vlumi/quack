@@ -7,6 +7,7 @@ final class PassengerTests: XCTestCase {
     private func flying() -> (Practice, Contract) {
         var p = Practice(seed: 1, mode: .courier)
         p.windTuning.strength = 0
+        p.guns = []
         p.advance(input: .idle)
         p.pick(1)
         let pick = p.chosen!
@@ -42,6 +43,7 @@ final class PassengerTests: XCTestCase {
         XCTAssertEqual(p.payNow!, pick.pay(after: p.time - p.acceptedAt!), accuracy: 1e-9)
         var mail = Practice(seed: 1, mode: .courier)
         mail.windTuning.strength = 0
+        mail.guns = []
         mail.advance(input: .idle)
         for _ in 0..<600 where mail.contract == nil {
             mail.advance(input: PlaneInput(power: true, takeOff: 1))
@@ -81,6 +83,14 @@ final class PassengerTests: XCTestCase {
         q.lastEvent = .bounce
         q.advanceCourier(input: .idle)
         XCTAssertEqual(q.discomfort, q.courierTuning.bumpCost, accuracy: 1e-9)
+    }
+
+    func testAShellBurstingOnThePlaneFrightensThePassenger() {
+        var (p, _) = flying()
+        p.hazardEvent = .hit(x: p.plane.x, y: p.plane.y)
+        p.advanceCourier(input: .idle)
+        XCTAssertEqual(p.discomfort, p.courierTuning.hitCost, accuracy: 1e-9)
+        XCTAssertEqual(p.courierEvent, .complaint, "a quarter gone at once")
     }
 
     func testDeliveryPaysTheCutFareAndTheNextRideStartsFresh() {

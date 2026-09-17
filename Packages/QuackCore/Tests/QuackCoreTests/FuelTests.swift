@@ -6,6 +6,7 @@ final class FuelTests: XCTestCase {
     private func airborne(mode: Practice.Mode = .courier) -> Practice {
         var p = Practice(seed: 1, mode: mode)
         p.windTuning.strength = 0
+        p.guns = []
         p.plane = PlaneState(x: 300, y: 80, heading: 0, speed: 40)
         p.lastHeading = 0
         p.phase = .flying
