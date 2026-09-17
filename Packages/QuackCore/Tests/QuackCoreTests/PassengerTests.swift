@@ -7,6 +7,7 @@ final class PassengerTests: XCTestCase {
     private func flying() -> (Practice, Contract) {
         var p = Practice(seed: 1, mode: .courier)
         p.windTuning.strength = 0
+        p.guns = []
         p.advance(input: .idle)
         p.pick(1)
         let pick = p.chosen!
@@ -42,6 +43,7 @@ final class PassengerTests: XCTestCase {
         XCTAssertEqual(p.payNow!, pick.pay(after: p.time - p.acceptedAt!), accuracy: 1e-9)
         var mail = Practice(seed: 1, mode: .courier)
         mail.windTuning.strength = 0
+        mail.guns = []
         mail.advance(input: .idle)
         for _ in 0..<600 where mail.contract == nil {
             mail.advance(input: PlaneInput(power: true, takeOff: 1))

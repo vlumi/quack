@@ -70,6 +70,17 @@ public struct Practice: Equatable, Sendable {
     public var gun = GunTuning()
     public var courierTuning = CourierTuning()
     public var fuelTuning = FuelTuning()
+    public var hazardTuning = HazardTuning()
+    /// The guns on the strip, their shells in the air, and the damage they have done.
+    public var guns: [AAGun]
+    public var shells: [Shell] = []
+    public var hits = 0
+    /// Seconds of repair the hits have earned, paid at the next stop.
+    public var repairDue: Double = 0
+    public var hazardEvent: HazardEvent?
+    /// Which gun fired last, for the scene's muzzle flash.
+    public var lastShotFrom: Int?
+    var aimRNG: SeededRNG
     /// Seconds of engine left in the tank.
     public var fuel: Double
     /// Metres from the plane's centre that count as a ram.
@@ -98,6 +109,10 @@ public struct Practice: Equatable, Sendable {
         phase = .parked(repair: 0)
         balloons =
             mode == .courier ? [] : Practice.balloons(seed: seed, count: count, strip: strip)
+        aimRNG = SeededRNG(seed: seed ^ 0x5C47_7E12)
+        guns =
+            mode == .courier
+            ? Practice.guns(seed: seed, count: 3, strip: strip, health: 2) : []
         clouds = Wind.clouds(seed: seed, count: 7, strip: strip)
         // Every stored property is set before `capacity` reads the gun.
         ammo = 0
@@ -184,17 +199,23 @@ public struct Practice: Equatable, Sendable {
         if startedAt == nil && given.isActive && !isFinished { startedAt = time }
         // An empty tank is a dead engine, whatever the throttle.
         var input = given
-        if !engineRunning { input.power = false }
+        if !engineRunning || engineShotOut { input.power = false }
         burnAndRefuel(dt: dt)
         model.wind = wind
         advanceWeather(dt: dt)
         lastEvent = model.advance(&plane, &phase, input: input, dt: dt)
         plane.x = model.strip.wrap(plane.x)
         advanceCourier(input: input)
+        hazardEvent = nil
+        lastShotFrom = nil
         if case .wrecked = phase {
             bullets.removeAll()
+            shells.removeAll()
+            hits = 0
+            repairDue = 0
             return
         }
+        settleDamage()
 
         rearm(dt: dt)
         gunCooldown = max(0, gunCooldown - dt)
@@ -218,6 +239,7 @@ public struct Practice: Equatable, Sendable {
         }
 
         popBalloons()
+        advanceHazards(dt: dt)
         bullets.removeAll { $0.age >= gun.bulletLife || $0.y < model.strip.surfaceHeight(at: $0.x) }
 
         if mode == .balloons, finishedAt == nil, startedAt != nil, remaining == 0,
@@ -274,7 +296,7 @@ public struct Practice: Equatable, Sendable {
     }
 
     /// Squared distance, measured the shorter way round the strip.
-    private func dist2(_ ax: Double, _ ay: Double, _ bx: Double, _ by: Double) -> Double {
+    func dist2(_ ax: Double, _ ay: Double, _ bx: Double, _ by: Double) -> Double {
         let dx = model.strip.offset(from: ax, to: bx)
         return dx * dx + (ay - by) * (ay - by)
     }

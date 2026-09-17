@@ -84,5 +84,6 @@ extension Practice {
         courierTuning = tuning.courier
         fuelTuning = tuning.fuel
         fuelTuning.tank += career.tankBonus
+        hazardTuning = tuning.hazards
     }
 }

@@ -386,6 +386,17 @@
         }
       }
     },
+    "Engine shot out: glide to a field" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Engine shot out: glide to a field"
+          }
+        }
+      }
+    },
     "Fare falls over (+ seconds)" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -518,6 +529,39 @@
         }
       }
     },
+    "Gun knocked out" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gun knocked out"
+          }
+        }
+      }
+    },
+    "Gun range" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gun range"
+          }
+        }
+      }
+    },
+    "Guns" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guns"
+          }
+        }
+      }
+    },
     "Hangar" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -525,6 +569,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hangar"
+          }
+        }
+      }
+    },
+    "Hit! Repairs due at the next stop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hit! Repairs due at the next stop"
           }
         }
       }
@@ -837,6 +892,17 @@
         }
       }
     },
+    "Repair per hit (seconds)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repair per hit (seconds)"
+          }
+        }
+      }
+    },
     "Repair time" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -903,6 +969,17 @@
         }
       }
     },
+    "Scatter (radians)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scatter (radians)"
+          }
+        }
+      }
+    },
     "Second seat" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -914,6 +991,17 @@
         }
       }
     },
+    "Seconds between shells" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds between shells"
+          }
+        }
+      }
+    },
     "Share at the ground" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -921,6 +1009,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Share at the ground"
+          }
+        }
+      }
+    },
+    "Shell speed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shell speed"
           }
         }
       }
