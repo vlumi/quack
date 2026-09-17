@@ -77,8 +77,10 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 - [x] AA guns on the strip: they lead the plane, a hit costs repair time at
   the next stop, three stop the engine, two rounds knock one out.
 - [ ] Fly the guns: range, rate and scatter.
-- [ ] A simple enemy pilot. Bombs/guns on a tap of the thumb already in use —
-  never a third input.
+- [x] A simple enemy pilot: patrols, pursues, fires bursts, goes down to
+  two rounds.
+- [ ] Fly the rival: is it a nuisance or a wall? Bombs/guns on a tap of the
+  thumb already in use — never a third input.
 
 ## 0.6 — Duckfight
 

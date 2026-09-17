@@ -14,6 +14,7 @@ public struct Tuning: Equatable, Sendable {
     public var courier = CourierTuning()
     public var fuel = FuelTuning()
     public var hazards = HazardTuning()
+    public var enemy = EnemyTuning()
     /// Points of thumb drag for full elevator, at most.
     public var throwDistance: Double = 80
     /// The least the throw shrinks to near a screen edge.
@@ -282,6 +283,18 @@ public struct TuningDial: Identifiable {
         TuningDial(
             id: "hazards.repairPerHit", section: .hazards, keyPath: \.hazards.repairPerHit,
             range: 0...20, step: 1, decimals: 0),
+        TuningDial(
+            id: "hazards.engageRange", section: .hazards, keyPath: \.enemy.engageRange,
+            range: 50...800, step: 10, decimals: 0),
+        TuningDial(
+            id: "hazards.fireRange", section: .hazards, keyPath: \.enemy.fireRange,
+            range: 20...300, step: 10, decimals: 0),
+        TuningDial(
+            id: "hazards.burst", section: .hazards, keyPath: \.enemy.burst, range: 0.1...2,
+            step: 0.05, decimals: 2),
+        TuningDial(
+            id: "hazards.pause", section: .hazards, keyPath: \.enemy.pause, range: 0.2...5,
+            step: 0.1, decimals: 1),
         TuningDial(
             id: "feel.rollDuration", section: .feel, keyPath: \.rollDuration, range: 0.05...1,
             step: 0.05, decimals: 2),

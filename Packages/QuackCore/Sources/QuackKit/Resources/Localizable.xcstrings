@@ -958,6 +958,61 @@
         }
       }
     },
+    "Rival burst (seconds)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rival burst (seconds)"
+          }
+        }
+      }
+    },
+    "Rival fires within" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rival fires within"
+          }
+        }
+      }
+    },
+    "Rival pause (seconds)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rival pause (seconds)"
+          }
+        }
+      }
+    },
+    "Rival shot down" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rival shot down"
+          }
+        }
+      }
+    },
+    "Rival turns on you within" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rival turns on you within"
+          }
+        }
+      }
+    },
     "Roll time" : {
       "extractionState" : "manual",
       "localizations" : {

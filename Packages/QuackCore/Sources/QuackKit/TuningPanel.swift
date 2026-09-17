@@ -269,6 +269,10 @@ struct TuningPanel: View {
         case "hazards.shellSpeed": return Text("Shell speed", bundle: .module)
         case "hazards.scatter": return Text("Scatter (radians)", bundle: .module)
         case "hazards.repairPerHit": return Text("Repair per hit (seconds)", bundle: .module)
+        case "hazards.engageRange": return Text("Rival turns on you within", bundle: .module)
+        case "hazards.fireRange": return Text("Rival fires within", bundle: .module)
+        case "hazards.burst": return Text("Rival burst (seconds)", bundle: .module)
+        case "hazards.pause": return Text("Rival pause (seconds)", bundle: .module)
         case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
         default: return Text(verbatim: id)
         }

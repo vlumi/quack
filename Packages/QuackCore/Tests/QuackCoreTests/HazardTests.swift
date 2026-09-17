@@ -7,6 +7,7 @@ final class HazardTests: XCTestCase {
     private func overGun(seed: UInt64 = 1) -> Practice {
         var p = Practice(seed: seed, mode: .courier)
         p.windTuning.strength = 0
+        p.enemy = nil
         let gun = p.guns[0]
         p.plane = PlaneState(
             x: gun.x - 30, y: p.model.strip.groundHeight(at: gun.x) + 40, heading: 0, speed: 40)
@@ -72,6 +73,7 @@ final class HazardTests: XCTestCase {
     func testThreeHitsStopTheEngineAndTheNextStopRepairsAll() {
         var p = overGun()
         p.guns = []
+        p.enemy = nil
         p.hits = 3
         p.repairDue = 12
         XCTAssertTrue(p.engineShotOut)

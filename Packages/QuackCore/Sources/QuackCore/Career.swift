@@ -85,5 +85,6 @@ extension Practice {
         fuelTuning = tuning.fuel
         fuelTuning.tank += career.tankBonus
         hazardTuning = tuning.hazards
+        enemyTuning = tuning.enemy
     }
 }

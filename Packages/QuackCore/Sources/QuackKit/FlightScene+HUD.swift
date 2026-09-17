@@ -90,6 +90,18 @@ extension FlightScene {
             )
         case .gunKnockedOut:
             flash = (String(localized: "Gun knocked out", bundle: .module), now + 1.5)
+        case .enemyHit(let down):
+            if down {
+                flash = (String(localized: "Rival shot down", bundle: .module), now + 2)
+            }
+            if let e = practice.enemy {
+                HazardArt.burst(
+                    at: CGPoint(x: enemyNode.position.x, y: e.plane.y * scale), scale: scale,
+                    in: hazardLayer, size: down ? 4 : 2)
+            }
+        case .enemyDown:
+            HazardArt.burst(
+                at: enemyNode.position, scale: scale, in: hazardLayer, size: 6)
         }
     }
 
@@ -101,6 +113,40 @@ extension FlightScene {
             hazardLayer.addChild(n)
             return n
         }
+    }
+
+    /// The rival at its lap nearest the plane, its rounds, and its chevron.
+    func placeEnemy(near: (Double) -> CGFloat) {
+        guard let e = practice.enemy, !e.down else {
+            enemyNode.isHidden = true
+            enemyMarker.isHidden = true
+            return
+        }
+        enemyNode.isHidden = false
+        enemyNode.position = CGPoint(x: near(e.plane.x), y: e.plane.y * scale)
+        enemyNode.zRotation = CGFloat(e.plane.heading)
+        enemyNode.roll = e.plane.inverted ? .pi : 0
+        if e.falling { enemyNode.alpha = 0.8 } else { enemyNode.alpha = 1 }
+        while enemyBulletNodes.count < practice.enemyBullets.count {
+            let n = SceneArt.tracerNode(scale: scale)
+            hazardLayer.addChild(n)
+            enemyBulletNodes.append(n)
+        }
+        for (i, n) in enemyBulletNodes.enumerated() {
+            if i < practice.enemyBullets.count {
+                let b = practice.enemyBullets[i]
+                n.isHidden = false
+                n.position = CGPoint(x: near(b.x), y: b.y * scale)
+                n.zRotation = atan2(b.vy, b.vx)
+                n.children.first?.xScale = CGFloat(min(1, b.age * 10))
+            } else {
+                n.isHidden = true
+            }
+        }
+        let strip = practice.model.strip
+        place(
+            enemyMarker, at: practice.plane.x + strip.offset(from: practice.plane.x, to: e.plane.x),
+            e.plane.y, hidden: !e.isFlying, from: practice.plane)
     }
 
     /// Guns at their lap nearest the plane, barrels on it; shells re-laid each frame.

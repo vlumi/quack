@@ -167,6 +167,15 @@ of the display's refresh rate.
   out (`gunHealth`). `engineShotOut` at `hitsToStopEngine` forces power
   off like an empty tank; `settleDamage` turns the repair due into a parked
   repair and mends the hits at the next stop. A wreck clears it all.
+- `Enemy`, `EnemyTuning` — the rival pilot (`Enemy.swift`): a `PlaneState`
+  flown by `FlightModel` from `enemyInput`, which is the whole mind: pursue
+  the courier within `engageRange` with a little lead, else patrol its
+  stretch between `minHeight` and `maxHeight`, turning at the ends, the
+  elevator set from the shortest turn to the wanted heading; fire in bursts
+  when pointed within `fireRange`. `advanceEnemy` flies it in the wind,
+  takes the courier's rounds (`hitRadius`, `health`) and drops it falling
+  until the ground; `advanceEnemyBullets` flies its rounds and bursts them
+  on the courier as hits. One a courier run; none in the balloon run.
 - `FuelTuning` — the tank in seconds of engine (`Fuel.swift`):
   `burnAndRefuel` drains a second a second whenever the plane is not parked
   or wrecked and fills while parked at `refuelRate`, charging `price` a
@@ -253,6 +262,9 @@ same mirrored, which is the sim's `inverted`; the scene eases between them
 over a third of a second, top toward the camera both ways. A gloss layer's
 alpha follows the plane's attitude against a fixed sun.
 
+The rival is a second `PlaneNode` in the rival livery, placed each frame
+with its rounds as tracers and a red chevron when off screen; a burst marks
+each round that finds it and a bigger one where it meets the ground.
 `HazardArt` draws each gun as a sandbag ring with a barrel that tracks the
 plane (drooping, faded, when knocked out), a muzzle puff when it fires, the
 shells as dark rounds with a short trail, and a burst where one hits; the

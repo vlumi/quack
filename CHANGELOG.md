@@ -21,6 +21,7 @@ the first match).
 
 ### Unreleased (next build)
 
+- A rival pilot: one per courier run, in the same kind of plane in the rival's paint, patrolling half a lap from home. Within 300 m it turns on you and fires short bursts when pointed your way; a hit counts like a shell. Two rounds shoot it down, and it falls to the ground for the run. A red chevron points at it off screen.
 - Anti-aircraft guns: three per courier run, dug in beside the strip from the seed and clear of every field. A gun in range fires a shell every two seconds, leading the plane; a burst on the plane is a hit. Each hit adds four seconds of repair to the next stop, and three hits stop the engine until then. A gun is knocked out by two rounds. A shell bursting on the plane frightens a passenger, a quarter of the fare's worth. The balloon run has no guns. Range, rate, shell speed, scatter and repair per hit are on the tuning panel.
 
 ## [0.4.0]

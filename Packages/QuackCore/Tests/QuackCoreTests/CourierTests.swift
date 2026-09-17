@@ -8,6 +8,7 @@ final class CourierTests: XCTestCase {
         var p = Practice(seed: seed, mode: .courier)
         p.windTuning.strength = 0
         p.guns = []
+        p.enemy = nil
         p.advance(input: .idle)
         return p
     }
