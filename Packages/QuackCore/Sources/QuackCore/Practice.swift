@@ -27,20 +27,61 @@ public struct Practice: Equatable, Sendable {
     }
 
     public let mode: Mode
-    public var plane: PlaneState
-    public var phase: FlightPhase
-    /// What happened on the last tick, for the scene to show.
-    public var lastEvent: FlightEvent?
-    public var bullets: [Bullet] = []
+    /// Every seat in the run. The first is the local player's in single player;
+    /// the rest are rivals, or in a Duckfight the other players.
+    public var pilots: [Pilot] = []
     public var balloons: [Balloon]
     public var time: Double = 0
     public var startedAt: Double?
     public var finishedAt: Double?
-    public var gunCooldown: Double = 0
+
+    // MARK: The first seat, which single-player code and the scene address directly.
+
+    public var plane: PlaneState {
+        get { pilots[0].plane }
+        set { pilots[0].plane = newValue }
+    }
+    public var phase: FlightPhase {
+        get { pilots[0].phase }
+        set { pilots[0].phase = newValue }
+    }
+    /// What happened on the last tick, for the scene to show.
+    public var lastEvent: FlightEvent? {
+        get { pilots[0].lastEvent }
+        set { pilots[0].lastEvent = newValue }
+    }
+    public var bullets: [Bullet] {
+        get { pilots[0].bullets }
+        set { pilots[0].bullets = newValue }
+    }
+    public var gunCooldown: Double {
+        get { pilots[0].gunCooldown }
+        set { pilots[0].gunCooldown = newValue }
+    }
     /// Rounds left in the belt.
-    public var ammo: Int
+    public var ammo: Int {
+        get { pilots[0].ammo }
+        set { pilots[0].ammo = newValue }
+    }
     /// Part of the next round loaded while parked.
-    public var rearmProgress: Double = 0
+    public var rearmProgress: Double {
+        get { pilots[0].rearmProgress }
+        set { pilots[0].rearmProgress = newValue }
+    }
+    /// Seconds of engine left in the tank.
+    public var fuel: Double {
+        get { pilots[0].fuel }
+        set { pilots[0].fuel = newValue }
+    }
+    /// Hits taken since the last repair, and the repair they have earned.
+    public var hits: Int {
+        get { pilots[0].hits }
+        set { pilots[0].hits = newValue }
+    }
+    public var repairDue: Double {
+        get { pilots[0].repairDue }
+        set { pilots[0].repairDue = newValue }
+    }
     /// The company the run flies for: its upgrades, and where its money starts.
     public let career: Career
     /// The courier's day: money in the till, the contract aboard, and the offers at the field.
@@ -74,20 +115,11 @@ public struct Practice: Equatable, Sendable {
     /// The guns on the strip, their shells in the air, and the damage they have done.
     public var guns: [AAGun]
     public var shells: [Shell] = []
-    public var hits = 0
-    /// Seconds of repair the hits have earned, paid at the next stop.
-    public var repairDue: Double = 0
     public var hazardEvent: HazardEvent?
     /// Which gun fired last, for the scene's muzzle flash.
     public var lastShotFrom: Int?
-    /// The rival pilot, in a courier run, and the rounds it has fired.
-    public var enemy: Enemy?
-    public var enemyBullets: [Bullet] = []
     public var enemyTuning = EnemyTuning()
-    var enemyCooldown: Double = 0
     var aimRNG: SeededRNG
-    /// Seconds of engine left in the tank.
-    public var fuel: Double
     /// Metres from the plane's centre that count as a ram.
     public var planeRadius: Double = 1.6
     /// Metres of field: short enough to see end to end from its middle.
@@ -110,24 +142,26 @@ public struct Practice: Equatable, Sendable {
         windDirection = Wind.direction(seed: seed)
         let strip = Practice.strip(seed: seed, fieldLength: fieldLength)
         model = AirfieldModel(strip: strip)
-        plane = model.parkingSpot
-        phase = .parked(repair: 0)
         balloons =
             mode == .courier ? [] : Practice.balloons(seed: seed, count: count, strip: strip)
         aimRNG = SeededRNG(seed: seed ^ 0x5C47_7E12)
         guns =
             mode == .courier
             ? Practice.guns(seed: seed, count: 3, strip: strip, health: 2) : []
-        enemy =
-            mode == .courier ? Practice.enemy(strip: strip, tuning: EnemyTuning(), health: 2) : nil
         clouds = Wind.clouds(seed: seed, count: 7, strip: strip)
         // Every stored property is set before `capacity` reads the gun.
-        ammo = 0
-        fuel = 0
+        pilots = [
+            Pilot(
+                brain: .human, plane: model.parkingSpot, phase: .parked(repair: 0),
+                ammo: 0, fuel: 0)
+        ]
         ammo = capacity
         fuel = fuelTuning.tank + career.tankBonus
         fuelTuning.tank = fuel
         model.flight.tuning.thrust += career.thrustBonus
+        if mode == .courier {
+            pilots.append(Practice.rival(strip: strip, tuning: EnemyTuning(), health: 2))
+        }
     }
 
     private static func strip(seed: UInt64, fieldLength: Double) -> Strip {
@@ -210,15 +244,18 @@ public struct Practice: Equatable, Sendable {
         burnAndRefuel(dt: dt)
         model.wind = wind
         advanceWeather(dt: dt)
-        lastEvent = model.advance(&plane, &phase, input: input, dt: dt)
-        plane.x = model.strip.wrap(plane.x)
+        var flown = pilots[0].plane
+        var next = pilots[0].phase
+        pilots[0].lastEvent = model.advance(&flown, &next, input: input, dt: dt)
+        flown.x = model.strip.wrap(flown.x)
+        pilots[0].plane = flown
+        pilots[0].phase = next
         advanceCourier(input: input)
         hazardEvent = nil
         lastShotFrom = nil
         if case .wrecked = phase {
             bullets.removeAll()
             shells.removeAll()
-            enemyBullets.removeAll()
             hits = 0
             repairDue = 0
             return
@@ -226,31 +263,14 @@ public struct Practice: Equatable, Sendable {
         settleDamage()
 
         rearm(dt: dt)
-        gunCooldown = max(0, gunCooldown - dt)
-        // The gun is for the air: parked, the trigger does nothing.
-        let gunFree = !phase.isOnGround
-        if input.fire && gunFree && gunCooldown == 0 && ammo > 0 {
-            ammo -= 1
-            let m = plane.muzzle(gun)
-            bullets.append(
-                Bullet(
-                    x: m.x, y: m.y,
-                    // Rounds fly in the moving air, as the plane does.
-                    vx: plane.vx + wind + cos(plane.heading) * gun.muzzleSpeed,
-                    vy: plane.vy + sin(plane.heading) * gun.muzzleSpeed))
-            gunCooldown = gun.fireInterval
-        }
-        for i in bullets.indices {
-            bullets[i].x = model.strip.wrap(bullets[i].x + bullets[i].vx * dt)
-            bullets[i].y += bullets[i].vy * dt
-            bullets[i].age += dt
-        }
-
+        fireAndFlyRounds(input: input, dt: dt)
         popBalloons()
         advanceHazards(dt: dt)
-        advanceEnemy(dt: dt)
-        advanceEnemyBullets(dt: dt)
-        bullets.removeAll { $0.age >= gun.bulletLife || $0.y < model.strip.surfaceHeight(at: $0.x) }
+        advanceRivals(dt: dt)
+        advanceRivalBullets(dt: dt)
+        let strip = model.strip
+        let life = gun.bulletLife
+        pilots[0].bullets.removeAll { $0.age >= life || $0.y < strip.surfaceHeight(at: $0.x) }
 
         if mode == .balloons, finishedAt == nil, startedAt != nil, remaining == 0,
             case .parked = phase
@@ -275,6 +295,30 @@ public struct Practice: Equatable, Sendable {
                 balloons[b].popped = true
                 bullets.remove(at: hit)
             }
+        }
+    }
+
+    /// The first seat's gun: a round on the trigger when the belt and the
+    /// cooldown allow, in the air only, and every round of its flown a step.
+    private mutating func fireAndFlyRounds(input: PlaneInput, dt: Double) {
+        gunCooldown = max(0, gunCooldown - dt)
+        // The gun is for the air: parked, the trigger does nothing.
+        let gunFree = !phase.isOnGround
+        if input.fire && gunFree && gunCooldown == 0 && ammo > 0 {
+            ammo -= 1
+            let m = plane.muzzle(gun)
+            bullets.append(
+                Bullet(
+                    x: m.x, y: m.y,
+                    // Rounds fly in the moving air, as the plane does.
+                    vx: plane.vx + wind + cos(plane.heading) * gun.muzzleSpeed,
+                    vy: plane.vy + sin(plane.heading) * gun.muzzleSpeed))
+            gunCooldown = gun.fireInterval
+        }
+        for i in bullets.indices {
+            bullets[i].x = model.strip.wrap(bullets[i].x + bullets[i].vx * dt)
+            bullets[i].y += bullets[i].vy * dt
+            bullets[i].age += dt
         }
     }
 

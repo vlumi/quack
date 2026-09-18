@@ -167,15 +167,24 @@ of the display's refresh rate.
   out (`gunHealth`). `engineShotOut` at `hitsToStopEngine` forces power
   off like an empty tank; `settleDamage` turns the repair due into a parked
   repair and mends the hits at the next stop. A wreck clears it all.
-- `Enemy`, `EnemyTuning` — the rival pilot (`Enemy.swift`): a `PlaneState`
+- `Pilot` — one seat in a run (`Pilot.swift`): a `Brain` (human or rival),
+  its plane and phase, rounds, belt, tank, hits and repair due, and the
+  rival's own health, patrol stretch and falling state. `Practice.pilots`
+  holds every seat; the first is the single player's, and `plane`, `phase`,
+  `ammo`, `fuel`, `hits` and the rest on `Practice` read and write that
+  seat, so single-player code and the scene address it as before. Every
+  device in a lockstep game simulates every seat the same way, which is why
+  the local player is nothing special in the sim.
+- `EnemyTuning` — the rival pilot (`Enemy.swift`): a rival seat's plane
   flown by `FlightModel` from `enemyInput`, which is the whole mind: pursue
   the courier within `engageRange` with a little lead, else patrol its
   stretch between `minHeight` and `maxHeight`, turning at the ends, the
   elevator set from the shortest turn to the wanted heading; fire in bursts
-  when pointed within `fireRange`. `advanceEnemy` flies it in the wind,
-  takes the courier's rounds (`hitRadius`, `health`) and drops it falling
-  until the ground; `advanceEnemyBullets` flies its rounds and bursts them
-  on the courier as hits. One a courier run; none in the balloon run.
+  when pointed within `fireRange`, going for the nearest human in the air.
+  `advanceRivals` flies each rival seat in the wind, takes the humans'
+  rounds (`hitRadius`, `health`) and drops it falling until the ground;
+  `advanceRivalBullets` flies its rounds and bursts them on any human as
+  hits. One a courier run; none in the balloon run.
 - `FuelTuning` — the tank in seconds of engine (`Fuel.swift`):
   `burnAndRefuel` drains a second a second whenever the plane is not parked
   or wrecked and fills while parked at `refuelRate`, charging `price` a
