@@ -307,7 +307,13 @@ so the turn back and the approach are part of the time.
 ## Duckfight (nearby multiplayer)
 
 Two to four planes over MultipeerConnectivity, one strip, each device its own
-viewport, deterministic lockstep (Skid Jam's networking is the model). Guns
+viewport. Skid Jam's networking is the model, including its lesson: it
+began as deterministic lockstep and stalled in the bursts Multipeer's radio
+delivers in, so it became host-authoritative, one device's sim as the truth
+and the rest rendering snapshots a short lag behind. Quack takes the
+finished design, not the detour (2026-09-18). The sim's determinism still
+matters: the host and the guests build the same fight from one start
+message, and replays and the AI pilot stand on it. Guns
 are the point here. As built in the sim (2026-09-18): every seat is a
 `Pilot`, human or rival, and the run flies all of them from one list of
 inputs, so every device runs the same fight. Humans start parked at their

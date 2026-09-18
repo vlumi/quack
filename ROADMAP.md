@@ -87,7 +87,9 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 - [x] The fight in the sim: seats for humans and rivals, one input per
   seat, two rounds down a plane, respawn at its field, guns as an option,
   most kills at the clock.
-- [ ] Lockstep and the Multipeer transport, ported from Skid Jam.
+- [x] The sync layer, host-authoritative as Skid Jam settled on: input
+  wire, host relay, snapshots, client view, roster and lobby messages.
+- [ ] The Multipeer transport and the session that drives the sync.
 - [ ] The lobby: host or join, seats, rivals to fill, guns on or off, start.
 - [ ] The scene for a fight: the other players' planes, the local seat's
   readouts, standings.

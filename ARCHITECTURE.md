@@ -188,6 +188,27 @@ of the display's refresh rate.
   back at its field with everything full; the fight ends at `duration`,
   standings by kills. Not yet reachable from the app: the lobby and the
   lockstep come next.
+- **The sync layer** (`Sync.swift`, `FightSnapshot.swift`, `Wire.swift`,
+  `FightRoster.swift`, `LobbyMessages.swift`) — host-authoritative, as Skid
+  Jam settled on after lockstep stalled in Multipeer's bursts: one device
+  simulates the one true fight and the rest send thumbs and render
+  snapshots, so nothing stalls and nothing diverges. `PlaneInputWire` is a
+  player's input in two bytes; `InputPacket` carries the newest eight
+  ticks so a lost packet is repaired by the next. `HostRelay` holds the
+  freshest input per remote seat (superseding, never rewinding) and hands
+  the host's sim its inputs in seat order; `FightSnapshot` is the host's
+  word, per seat the pose, what it is doing, health, tallies, belt, tank,
+  respawn clock and rounds, hand-packed in `Float32`, every third tick;
+  `ClientView` sends thumbs every other frame, buffers snapshots, and
+  plays them out a steady, adaptive lag behind the newest (the worst recent
+  arrival gap plus one interval) so a bursty link costs latency, not
+  rhythm, and `apply(to:)` lays a snapshot over the client's copy of the
+  fight for the scene to draw. `FightRoster` seats devices in join order,
+  never renumbering; `FightStart` (seed, roster, options, the host's dials)
+  builds the same fight everywhere, with `JoinRequest`, `RosterUpdate` and
+  `LeaveNotice` as the lobby's other words, JSON behind a tag byte.
+  Transport-free and tested in one process; the Multipeer transport and
+  the session that drives this come next.
 - `EnemyTuning` — the rival pilot (`Enemy.swift`): a rival seat's plane
   flown by `FlightModel` from `enemyInput`, which is the whole mind: pursue
   the courier within `engageRange` with a little lead, else patrol its
