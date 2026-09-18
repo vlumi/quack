@@ -181,10 +181,9 @@ public struct ClientView: Equatable, Sendable {
 
     private func interpolated(at tick: Double) -> FightSnapshot? {
         guard let last = snapshots.last else { return nil }
-        guard let after = snapshots.firstIndex(where: { Double($0.tick) >= tick }) else {
-            return last
-        }
+        let after = snapshots.firstIndex { Double($0.tick) >= tick } ?? snapshots.count - 1
         guard after > 0, Double(snapshots[after].tick) > tick else { return snapshots[after] }
+        _ = last
         let a = snapshots[after - 1], b = snapshots[after]
         let t = (tick - Double(a.tick)) / Double(b.tick - a.tick)
         return a.blended(toward: b, t: t)

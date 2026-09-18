@@ -95,6 +95,21 @@ final class EnemyTests: XCTestCase {
         XCTAssertEqual(p.enemy, before, "and stays down")
     }
 
+    func testARivalFlownIntoAHillGoesDownToo() throws {
+        var p = day()
+        let strip = p.model.strip
+        var top = 0.0
+        for x in stride(from: 0.0, to: strip.length, by: 5)
+        where strip.groundHeight(at: x) > strip.groundHeight(at: top) {
+            top = x
+        }
+        p.enemy!.plane = PlaneState(
+            x: top - 20, y: strip.groundHeight(at: top) - 5, heading: 0, speed: 40)
+        p.enemy!.patrol = (top - 300)...(top + 300)
+        p.advance(input: .idle)
+        XCTAssertTrue(try XCTUnwrap(p.enemy).falling)
+    }
+
     func testDeterministic() {
         var a = day(), b = day()
         for i in 0..<600 {

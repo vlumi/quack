@@ -89,7 +89,8 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   most kills at the clock.
 - [x] The sync layer, host-authoritative as Skid Jam settled on: input
   wire, host relay, snapshots, client view, roster and lobby messages.
-- [ ] The Multipeer transport and the session that drives the sync.
+- [x] The Multipeer transport and the session that drives the sync, the
+  session tested over a loopback in one process.
 - [ ] The lobby: host or join, seats, rivals to fill, guns on or off, start.
 - [ ] The scene for a fight: the other players' planes, the local seat's
   readouts, standings.

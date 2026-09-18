@@ -207,8 +207,20 @@ of the display's refresh rate.
   never renumbering; `FightStart` (seed, roster, options, the host's dials)
   builds the same fight everywhere, with `JoinRequest`, `RosterUpdate` and
   `LeaveNotice` as the lobby's other words, JSON behind a tag byte.
-  Transport-free and tested in one process; the Multipeer transport and
-  the session that drives this come next.
+  Transport-free and tested in one process.
+- `FightTransport`, `FightSession` — the session around a fight
+  (`FightSession.swift`), also transport-free: a `FightTransport` sends
+  bytes to everyone, reliably or not, and reports peers coming and going
+  on the main actor. The session hosts (seating itself as seat 0 and
+  advertising) or joins (browsing, then `askToJoin` a chosen host, since a
+  room can hold two fights); the host seats a `JoinRequest` or refuses it
+  with a reason in the `RosterUpdate`; `startFight` sends a `FightStart`
+  and applies it exactly as a guest does; then the host asks it for
+  `hostInputs` each tick and `broadcast`s, and a guest `publish`es thumbs
+  and draws `view(advancedBy:)`. A guest leaving costs its seat, which flies
+  idle mid-fight with the roster frozen; the host leaving ends it for
+  everyone. Two sessions are driven against each other over a loopback in
+  the tests.
 - `EnemyTuning` — the rival pilot (`Enemy.swift`): a rival seat's plane
   flown by `FlightModel` from `enemyInput`, which is the whole mind: pursue
   the courier within `engageRange` with a little lead, else patrol its
@@ -308,6 +320,16 @@ alpha follows the plane's attitude against a fixed sun.
 The rival is a second `PlaneNode` in the rival livery, placed each frame
 with its rounds as tracers and a red chevron when off screen; a burst marks
 each round that finds it and a bigger one where it meets the ground.
+`MultipeerTransport` is the `FightTransport` in the app, after Skid Jam's:
+infrastructure Wi-Fi or peer-to-peer Wi-Fi and Bluetooth, the guest
+inviting and the host accepting anyone, every call into Multipeer on one
+serial queue (sends and teardowns block, and froze Skid's lobby from the
+main thread three times) and every callback hopped to the main actor. The
+service type `quack-fight` matches the `NSBonjourServices` in the plists;
+the Mac sandbox has the network client and server entitlements. `DeviceName`
+keys a device by its name plus a random suffix, since two iPhones are both
+"iPhone", and shows the name alone.
+
 `HazardArt` draws each gun as a sandbag ring with a barrel that tracks the
 plane (drooping, faded, when knocked out), a muzzle puff when it fires, the
 shells as dark rounds with a short trail, and a burst where one hits; the

@@ -56,6 +56,8 @@ final class SyncTests: XCTestCase {
         }
         r.leave("b")
         XCTAssertEqual(r.seats, [0, 2, 3])
+        XCTAssertEqual(r.peers, ["a", "c", "d"])
+        XCTAssertEqual(r.peer(for: 2), "c")
         XCTAssertNoThrow(try r.join("e", name: "E"))
         XCTAssertEqual(r.seat(for: "e"), 4, "seats are never reused")
     }
@@ -98,6 +100,15 @@ final class SyncTests: XCTestCase {
         XCTAssertEqual(back.seats[0].doing, snap.seats[0].doing)
         XCTAssertEqual(back.seats[0].rounds.count, snap.seats[0].rounds.count)
         XCTAssertNil(FightSnapshot(bytes: Array(bytes.dropLast(3))))
+        var shot = host
+        shot.pilots[1].falling = true
+        XCTAssertEqual(FightSnapshot(of: shot, tick: 1).seats[1].doing, .falling)
+        shot.pilots[1].down = true
+        let downed = FightSnapshot(of: shot, tick: 1)
+        XCTAssertEqual(downed.seats[1].doing, .down)
+        var laid = host
+        downed.apply(to: &laid)
+        XCTAssertTrue(laid.pilots[1].down)
         XCTAssertNil(FightSnapshot(bytes: bytes + [1]))
         var client = Practice(seed: 5, mode: .duckfight, duckfight: o)
         back.apply(to: &client)
@@ -139,8 +150,14 @@ final class SyncTests: XCTestCase {
         }
         XCTAssertEqual(xs, xs.sorted(), "the view never moves backwards")
         XCTAssertFalse(view.isStarved)
+        XCTAssertEqual(view.newestTick, 12)
+        XCTAssertGreaterThanOrEqual(view.worstGapMs, 0)
         _ = view.view(advancedBy: 1.5)
         XCTAssertTrue(view.isStarved)
+        // Ten more frames of thumbs: the packet still carries only the newest eight.
+        var last: [UInt8]?
+        for i in 0..<10 { if let b = view.publish(PlaneInput(pitch: Double(i % 2))) { last = b } }
+        XCTAssertEqual(try XCTUnwrap(InputPacket(bytes: try XCTUnwrap(last))).inputs.count, 8)
     }
 
     func testLobbyMessagesRoundTripAndAFightStartBuildsTheSameFightEverywhere() throws {

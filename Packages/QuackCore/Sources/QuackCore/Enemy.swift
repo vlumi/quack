@@ -51,14 +51,7 @@ extension Practice {
     }
 
     /// The rival's rounds in the air.
-    public var enemyBullets: [Bullet] {
-        get { pilots.first { $0.brain == .rival }?.bullets ?? [] }
-        set {
-            if let i = pilots.firstIndex(where: { $0.brain == .rival }) {
-                pilots[i].bullets = newValue
-            }
-        }
-    }
+    public var enemyBullets: [Bullet] { pilots.first { $0.brain == .rival }?.bullets ?? [] }
 
     /// The nearest human seat in the air, for a rival to go for.
     func nearestHuman(to e: Pilot) -> Pilot? {
