@@ -7,6 +7,7 @@ struct TitleScreen: View {
     @ObservedObject var store: TuningStore
     let play: (Practice.Mode) -> Void
     let hangar: () -> Void
+    let duckfight: () -> Void
 
     var body: some View {
         VStack(spacing: 18) {
@@ -25,6 +26,8 @@ struct TitleScreen: View {
                 MenuButton(title: Text("Balloon run", bundle: .module), primary: false) {
                     play(.balloons)
                 }
+                MenuButton(
+                    title: Text("Duckfight", bundle: .module), primary: false, action: duckfight)
                 MenuButton(title: Text("Hangar", bundle: .module), primary: false, action: hangar)
             }
             Toggle(isOn: $store.tuning.invertedPitch) {

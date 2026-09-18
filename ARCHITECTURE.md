@@ -335,6 +335,21 @@ plane (drooping, faded, when knocked out), a muzzle puff when it fires, the
 shells as dark rounds with a short trail, and a burst where one hits; the
 status line flashes the hit, the engine going, and a gun knocked out.
 
+**A fight on screen.** `FlightScene` flies and reads out one `localSeat`
+(seat 0 in single player; in a fight, the session's) through `me`, and draws
+every other seat as a `PlaneNode` in its livery with its rounds and a chevron
+(`resetSeats`, `placeSeats`). `startFight` builds the fight from the
+session's start and keeps the host's dials rather than the panel's. On the
+host, each step takes `hostInputs` and `broadcast`s; on a guest, thumbs are
+`publish`ed and the `view` snapshot is laid over the local copy each frame,
+with hits and downs read off the differences between snapshots. The readouts
+show the time left and the seat's tally; a downed seat's status counts down
+its return; `HUDState` carries the standings for the `FightOverScreen`.
+`LobbyScreen`, off the title, hosts or joins, shows the roster, sets rivals,
+guns and duration, and starts; the `FightSession` lives in `GameView` with a
+`MultipeerTransport`, and the host leaving mid-fight sends the guest back to
+the lobby with the reason.
+
 **The parked panel** (`ParkedPanel`, SwiftUI) sits at the bottom while the
 plane is parked: the board's jobs as cards (`FlightScene.pick`) and two
 take-off buttons (`FlightScene.takeOff(direction:)`, handed to the next

@@ -18,15 +18,19 @@ public struct FuelTuning: Equatable, Sendable {
 extension Practice {
     /// Whether the engine has anything to burn.
     public var engineRunning: Bool { engineRunning(at: 0) }
-    func engineRunning(at i: Int) -> Bool { pilots[i].fuel > 0 }
+    public func engineRunning(at i: Int) -> Bool { pilots[i].fuel > 0 }
 
     /// Fuel as a share of the tank, for a gauge.
-    public var fuelShare: Double { min(1, max(0, fuel / max(1, fuelTuning.tank))) }
+    public var fuelShare: Double { fuelShare(at: 0) }
+    public func fuelShare(at i: Int) -> Double {
+        min(1, max(0, pilots[i].fuel / max(1, fuelTuning.tank)))
+    }
 
-    /// Filling a round at a time while parked and not yet full.
-    public var isRefuelling: Bool {
-        guard case .parked = phase else { return false }
-        return fuel < fuelTuning.tank
+    /// Filling while parked and not yet full.
+    public var isRefuelling: Bool { isRefuelling(at: 0) }
+    public func isRefuelling(at i: Int) -> Bool {
+        guard case .parked = pilots[i].phase else { return false }
+        return pilots[i].fuel < fuelTuning.tank
     }
 
     /// The tank this step: burning while the engine runs, filling while

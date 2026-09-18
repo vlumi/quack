@@ -91,9 +91,11 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
   wire, host relay, snapshots, client view, roster and lobby messages.
 - [x] The Multipeer transport and the session that drives the sync, the
   session tested over a loopback in one process.
-- [ ] The lobby: host or join, seats, rivals to fill, guns on or off, start.
-- [ ] The scene for a fight: the other players' planes, the local seat's
+- [x] The lobby: host or join, seats, rivals to fill, guns on or off, start.
+- [x] The scene for a fight: the other players' planes, the local seat's
   readouts, standings.
+- [ ] Fight it on two devices: the link, the lag, the snapshot rate, and
+  whether the guest's own plane feels right a moment behind.
 
 ## 0.7 — Daily Drop, generation & ranking
 

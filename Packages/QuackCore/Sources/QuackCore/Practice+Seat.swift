@@ -67,7 +67,7 @@ extension Practice {
     }
 
     /// Loading a round at a time while parked, and not yet full.
-    func isRearming(at i: Int) -> Bool {
+    public func isRearming(at i: Int) -> Bool {
         guard case .parked = pilots[i].phase else { return false }
         return pilots[i].ammo < capacity
     }

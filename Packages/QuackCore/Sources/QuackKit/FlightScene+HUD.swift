@@ -63,8 +63,20 @@ extension FlightScene {
 
     /// Keep the SwiftUI layer's view of the run current, touching it only on a change.
     func publishHUD() {
+        if practice.mode == .duckfight {
+            let over = practice.isFinished
+            if hud.fightOver != over { hud.fightOver = over }
+            let standings = practice.standings.map { s in
+                HUDState.Standing(
+                    name: session?.roster.name(for: s.seat)
+                        ?? (practice.pilots[s.seat].brain == .rival
+                            ? String(localized: "Rival", bundle: .module) : "\(s.seat + 1)"),
+                    kills: s.kills, downs: s.downs, isMe: s.seat == localSeat)
+            }
+            if hud.standings != standings { hud.standings = standings }
+        }
         let parked: Bool
-        if case .parked(let repair) = practice.phase, repair == 0, !attract {
+        if case .parked(let repair) = me.phase, repair == 0, !attract {
             parked = true
         } else {
             parked = false
@@ -75,113 +87,6 @@ extension FlightScene {
         if hud.carrying != practice.contract { hud.carrying = practice.contract }
         let names = practice.model.strip.airfields.map(\.name)
         if hud.fieldNames != names { hud.fieldNames = names }
-    }
-
-    /// Flash the guns' news: a hit, the engine gone, a gun knocked out.
-    func show(_ event: HazardEvent, at now: TimeInterval) {
-        switch event {
-        case .hit(let x, let y):
-            HazardArt.burst(at: CGPoint(x: x * scale, y: y * scale), scale: scale, in: hazardLayer)
-            flash = (
-                practice.engineShotOut
-                    ? String(localized: "Engine shot out: glide to a field", bundle: .module)
-                    : String(localized: "Hit! Repairs due at the next stop", bundle: .module),
-                now + 2
-            )
-        case .gunKnockedOut:
-            flash = (String(localized: "Gun knocked out", bundle: .module), now + 1.5)
-        case .enemyHit(let down):
-            if down {
-                flash = (String(localized: "Rival shot down", bundle: .module), now + 2)
-            }
-            if let e = practice.enemy {
-                HazardArt.burst(
-                    at: CGPoint(x: enemyNode.position.x, y: e.plane.y * scale), scale: scale,
-                    in: hazardLayer, size: down ? 4 : 2)
-            }
-        case .enemyDown:
-            HazardArt.burst(
-                at: enemyNode.position, scale: scale, in: hazardLayer, size: 6)
-        case .downed(let seat, _):
-            // A Duckfight seat shot down; the scene for it comes with the lobby.
-            if practice.pilots.indices.contains(seat) {
-                let p = practice.pilots[seat].plane
-                HazardArt.burst(
-                    at: CGPoint(x: p.x * scale, y: p.y * scale), scale: scale, in: hazardLayer,
-                    size: 4)
-            }
-            if seat == 0 { flash = (String(localized: "Shot down", bundle: .module), now + 2) }
-        }
-    }
-
-    /// A gun node per gun for the run, in the hour's light.
-    func resetHazards() {
-        gunNodes.forEach { $0.removeFromParent() }
-        gunNodes = practice.guns.map { _ in
-            let n = HazardArt.gunNode(scale: scale, palette: look.palette)
-            hazardLayer.addChild(n)
-            return n
-        }
-    }
-
-    /// The rival at its lap nearest the plane, its rounds, and its chevron.
-    func placeEnemy(near: (Double) -> CGFloat) {
-        guard let e = practice.enemy, !e.down else {
-            enemyNode.isHidden = true
-            enemyMarker.isHidden = true
-            return
-        }
-        enemyNode.isHidden = false
-        enemyNode.position = CGPoint(x: near(e.plane.x), y: e.plane.y * scale)
-        enemyNode.zRotation = CGFloat(e.plane.heading)
-        enemyNode.roll = e.plane.inverted ? .pi : 0
-        if e.falling { enemyNode.alpha = 0.8 } else { enemyNode.alpha = 1 }
-        while enemyBulletNodes.count < practice.enemyBullets.count {
-            let n = SceneArt.tracerNode(scale: scale)
-            hazardLayer.addChild(n)
-            enemyBulletNodes.append(n)
-        }
-        for (i, n) in enemyBulletNodes.enumerated() {
-            if i < practice.enemyBullets.count {
-                let b = practice.enemyBullets[i]
-                n.isHidden = false
-                n.position = CGPoint(x: near(b.x), y: b.y * scale)
-                n.zRotation = atan2(b.vy, b.vx)
-                n.children.first?.xScale = CGFloat(min(1, b.age * 10))
-            } else {
-                n.isHidden = true
-            }
-        }
-        let strip = practice.model.strip
-        place(
-            enemyMarker, at: practice.plane.x + strip.offset(from: practice.plane.x, to: e.plane.x),
-            e.plane.y, hidden: !e.isFlying, from: practice.plane)
-    }
-
-    /// Guns at their lap nearest the plane, barrels on it; shells re-laid each frame.
-    func placeHazards(near: (Double) -> CGFloat) {
-        let strip = practice.model.strip
-        let planePoint = planeNode.position
-        for (node, gun) in zip(gunNodes, practice.guns) {
-            node.position = CGPoint(
-                x: near(gun.x), y: CGFloat(strip.groundHeight(at: gun.x)) * scale)
-            HazardArt.aim(node, at: planePoint, alive: gun.isAlive)
-        }
-        while shellNodes.count < practice.shells.count {
-            let n = HazardArt.shellNode(scale: scale)
-            hazardLayer.addChild(n)
-            shellNodes.append(n)
-        }
-        for (i, n) in shellNodes.enumerated() {
-            if i < practice.shells.count {
-                let s = practice.shells[i]
-                n.isHidden = false
-                n.position = CGPoint(x: near(s.x), y: s.y * scale)
-                n.zRotation = atan2(s.vy, s.vx)
-            } else {
-                n.isHidden = true
-            }
-        }
     }
 
     /// The readouts, gauges, minimap and chevrons, off behind the title screen.
@@ -269,22 +174,30 @@ extension FlightScene {
     }
 
     func updateHUD(at now: TimeInterval) {
-        let plane = practice.plane
+        let plane = me.plane
         let kmh = Int((plane.speed * 3.6).rounded())
         // Above sea level, which is what thins the air; on a field it reads the field's elevation.
         let metres = Int((plane.y - practice.model.landing.gearHeight).rounded())
         speedDial.value = CGFloat(kmh)
         altitudeDial.value = CGFloat(metres)
-        fuelDial.value = CGFloat(practice.fuelShare)
-        let left = Int(practice.fuel.rounded(.down))
+        fuelDial.value = CGFloat(practice.fuelShare(at: localSeat))
+        let left = Int(me.fuel.rounded(.down))
         fuelLabel.text = String(
             localized: "\(left / 60):\(left % 60, specifier: "%02d") fuel", bundle: .module)
         fuelLabel.fontColor =
-            practice.fuelShare < 0.2 ? SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1) : hudInk
+            practice.fuelShare(at: localSeat) < 0.2
+            ? SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1) : hudInk
         speedLabel.text = String(localized: "\(kmh) km/h", bundle: .module)
         altitudeLabel.text = String(localized: "\(metres) m", bundle: .module)
         let seconds = practice.elapsed.formatted(.number.precision(.fractionLength(1)))
-        if practice.mode == .courier {
+        if practice.mode == .duckfight {
+            let left = max(0, practice.duckfight.duration - practice.elapsed)
+            countLabel.text = String(
+                localized: "\(Int(left) / 60):\(Int(left) % 60, specifier: "%02d") left",
+                bundle: .module)
+            clockLabel.text = String(
+                localized: "\(me.kills) downed, \(me.downs) down", bundle: .module)
+        } else if practice.mode == .courier {
             countLabel.text = francs(practice.money)
             if let contract = practice.contract, let pay = practice.payNow {
                 clockLabel.text = job(contract) + ": " + francs(pay)
@@ -304,19 +217,19 @@ extension FlightScene {
         }
         balloonTally.isHidden = practice.mode != .balloons || practice.isFinished
         balloonTally.update(present: practice.balloons.map { !$0.popped })
-        roundTally.update(count: practice.ammo)
+        roundTally.update(count: me.ammo)
         updateAmmo()
-        minimap.update(practice)
+        minimap.update(practice, seat: localSeat)
         statusLabel.text = status(at: now)
     }
 
     /// Rounds left; red and a hint when the belt is empty, a note while it loads.
     private func updateAmmo() {
         // The belt is the row of rounds; words only when there is something to say.
-        if practice.ammo == 0 && !practice.isRearming {
+        if me.ammo == 0 && !practice.isRearming(at: localSeat) {
             ammoLabel.text = String(localized: "Out of rounds: land to rearm", bundle: .module)
             ammoLabel.fontColor = SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1)
-        } else if practice.isRearming {
+        } else if practice.isRearming(at: localSeat) {
             ammoLabel.text = String(localized: "Rearming", bundle: .module)
             ammoLabel.fontColor = hudInk
         } else {
@@ -326,13 +239,17 @@ extension FlightScene {
 
     private func status(at now: TimeInterval) -> String {
         if let flash, now < flash.until { return flash.text }
-        switch practice.phase {
+        switch me.phase {
         case .approach:
             return String(localized: "Landing", bundle: .module)
         case .parked(let repair) where repair > 0:
             return String(localized: "Repairing", bundle: .module)
-        case .parked where practice.isRefuelling || practice.isRearming:
-            return practice.isRefuelling
+        case _ where me.down:
+            return String(
+                localized: "Back in \(Int((me.respawnIn ?? 0).rounded(.up)))", bundle: .module)
+        case .parked
+        where practice.isRefuelling(at: localSeat) || practice.isRearming(at: localSeat):
+            return practice.isRefuelling(at: localSeat)
                 ? String(localized: "Refuelling", bundle: .module)
                 : String(localized: "Rearming", bundle: .module)
         case .taxiing:
@@ -351,7 +268,7 @@ extension FlightScene {
     /// it shows as a chevron on the edge, on the line from the plane, bolder and
     /// bigger the nearer it is.
     func updateMarkers() {
-        let plane = practice.plane
+        let plane = me.plane
         let strip = practice.model.strip
         for (i, b) in practice.balloons.enumerated() {
             place(
@@ -368,7 +285,7 @@ extension FlightScene {
         }
     }
 
-    private func place(
+    func place(
         _ m: SKShapeNode, at x: Double, _ y: Double, hidden: Bool, from plane: PlaneState
     ) {
         let inset: CGFloat = 30

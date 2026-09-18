@@ -84,7 +84,7 @@ extension Practice {
 
     /// Whether the plane is too shot up to run the engine.
     public var engineShotOut: Bool { engineShotOut(at: 0) }
-    func engineShotOut(at i: Int) -> Bool { pilots[i].hits >= hazardTuning.hitsToStopEngine }
+    public func engineShotOut(at i: Int) -> Bool { pilots[i].hits >= hazardTuning.hitsToStopEngine }
 
     /// The human seats that can be shot at: in the air, not falling.
     var targets: [Int] {

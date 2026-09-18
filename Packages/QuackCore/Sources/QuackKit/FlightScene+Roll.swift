@@ -8,7 +8,7 @@ extension FlightScene {
     /// plane never rolls: it swings round (`swingScale`), so the drawing snaps.
     func updateRoll(inverted: Bool, at now: TimeInterval) {
         let target: CGFloat = inverted ? 1 : 0
-        if practice.phase.isOnGround {
+        if me.phase.isOnGround {
             rollShown = target
             rollStart = nil
         }
@@ -32,7 +32,7 @@ extension FlightScene {
     /// widening again mirrored: a yaw seen from the side. The sim flips its
     /// facing at the end, where a mirrored drawing and a flipped one look the same.
     func swingScale() -> CGFloat {
-        guard case .taxiing(let steps, _) = practice.phase, case .turn(let elapsed) = steps.first
+        guard case .taxiing(let steps, _) = me.phase, case .turn(let elapsed) = steps.first
         else { return 1 }
         return CGFloat(cos(.pi * min(1, elapsed / max(0.01, tuning.landing.turnTime))))
     }
@@ -42,7 +42,7 @@ extension FlightScene {
     /// back in once it flies.
     func placeFields(near: (Double) -> CGFloat) {
         let inTheAir: CGFloat
-        switch practice.phase {
+        switch me.phase {
         case .flying, .approach, .goAround: inTheAir = 1
         default: inTheAir = 0
         }
