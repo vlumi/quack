@@ -33,9 +33,16 @@ public struct Pilot: Equatable, Sendable {
     public var patrol: ClosedRange<Double> = 0...0
     /// A rival's seconds into its burst-and-pause cycle.
     public var fireClock: Double = 0
-    /// A rival falling out of the sky, until the ground; then gone for the run.
+    /// Falling out of the sky, until the ground; then down, gone or waiting to come back.
     public var falling = false
     public var down = false
+    /// Seconds until a downed seat comes back, in a Duckfight.
+    public var respawnIn: Double?
+    /// The field a seat starts at and comes back to.
+    public var spawnField = 0
+    /// The Duckfight tally: planes it has downed, times it has been downed.
+    public var kills = 0
+    public var downs = 0
 
     public init(
         brain: Brain, plane: PlaneState, phase: FlightPhase, ammo: Int, fuel: Double

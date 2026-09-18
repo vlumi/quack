@@ -120,7 +120,7 @@ extension Practice {
     /// Every rival's step: fly by its own mind in the same air, fire bursts,
     /// take the humans' rounds, and fall when shot down.
     mutating func advanceRivals(dt: Double) {
-        for i in pilots.indices where pilots[i].brain == .rival && !pilots[i].down {
+        for i in pilots.indices where pilots[i].brain == .rival {
             advanceRival(at: i, dt: dt)
         }
     }
@@ -129,16 +129,8 @@ extension Practice {
         var e = pilots[i]
         let strip = model.strip
         let t = enemyTuning
-        if e.falling {
-            e.plane.speed = max(0, e.plane.speed - 8 * dt)
-            e.plane.heading = FlightModel.wrap(e.plane.heading - 2 * dt * e.plane.direction)
-            e.plane.x = strip.wrap(e.plane.x + e.plane.vx * dt)
-            e.plane.y += e.plane.vy * dt - 12 * dt
-            if e.plane.y <= strip.surfaceHeight(at: e.plane.x) + 1 {
-                e.down = true
-                hazardEvent = .enemyDown
-            }
-            pilots[i] = e
+        if e.falling || e.down {
+            fall(at: i, dt: dt)
             return
         }
         let input = enemyInput(e)
@@ -166,6 +158,8 @@ extension Practice {
                 e.health -= 1
                 if e.health <= 0 {
                     e.falling = true
+                    e.downs += 1
+                    pilots[j].kills += 1
                     hazardEvent = .enemyHit(down: true)
                 } else {
                     hazardEvent = .enemyHit(down: false)
@@ -184,9 +178,7 @@ extension Practice {
         let strip = model.strip
         let radius = hazardTuning.burstRadius
         let life = gun.bulletLife
-        let humans = pilots.indices.filter {
-            pilots[$0].brain == .human && !pilots[$0].phase.isOnGround
-        }
+        let humans = targets
         for i in pilots.indices where pilots[i].brain == .rival {
             var rounds = pilots[i].bullets
             for k in rounds.indices {
@@ -195,10 +187,11 @@ extension Practice {
                 rounds[k].age += dt
             }
             var hitHumans: [Int] = []
+            let planes = pilots.map(\.plane)
             rounds.removeAll { b in
                 for j in humans {
-                    let dx = strip.offset(from: b.x, to: pilots[j].plane.x)
-                    let dy = b.y - pilots[j].plane.y
+                    let dx = strip.offset(from: b.x, to: planes[j].x)
+                    let dy = b.y - planes[j].y
                     if dx * dx + dy * dy < radius * radius {
                         hitHumans.append(j)
                         return true
@@ -208,9 +201,7 @@ extension Practice {
             }
             pilots[i].bullets = rounds
             for j in hitHumans {
-                pilots[j].hits += 1
-                pilots[j].repairDue += hazardTuning.repairPerHit
-                hazardEvent = .hit(x: pilots[j].plane.x, y: pilots[j].plane.y)
+                damage(seat: j, by: i, at: (planes[j].x, planes[j].y))
             }
         }
     }

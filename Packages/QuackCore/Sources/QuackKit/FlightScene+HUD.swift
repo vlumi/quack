@@ -102,6 +102,15 @@ extension FlightScene {
         case .enemyDown:
             HazardArt.burst(
                 at: enemyNode.position, scale: scale, in: hazardLayer, size: 6)
+        case .downed(let seat, _):
+            // A Duckfight seat shot down; the scene for it comes with the lobby.
+            if practice.pilots.indices.contains(seat) {
+                let p = practice.pilots[seat].plane
+                HazardArt.burst(
+                    at: CGPoint(x: p.x * scale, y: p.y * scale), scale: scale, in: hazardLayer,
+                    size: 4)
+            }
+            if seat == 0 { flash = (String(localized: "Shot down", bundle: .module), now + 2) }
         }
     }
 

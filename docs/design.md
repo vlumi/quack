@@ -308,7 +308,14 @@ so the turn back and the approach are part of the time.
 
 Two to four planes over MultipeerConnectivity, one strip, each device its own
 viewport, deterministic lockstep (Skid Jam's networking is the model). Guns
-are the point here. Single-screen shared play on one iPad was considered and
+are the point here. As built in the sim (2026-09-18): every seat is a
+`Pilot`, human or rival, and the run flies all of them from one list of
+inputs, so every device runs the same fight. Humans start parked at their
+own fields; rivals fill empty seats as AI players on their own stretches.
+Two rounds down a plane, which falls to the ground and is back at its field
+five seconds later with a full belt and tank, so nobody sits out; the
+shooter is credited. The anti-aircraft guns are an option, off by default.
+Most kills when the clock runs out wins. Single-screen shared play on one iPad was considered and
 dropped: the original split the screen because both players sat at one
 keyboard, and that does not survive a hand-held device.
 

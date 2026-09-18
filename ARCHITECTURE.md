@@ -175,6 +175,19 @@ of the display's refresh rate.
   seat, so single-player code and the scene address it as before. Every
   device in a lockstep game simulates every seat the same way, which is why
   the local player is nothing special in the sim.
+- `DuckfightOptions`, `Standing` — the Duckfight (`Duckfight.swift`): how
+  many human and rival seats, whether the guns are dug in, health per plane,
+  the respawn delay and the duration. `seatTheDuckfight` parks each human
+  at its own field and sets each rival on its own stretch; `advance(inputs:)`
+  takes one input per human seat and flies every seat the same way on every
+  device (`Practice+Seat.swift` is one seat's share of a step: tank, flight,
+  damage settled, belt, rounds). `advanceDuels` bursts humans' rounds on
+  any other plane; `damage(seat:by:at:)` is the one door for a hit: health
+  and a fall in a Duckfight, with the shooter credited a kill, else repair
+  due. A downed seat `fall`s to the ground, waits `respawnDelay`, and is
+  back at its field with everything full; the fight ends at `duration`,
+  standings by kills. Not yet reachable from the app: the lobby and the
+  lockstep come next.
 - `EnemyTuning` — the rival pilot (`Enemy.swift`): a rival seat's plane
   flown by `FlightModel` from `enemyInput`, which is the whole mind: pursue
   the courier within `engageRange` with a little lead, else patrol its

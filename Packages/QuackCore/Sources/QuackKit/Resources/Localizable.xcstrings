@@ -1090,6 +1090,17 @@
         }
       }
     },
+    "Shot down" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shot down"
+          }
+        }
+      }
+    },
     "Slow-flight sink" : {
       "extractionState" : "manual",
       "localizations" : {

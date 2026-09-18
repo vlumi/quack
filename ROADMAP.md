@@ -84,7 +84,13 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 
 ## 0.6 — Duckfight
 
-- [ ] 2–4 planes over Nearby, lockstep. Skid Jam's networking is the model.
+- [x] The fight in the sim: seats for humans and rivals, one input per
+  seat, two rounds down a plane, respawn at its field, guns as an option,
+  most kills at the clock.
+- [ ] Lockstep and the Multipeer transport, ported from Skid Jam.
+- [ ] The lobby: host or join, seats, rivals to fill, guns on or off, start.
+- [ ] The scene for a fight: the other players' planes, the local seat's
+  readouts, standings.
 
 ## 0.7 — Daily Drop, generation & ranking
 
