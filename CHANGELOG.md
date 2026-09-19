@@ -21,6 +21,8 @@ the first match).
 
 ### Unreleased (next build)
 
+### build 9 — 2026-09-19
+
 - Duckfight: from the title screen, host a fight or join one nearby over Wi-Fi or Bluetooth. Two to four planes on one strip, each device its own view. Rivals can fill empty seats, the anti-aircraft guns are an option, and the fight lasts one to ten minutes. Two rounds down a plane, which falls and is back at its field five seconds later; most downed when the clock runs out wins, with the standings at the end. The host's device runs the fight and the others draw its word a moment behind, so nothing stalls.
 
 ## [0.5.0]
