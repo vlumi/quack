@@ -103,7 +103,7 @@ a dozen balloons scattered ahead of the start, pop them all as fast as you
 can, by gun or by flying into them. The clock starts at the first input and
 stops at the last pop, and the next pull of the trigger deals a new field.
 Every field comes from a seed, so a run can be replayed and compared. It is a
-practice mode first and, with a shared seed, a Daily Drop later.
+a solo run first and, with a shared seed, a Daily Drop later.
 
 **The gun has a belt.** 40 rounds, and an empty belt fires nothing. Parked on
 the field it refills a round at a time (20 a second), and a plane that takes

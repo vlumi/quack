@@ -9,6 +9,21 @@ fenced off deliberately, so the notes never blur built and intended.
 
 ## Two targets, one seam
 
+Both targets are laid out by domain, one folder per concern, and a file
+holds one concern:
+
+| `QuackCore` | | `QuackKit` | |
+|---|---|---|---|
+| `Flight/` | the flight model, plane state and input, dials | `Scene/` | the SpriteKit scene, its art, hazards on screen |
+| `Ground/` | fields, landing, takeoff, taxiing | `Look/` | the sky, backdrop, strip and props for the hour |
+| `World/` | the strip, terrain, scenery, weather, seeds | `Plane/` | the biplane rig from a livery |
+| `Run/` | a run of any mode: seats, belt, tuning catalogue | `HUD/` | gauges, tallies, minimap, the published state |
+| `Courier/` | contracts, fuel, the company | `Controls/` | thumbs, keys, the overlay |
+| `Hazards/` | the guns and the rival pilot | `Screens/` | title, hangar, lobby, parked panel, the game view |
+| `Duckfight/` | the fight, its sync, roster, session, wire | `Tuning/`, `Career/`, `Net/` | the panel and store, the company store, Multipeer |
+
+The tests mirror the core's folders.
+
 | | `QuackCore` | `QuackKit` |
 |---|---|---|
 | holds | the flight model, plane state and input, tuning | SpriteKit scene, SwiftUI host, touch and keyboard → `PlaneInput` |
@@ -114,7 +129,7 @@ of the display's refresh rate.
   ground), so its arithmetic reads as if the strip were straight; distances
   that must survive the position being wrapped between steps (the approach aim,
   a taxi target) go through `offset`.
-- `Practice` — the balloon run: a strip from the seed (2.4 km, four fields),
+- `Run` — the balloon run: a strip from the seed (2.4 km, four fields),
   balloons spread round it clear of the fields and above the ground (`SeededRNG`, SplitMix64), the
   plane parked at home, the rounds, and a clock that starts at the first input
   and stops when the plane is parked at any field after the last pop. The plane
@@ -133,7 +148,7 @@ of the display's refresh rate.
   the strip for a new field length, so each field keeps a shelf that fits it.
   Balloons pop by round or by collision. Deterministic, so the same
   inputs give the same run. Its `mode` is the balloon run or the courier
-  (`Practice.Mode`), the title screen's choice.
+  (`Run.Mode`), the title screen's choice.
 - `Contract`, `CourierTuning`, `CourierEvent` — the courier's day
   (`Courier.swift`): a mail contract from one field to another with a fare
   that falls to a quarter over its window (`pay(after:)`); `offers(at:)`
@@ -153,12 +168,12 @@ of the display's refresh rate.
   levels bought of each `Upgrade` (tank: 50 s of engine a level, three
   levels; engine: 1.5 thrust a level, three levels; seat: one level,
   passenger jobs carry two for two fares), with prices, `buy`, and the
-  bonuses. `Codable` with a version. A `Practice` is made with a career: a
+  bonuses. `Codable` with a version. A `Run` is made with a career: a
   courier run's till starts from it, its tank and thrust carry the bonuses,
   and `apply(_:)` lays the panel's dials under them. `roundPrice` on
   `CourierTuning` is what the courier pays per round rearmed.
 - `AAGun`, `Shell`, `HazardTuning`, `HazardEvent` — the guns
-  (`Hazards.swift`): `Practice.guns` are placed from the seed clear of the
+  (`Hazards.swift`): `Run.guns` are placed from the seed clear of the
   fields, courier runs only; `advanceHazards` has each live gun in `range`
   fire a `Shell` every `fireInterval` at the plane's led position (the
   flight time re-taken a few times) with `scatter` from a seeded aim
@@ -169,9 +184,9 @@ of the display's refresh rate.
   repair and mends the hits at the next stop. A wreck clears it all.
 - `Pilot` — one seat in a run (`Pilot.swift`): a `Brain` (human or rival),
   its plane and phase, rounds, belt, tank, hits and repair due, and the
-  rival's own health, patrol stretch and falling state. `Practice.pilots`
+  rival's own health, patrol stretch and falling state. `Run.pilots`
   holds every seat; the first is the single player's, and `plane`, `phase`,
-  `ammo`, `fuel`, `hits` and the rest on `Practice` read and write that
+  `ammo`, `fuel`, `hits` and the rest on `Run` read and write that
   seat, so single-player code and the scene address it as before. Every
   device in a lockstep game simulates every seat the same way, which is why
   the local player is nothing special in the sim.
@@ -180,7 +195,7 @@ of the display's refresh rate.
   the respawn delay and the duration. `seatTheDuckfight` parks each human
   at its own field and sets each rival on its own stretch; `advance(inputs:)`
   takes one input per human seat and flies every seat the same way on every
-  device (`Practice+Seat.swift` is one seat's share of a step: tank, flight,
+  device (`Run+Seat.swift` is one seat's share of a step: tank, flight,
   damage settled, belt, rounds). `advanceDuels` bursts humans' rounds on
   any other plane; `damage(seat:by:at:)` is the one door for a hit: health
   and a fall in a Duckfight, with the shooter credited a kill, else repair
@@ -221,8 +236,8 @@ of the display's refresh rate.
   idle mid-fight with the roster frozen; the host leaving ends it for
   everyone. Two sessions are driven against each other over a loopback in
   the tests.
-- `EnemyTuning` — the rival pilot (`Enemy.swift`): a rival seat's plane
-  flown by `FlightModel` from `enemyInput`, which is the whole mind: pursue
+- `RivalTuning` — the rival pilot (`Rival.swift`): a rival seat's plane
+  flown by `FlightModel` from `rivalInput`, which is the whole mind: pursue
   the courier within `engageRange` with a little lead, else patrol its
   stretch between `minHeight` and `maxHeight`, turning at the ends, the
   elevator set from the shortest turn to the wanted heading; fire in bursts
