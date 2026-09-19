@@ -23,7 +23,6 @@ final class StripLook {
 
     init() {
         clouds.alpha = 0.62
-        // Over the plane, whose parts stack their own z positions.
         clouds.zPosition = 40
         sky.zPosition = -30
         backdrop.zPosition = -20
@@ -50,6 +49,11 @@ final class StripLook {
             scale: scale)
         ground.fillColor = palette.lit(Palette.Base.ground).lighter(0.12).color()
         groundShade.fillColor = palette.lit(Palette.Base.ground).darker(0.04).color()
+        buildScenery(strip, scale: scale)
+        buildClouds(run.clouds, scale: scale)
+    }
+
+    private func buildScenery(_ strip: Strip, scale: CGFloat) {
         scenery.removeAllChildren()
         let paint = PropArt.Paint(palette: palette, layer: 3)
         hangarNodes = strip.airfields.map { _ in
@@ -57,17 +61,20 @@ final class StripLook {
             scenery.addChild(n)
             return n
         }
-        clouds.removeAllChildren()
-        let cloudColour = RGB.white.mix(palette.sky[2], 0.25)
-            .mix(palette.tint, palette.tintAmount * 0.9).color()
-        cloudNodes = run.clouds.map { cloud in
-            let n = StripLook.cloud(width: CGFloat(cloud.width) * scale, colour: cloudColour)
-            clouds.addChild(n)
-            return n
-        }
         sceneryNodes = strip.scenery.map { o in
             let n = PropArt.node(StripLook.kind(o.kind), s: scale, size: o.size, paint: paint)
             scenery.addChild(n)
+            return n
+        }
+    }
+
+    private func buildClouds(_ layer: [Cloud], scale: CGFloat) {
+        clouds.removeAllChildren()
+        let colour = RGB.white.mix(palette.sky[2], 0.25)
+            .mix(palette.tint, palette.tintAmount * 0.9).color()
+        cloudNodes = layer.map { cloud in
+            let n = StripLook.cloud(width: CGFloat(cloud.width) * scale, colour: colour)
+            clouds.addChild(n)
             return n
         }
     }

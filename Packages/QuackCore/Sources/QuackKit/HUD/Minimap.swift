@@ -1,12 +1,9 @@
 import QuackCore
 import SpriteKit
 
-/// The whole world shrunk into a small box under the status line: the strip
-/// squeezed far harder side to side than up and down, so height still reads.
-/// The hills fill the bottom with the fields on their shelves, each balloon
-/// still up is a dot at its height, and the plane is a marker pointing the way
-/// it flies. The box is as tall as the ceiling. Its left and right edges are
-/// the same place.
+/// The whole world in a small box: the strip squeezed far harder side to side
+/// than up and down, so height still reads. The box is as tall as the
+/// ceiling, and its left and right edges are the same place.
 final class Minimap: SKNode {
     private let size: CGSize
     private let terrain = SKShapeNode()
@@ -87,27 +84,30 @@ final class Minimap: SKNode {
             drawTerrain(strip, up: up)
             drawn = (strip, shown)
         }
-        for (i, (mark, field)) in zip(fieldMarks, strip.airfields).enumerated() {
-            mark.position = CGPoint(
-                x: across(field.start + field.length / 2), y: up(field.elevation))
-            // The destination's mark is lit red: the job aboard, or the one being picked.
-            let isDestination = (run.contract ?? run.chosen)?.to == i
-            mark.fillColor =
-                isDestination
-                ? SKColor(red: 0.85, green: 0.2, blue: 0.2, alpha: 1) : Minimap.fieldTan
-            mark.setScale(isDestination ? 1.6 : 1)
-        }
+        placeFields(run, across: across, up: up)
         for (dot, balloon) in zip(balloonDots, run.balloons) {
             dot.isHidden = balloon.popped
             dot.position = CGPoint(x: across(balloon.x), y: up(balloon.y))
         }
         let plane = run.pilots[min(seat, run.pilots.count - 1)].plane
         planeMark.position = CGPoint(x: across(plane.x), y: up(plane.y - gear))
-        // Pointing the way the plane flies, as it would look in the squeezed box.
         let sx = size.width / CGFloat(strip.length)
         let sy = (size.height - 4) / CGFloat(shown)
         planeMark.zRotation = atan2(
             CGFloat(sin(plane.heading)) * sy, CGFloat(cos(plane.heading)) * sx)
+    }
+
+    /// Field marks on their shelves; the destination, aboard or being picked, lit red.
+    private func placeFields(_ run: Run, across: (Double) -> CGFloat, up: (Double) -> CGFloat) {
+        let destination = (run.contract ?? run.chosen)?.to
+        for (i, (mark, field)) in zip(fieldMarks, run.model.strip.airfields).enumerated() {
+            mark.position = CGPoint(
+                x: across(field.start + field.length / 2), y: up(field.elevation))
+            let lit = destination == i
+            mark.fillColor =
+                lit ? SKColor(red: 0.85, green: 0.2, blue: 0.2, alpha: 1) : Minimap.fieldTan
+            mark.setScale(lit ? 1.6 : 1)
+        }
     }
 
     /// The hills as a filled silhouette, a sample per point across the box.

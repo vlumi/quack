@@ -59,7 +59,6 @@ public struct GameView: View {
                 }
             }
             .onReceive(session.$phase) { phase in
-                // The host left mid-fight: back to the lobby with the reason on it.
                 if case .ended = phase, screen == .playing {
                     scene.leaveFight()
                     scene.attract = true
@@ -165,7 +164,6 @@ public struct GameView: View {
                 if press.phase == .down { pause() }
                 return .handled
             }
-            // Parked, the arrows are the takeoff buttons and the digits pick from the board.
             if hud.parked && press.phase == .down {
                 switch press.key {
                 case .leftArrow: scene.takeOff(direction: -1)

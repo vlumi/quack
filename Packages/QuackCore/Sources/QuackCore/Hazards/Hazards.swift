@@ -117,40 +117,50 @@ extension Run {
     /// aimed at where its straight flight will be, with scatter.
     private mutating func fireGuns(dt: Double) {
         let strip = model.strip
-        let t = hazardTuning
         let humans = targets
         for i in guns.indices where guns[i].isAlive {
             guns[i].cooldown = max(0, guns[i].cooldown - dt)
-            let gx = guns[i].x
-            let gy = strip.groundHeight(at: gx) + 1
-            // The nearest human in the air, if one is in range.
-            let aimed = humans.min {
-                hypot(strip.offset(from: gx, to: pilots[$0].plane.x), pilots[$0].plane.y - gy)
-                    < hypot(strip.offset(from: gx, to: pilots[$1].plane.x), pilots[$1].plane.y - gy)
-            }
-            guard let aimed else { continue }
-            let plane = pilots[aimed].plane
-            let dx = strip.offset(from: gx, to: plane.x)
-            let dy = plane.y - gy
-            let distance = hypot(dx, dy)
-            guard distance <= t.range, guns[i].cooldown == 0 else { continue }
-            // Lead the plane: aim where it will be when the shell gets there,
-            // the flight time re-taken a few times so the lead settles.
-            var flight = distance / t.shellSpeed
-            var aimX = dx, aimY = dy
-            for _ in 0..<3 {
-                aimX = dx + plane.vx * flight
-                aimY = dy + plane.vy * flight
-                flight = hypot(aimX, aimY) / t.shellSpeed
-            }
-            let scatter = (aimRNG.unit() * 2 - 1) * t.scatter
-            let angle = atan2(aimY, aimX) + scatter
+            let muzzle = (x: guns[i].x, y: strip.groundHeight(at: guns[i].x) + 1)
+            guard guns[i].cooldown == 0, let aimed = nearest(of: humans, to: muzzle),
+                let angle = leadAngle(from: muzzle, at: pilots[aimed].plane)
+            else { continue }
+            let speed = hazardTuning.shellSpeed
             shells.append(
-                Shell(
-                    x: gx, y: gy, vx: cos(angle) * t.shellSpeed, vy: sin(angle) * t.shellSpeed))
-            guns[i].cooldown = t.fireInterval
+                Shell(x: muzzle.x, y: muzzle.y, vx: cos(angle) * speed, vy: sin(angle) * speed))
+            guns[i].cooldown = hazardTuning.fireInterval
             lastShotFrom = i
         }
+    }
+
+    private func nearest(of seats: [Int], to point: (x: Double, y: Double)) -> Int? {
+        let strip = model.strip
+        return seats.min {
+            hypot(strip.offset(from: point.x, to: pilots[$0].plane.x), pilots[$0].plane.y - point.y)
+                < hypot(
+                    strip.offset(from: point.x, to: pilots[$1].plane.x),
+                    pilots[$1].plane.y - point.y)
+        }
+    }
+
+    /// Where to aim so the shell meets a plane flying straight on, with
+    /// scatter; nil out of range. The flight time is re-taken a few times so
+    /// the lead settles.
+    private mutating func leadAngle(from muzzle: (x: Double, y: Double), at plane: PlaneState)
+        -> Double?
+    {
+        let t = hazardTuning
+        let dx = model.strip.offset(from: muzzle.x, to: plane.x)
+        let dy = plane.y - muzzle.y
+        let distance = hypot(dx, dy)
+        guard distance <= t.range else { return nil }
+        var flight = distance / t.shellSpeed
+        var aimX = dx, aimY = dy
+        for _ in 0..<3 {
+            aimX = dx + plane.vx * flight
+            aimY = dy + plane.vy * flight
+            flight = hypot(aimX, aimY) / t.shellSpeed
+        }
+        return atan2(aimY, aimX) + (aimRNG.unit() * 2 - 1) * t.scatter
     }
 
     /// The guns' step: each live gun in range fires a shell at where the

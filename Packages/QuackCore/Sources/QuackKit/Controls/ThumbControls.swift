@@ -2,12 +2,10 @@ import QuackCore
 import SpriteKit
 import SwiftUI
 
-/// Two inputs, each doing one thing. Left half of the screen: a vertical drag
-/// from wherever the thumb landed sets the elevator, the thumb defining its
-/// own centre. Right half: holding fires the gun. The throttle is open for the
-/// whole flight (see docs/design.md), so `power` is always on; the sim keeps
-/// the input for the landing assist and AI pilots. Every touch event also
-/// updates the overlay state, which draws the pads where the thumbs are.
+/// Left half of the screen: a vertical drag from wherever the thumb landed
+/// sets the elevator. Right half: holding fires. The throttle is open for the
+/// whole flight (docs/design.md), so `power` is always on here; the sim keeps
+/// the input for the landing assist and AI pilots.
 final class ThumbControls {
     /// Points of drag for full elevator, at most; near an edge the throw in
     /// that direction shrinks to the room there, so full elevator is always
@@ -97,9 +95,12 @@ final class ThumbControls {
 
     #if os(macOS)
     func keyboard(_ press: KeyPress) {
-        let down = press.phase == .down
-        switch press.key {
-        // Same sense as the thumb: ↓ is stick back, nose up.
+        key(press.key, down: press.phase == .down)
+    }
+
+    /// Same sense as the thumb: ↓ is stick back, nose up.
+    func key(_ key: KeyEquivalent, down: Bool) {
+        switch key {
         case .downArrow: keyPitch = down ? 1 : (keyPitch > 0 ? 0 : keyPitch)
         case .upArrow: keyPitch = down ? -1 : (keyPitch < 0 ? 0 : keyPitch)
         case .space: keyFire = down

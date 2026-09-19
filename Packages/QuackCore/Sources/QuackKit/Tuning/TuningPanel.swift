@@ -79,7 +79,6 @@ private struct TuningHost: ViewModifier {
                 if ProcessInfo.processInfo.arguments.contains("-quack-tuning") { showing = true }
             }
             .onReceive(NotificationCenter.default.publisher(for: TuningPanelRequest.toggle)) { _ in
-                // Toggle, so the same shake or shortcut closes it again.
                 showing.toggle()
             }
             .sheet(isPresented: $showing) {
@@ -205,78 +204,71 @@ struct TuningPanel: View {
         }
     }
 
-    // swiftlint:disable:next cyclomatic_complexity
     private func label(for id: String) -> Text {
-        switch id {
-        case "flight.gravity": return Text("Gravity", bundle: .module)
-        case "flight.thrust": return Text("Thrust", bundle: .module)
-        case "flight.cruiseSpeed": return Text("Cruise speed", bundle: .module)
-        case "flight.pitchRate": return Text("Pitch rate", bundle: .module)
-        case "flight.thinAirFrom": return Text("Thin air from", bundle: .module)
-        case "flight.ceiling": return Text("Ceiling", bundle: .module)
-        case "flight.liftDeficitSink": return Text("Slow-flight sink", bundle: .module)
-        case "stall.speed": return Text("Stall speed", bundle: .module)
-        case "stall.band": return Text("Stall band", bundle: .module)
-        case "stall.dropRate": return Text("Nose drop", bundle: .module)
-        case "stall.sink": return Text("Stall sink", bundle: .module)
-        case "landing.approachAngle": return Text("Cone angle", bundle: .module)
-        case "landing.approachBand": return Text("Cone width", bundle: .module)
-        case "landing.coneLength": return Text("Cone length", bundle: .module)
-        case "landing.diveLimit": return Text("Steepest entry", bundle: .module)
-        case "landing.bounceMargin": return Text("Bounce margin", bundle: .module)
-        case "landing.braking": return Text("Braking", bundle: .module)
-        case "landing.takeoffAcceleration": return Text("Takeoff push", bundle: .module)
-        case "landing.fieldLength": return Text("Field length", bundle: .module)
-        case "landing.taxiSpeed": return Text("Taxi speed", bundle: .module)
-        case "landing.turnTime": return Text("Turn time", bundle: .module)
-        case "landing.repairTime": return Text("Repair time", bundle: .module)
-        case "controls.throwDistance": return Text("Throw", bundle: .module)
-        case "controls.minimumThrow": return Text("Minimum throw", bundle: .module)
-        case "gun.muzzleSpeed": return Text("Muzzle speed", bundle: .module)
-        case "gun.fireInterval": return Text("Fire interval", bundle: .module)
-        case "gun.bulletLife": return Text("Round life", bundle: .module)
-        case "gun.capacity": return Text("Belt size", bundle: .module)
-        case "gun.rearmRate": return Text("Rearm rate", bundle: .module)
-        case "feel.rollDuration": return Text("Roll time", bundle: .module)
-        case "wind.strength": return Text("Strongest wind", bundle: .module)
-        case "wind.groundShare": return Text("Share at the ground", bundle: .module)
-        case "wind.layer": return Text("Full strength above", bundle: .module)
-        case "wind.balloonDrift": return Text("Balloon drift", bundle: .module)
-        default: return moneyLabel(for: id)
-        }
+        guard let key = TuningPanel.labels[id] else { return Text(verbatim: id) }
+        return Text(LocalizedStringKey(key), bundle: .module)
     }
 
-    // The courier's, the tank's and the hour's dials.
-    // swiftlint:disable:next cyclomatic_complexity
-    private func moneyLabel(for id: String) -> Text {
-        switch id {
-        case "courier.baseFare": return Text("Base fare", bundle: .module)
-        case "courier.farePerMetre": return Text("Fare per metre", bundle: .module)
-        case "courier.windowFactor":
-            return Text("Fare falls over (× straight run)", bundle: .module)
-        case "courier.windowExtra": return Text("Fare falls over (+ seconds)", bundle: .module)
-        case "courier.roundPrice": return Text("Price per round", bundle: .module)
-        case "courier.passengerPremium": return Text("Passenger premium", bundle: .module)
-        case "courier.invertedCost": return Text("Comfort lost a second inverted", bundle: .module)
-        case "courier.turnCost": return Text("Comfort lost per hard radian", bundle: .module)
-        case "courier.hitCost": return Text("Comfort lost to a hit", bundle: .module)
-        case "courier.gentleTurn": return Text("Gentle turn (rad/s)", bundle: .module)
-        case "fuel.tank": return Text("Tank (seconds of engine)", bundle: .module)
-        case "fuel.refuelRate": return Text("Refuel rate (seconds a second)", bundle: .module)
-        case "fuel.price": return Text("Price per second of fuel", bundle: .module)
-        case "hazards.range": return Text("Gun range", bundle: .module)
-        case "hazards.fireInterval": return Text("Seconds between shells", bundle: .module)
-        case "hazards.shellSpeed": return Text("Shell speed", bundle: .module)
-        case "hazards.scatter": return Text("Scatter (radians)", bundle: .module)
-        case "hazards.repairPerHit": return Text("Repair per hit (seconds)", bundle: .module)
-        case "hazards.engageRange": return Text("Rival turns on you within", bundle: .module)
-        case "hazards.fireRange": return Text("Rival fires within", bundle: .module)
-        case "hazards.burst": return Text("Rival burst (seconds)", bundle: .module)
-        case "hazards.pause": return Text("Rival pause (seconds)", bundle: .module)
-        case "feel.hour": return Text("Hour (0 = seed's)", bundle: .module)
-        default: return Text(verbatim: id)
-        }
-    }
+    /// The panel's words for each dial id.
+    private static let labels: [String: String] = [
+        "flight.gravity": "Gravity",
+        "flight.thrust": "Thrust",
+        "flight.cruiseSpeed": "Cruise speed",
+        "flight.pitchRate": "Pitch rate",
+        "flight.thinAirFrom": "Thin air from",
+        "flight.ceiling": "Ceiling",
+        "flight.liftDeficitSink": "Slow-flight sink",
+        "stall.speed": "Stall speed",
+        "stall.band": "Stall band",
+        "stall.dropRate": "Nose drop",
+        "stall.sink": "Stall sink",
+        "landing.approachAngle": "Cone angle",
+        "landing.approachBand": "Cone width",
+        "landing.coneLength": "Cone length",
+        "landing.diveLimit": "Steepest entry",
+        "landing.bounceMargin": "Bounce margin",
+        "landing.braking": "Braking",
+        "landing.takeoffAcceleration": "Takeoff push",
+        "landing.fieldLength": "Field length",
+        "landing.taxiSpeed": "Taxi speed",
+        "landing.turnTime": "Turn time",
+        "landing.repairTime": "Repair time",
+        "controls.throwDistance": "Throw",
+        "controls.minimumThrow": "Minimum throw",
+        "gun.muzzleSpeed": "Muzzle speed",
+        "gun.fireInterval": "Fire interval",
+        "gun.bulletLife": "Round life",
+        "gun.capacity": "Belt size",
+        "gun.rearmRate": "Rearm rate",
+        "feel.rollDuration": "Roll time",
+        "wind.strength": "Strongest wind",
+        "wind.groundShare": "Share at the ground",
+        "wind.layer": "Full strength above",
+        "wind.balloonDrift": "Balloon drift",
+        "courier.baseFare": "Base fare",
+        "courier.farePerMetre": "Fare per metre",
+        "courier.windowFactor": "Fare falls over (× straight run)",
+        "courier.windowExtra": "Fare falls over (+ seconds)",
+        "courier.roundPrice": "Price per round",
+        "courier.passengerPremium": "Passenger premium",
+        "courier.invertedCost": "Comfort lost a second inverted",
+        "courier.turnCost": "Comfort lost per hard radian",
+        "courier.hitCost": "Comfort lost to a hit",
+        "courier.gentleTurn": "Gentle turn (rad/s)",
+        "fuel.tank": "Tank (seconds of engine)",
+        "fuel.refuelRate": "Refuel rate (seconds a second)",
+        "fuel.price": "Price per second of fuel",
+        "hazards.range": "Gun range",
+        "hazards.fireInterval": "Seconds between shells",
+        "hazards.shellSpeed": "Shell speed",
+        "hazards.scatter": "Scatter (radians)",
+        "hazards.repairPerHit": "Repair per hit (seconds)",
+        "hazards.engageRange": "Rival turns on you within",
+        "hazards.fireRange": "Rival fires within",
+        "hazards.burst": "Rival burst (seconds)",
+        "hazards.pause": "Rival pause (seconds)",
+        "feel.hour": "Hour (0 = seed's)",
+    ]
 }
 
 #endif

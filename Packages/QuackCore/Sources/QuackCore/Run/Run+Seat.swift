@@ -9,7 +9,6 @@ extension Run {
             fall(at: i, dt: dt)
             return
         }
-        // An empty tank is a dead engine, whatever the throttle.
         var input = given
         if !engineRunning(at: i) || engineShotOut(at: i) { input.power = false }
         burnAndRefuel(at: i, dt: dt)

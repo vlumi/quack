@@ -2,10 +2,8 @@ import QuackCore
 import SpriteKit
 import SwiftUI
 
-/// The balloon run on screen: the field, the plane, the balloons, the rounds
-/// in the air, the gauges and a clock. Everything the sim needs comes through
-/// `PlaneInput`; this scene only draws the state and turns touches and keys
-/// into that input. Simulation runs at the model's fixed timestep, decoupled
+/// The run on screen. The scene only draws the sim's state and turns touches
+/// and keys into `PlaneInput`; the sim steps at its own fixed rate, decoupled
 /// from the frame rate, so feel does not change with the display.
 ///
 /// Everyone sees the same world: a fixed 16:9 box, `worldHeight` metres tall,
@@ -44,7 +42,7 @@ public final class FlightScene: SKScene {
     public var attract = false {
         didSet { setHUDHidden(attract) }
     }
-    private var input = PlaneInput.idle
+    var input = PlaneInput.idle
     var accumulator: TimeInterval = 0
     private var lastTime: TimeInterval?
 
@@ -100,7 +98,7 @@ public final class FlightScene: SKScene {
     let altitudeLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     let controls: ThumbControls
     var cameraY: CGFloat = 0
-    private var wasFiring = false
+    var wasFiring = false
 
     /// The roll shown, 0 upright to 1 inverted, chasing the sim's `inverted`.
     var rollShown: CGFloat = 0
@@ -174,7 +172,6 @@ public final class FlightScene: SKScene {
         rollDuration = tuning.rollDuration
         speedDial.redBelow = CGFloat(tuning.flight.stallSpeed * 3.6)
         if session == nil { run.resizeFields(to: tuning.fieldLength) }
-        // Amber where the air thins, red past the ceiling, where full power just holds level.
         altitudeDial.amberAbove = CGFloat(tuning.flight.thinAirFrom)
         altitudeDial.redAbove = CGFloat(tuning.flight.ceiling)
         applyLook()
@@ -235,7 +232,6 @@ public final class FlightScene: SKScene {
             seed: nextSeed, mode: mode, fieldLength: tuning.fieldLength, career: career)
         moneyTold = nil
         applyTuning()
-        // A new run starts with the tuned belt, not the default one.
         run.ammo = run.capacity
         markerNodes.forEach { $0.removeFromParent() }
         markerNodes = run.balloons.indices.map { i in
@@ -252,37 +248,16 @@ public final class FlightScene: SKScene {
     public override func update(_ currentTime: TimeInterval) {
         defer { lastTime = currentTime }
         guard let last = lastTime, !simulationPaused else { return }
-        accumulator += min(currentTime - last, 0.25)
-        input = attract ? .idle : controls.input
-        input.takeOff = takeOffRequest
-        takeOffRequest = 0
-        // Once the run is done, the next pull of the trigger starts the next one.
-        if run.isFinished && input.fire && !wasFiring && session == nil {
-            nextSeed += 1
-            startRun()
-        }
-        wasFiring = input.fire
+        let frameTime = min(currentTime - last, 0.25)
+        accumulator += frameTime
+        readInput()
+        restartWhenFinishedAndFired()
         if let session, !session.isHost {
-            guestFrame(session, dt: min(currentTime - last, 0.25), at: currentTime)
+            guestFrame(session, dt: frameTime, at: currentTime)
         }
         while accumulator >= FlightModel.dt {
             step(input)
-            if let event = run.lastEvent { show(event, at: currentTime) }
-            if let event = run.courierEvent { show(event, at: currentTime) }
-            if let event = run.hazardEvent { show(event, at: currentTime) }
-            if let gun = run.lastShotFrom, gunNodes.indices.contains(gun) {
-                HazardArt.burst(
-                    at: CGPoint(
-                        x: gunNodes[gun].position.x, y: gunNodes[gun].position.y + 2.5 * scale),
-                    scale: scale, in: hazardLayer, size: 1.5)
-            }
-            if engineWasRunning && !run.engineRunning(at: localSeat) {
-                flash = (
-                    String(localized: "Out of fuel: glide to a field", bundle: .module),
-                    currentTime + 3
-                )
-            }
-            engineWasRunning = run.engineRunning(at: localSeat)
+            showStepEvents(at: currentTime)
             accumulator -= FlightModel.dt
         }
         bankTheTill()
@@ -292,31 +267,38 @@ public final class FlightScene: SKScene {
 
     private func render(at now: TimeInterval) {
         let plane = me.plane
-        planeNode.position = CGPoint(x: plane.x * scale, y: plane.y * scale)
-        planeNode.zRotation = CGFloat(plane.heading)
-        if case .wrecked = me.phase {
-            planeNode.alpha = Int(now * 8) % 2 == 0 ? 0.25 : 1
-        } else {
-            planeNode.alpha = 1
-        }
-
-        updateRoll(inverted: plane.inverted, at: now)
-        planeNode.xScale = swingScale()
-
-        // Gloss: the top surface catches the sun in proportion to how squarely
-        // it faces it, so it sweeps during a loop and vanishes inverted.
-        let up = CGVector(dx: -sin(plane.heading), dy: cos(plane.heading))
-        let facing = (up.dx * sun.dx + up.dy * sun.dy) * (plane.inverted ? -1 : 1)
-        planeNode.gloss.alpha = max(0, facing) * max(0, facing) * pow(cos(planeNode.roll), 2)
-
-        // Balloons that popped this frame burst; rounds are re-laid each frame.
+        placePlane(plane, at: now)
+        // Everything on the strip is drawn at its lap nearest the plane, so the seam never shows.
         let strip = run.model.strip
-        // Everything on the strip is drawn at its lap nearest the plane, so the
-        // seam never shows.
         let near = { (x: Double) -> CGFloat in
             CGFloat(plane.x + strip.offset(from: plane.x, to: x)) * self.scale
         }
         placeFields(near: near)
+        placeBalloons(near: near)
+        layoutTracers(&bulletNodes, for: me.bullets, near: near, in: bulletLayer)
+        follow(plane)
+        look.update(
+            run, planePoints: planeNode.position, cameraY: cameraY, scale: scale, box: size)
+        placeHazards(near: near)
+        placeSeats(near: near)
+        updateMarkers()
+        updateHUD(at: now)
+    }
+
+    private func placePlane(_ plane: PlaneState, at now: TimeInterval) {
+        planeNode.position = CGPoint(x: plane.x * scale, y: plane.y * scale)
+        planeNode.zRotation = CGFloat(plane.heading)
+        let wrecked: Bool = { if case .wrecked = me.phase { return true } else { return false } }()
+        planeNode.alpha = wrecked && Int(now * 8) % 2 == 0 ? 0.25 : 1
+        updateRoll(inverted: plane.inverted, at: now)
+        planeNode.xScale = swingScale()
+        let up = CGVector(dx: -sin(plane.heading), dy: cos(plane.heading))
+        let facing = (up.dx * sun.dx + up.dy * sun.dy) * (plane.inverted ? -1 : 1)
+        planeNode.gloss.alpha = max(0, facing) * max(0, facing) * pow(cos(planeNode.roll), 2)
+    }
+
+    /// Balloons at their lap; one that popped this frame bursts.
+    private func placeBalloons(near: (Double) -> CGFloat) {
         for (i, b) in run.balloons.enumerated() {
             if b.popped && balloonNodes[i].parent != nil && !balloonNodes[i].hasActions() {
                 SceneArt.burst(balloonNodes[i])
@@ -325,32 +307,26 @@ public final class FlightScene: SKScene {
                 balloonNodes[i].position = CGPoint(x: near(b.x), y: CGFloat(b.y) * scale)
             }
         }
-        while bulletNodes.count < me.bullets.count {
-            let n = SceneArt.tracerNode(scale: scale)
-            bulletLayer.addChild(n)
-            bulletNodes.append(n)
-        }
-        for (i, n) in bulletNodes.enumerated() {
-            if i < me.bullets.count {
-                let b = me.bullets[i]
-                n.isHidden = false
-                n.position = CGPoint(x: near(b.x), y: b.y * scale)
-                n.zRotation = atan2(b.vy, b.vx)
-                // The trail grows to full length over the first tenth of a second,
-                // so a fresh round does not wear a tail back through the nose.
-                n.children.first?.xScale = CGFloat(min(1, b.age * 10))
-            } else {
-                n.isHidden = true
-            }
-        }
+    }
 
-        follow(plane)
-        look.update(
-            run, planePoints: planeNode.position, cameraY: cameraY, scale: scale, box: size)
-        placeHazards(near: near)
-        placeSeats(near: near)
-        updateMarkers()
-        updateHUD(at: now)
+    /// One tracer per round, re-laid each frame; the trail grows over a
+    /// round's first tenth of a second so it never wears a tail through the nose.
+    func layoutTracers(
+        _ nodes: inout [SKNode], for rounds: [Bullet], near: (Double) -> CGFloat, in layer: SKNode
+    ) {
+        while nodes.count < rounds.count {
+            let n = SceneArt.tracerNode(scale: scale)
+            layer.addChild(n)
+            nodes.append(n)
+        }
+        for (i, n) in nodes.enumerated() {
+            n.isHidden = i >= rounds.count
+            guard i < rounds.count else { continue }
+            let b = rounds[i]
+            n.position = CGPoint(x: near(b.x), y: b.y * scale)
+            n.zRotation = atan2(b.vy, b.vx)
+            n.children.first?.xScale = CGFloat(min(1, b.age * 10))
+        }
     }
 
     private func follow(_ plane: PlaneState) {

@@ -119,7 +119,6 @@ extension Run {
             let fare = (courierTuning.baseFare + distance * courierTuning.farePerMetre).rounded()
             let straight = distance / model.flight.tuning.cruiseSpeed
             let window = courierTuning.windowFactor * straight + courierTuning.windowExtra
-            // The first offer is mail, the second a passenger, and so on.
             let kind: Contract.Kind = out.count % 2 == 0 ? .mail : .passenger
             // A second seat carries two passengers, who pay two fares.
             let seats = kind == .passenger ? Double(career.seats) : 1
@@ -148,7 +147,6 @@ extension Run {
         }
         settle(here: here)
         ride(input: input)
-        // The board: posted while parked with nothing aboard, cleared otherwise.
         if case .parked = phase, contract == nil, let here {
             if offers.isEmpty || offers[0].from != here {
                 offers = offers(at: here)

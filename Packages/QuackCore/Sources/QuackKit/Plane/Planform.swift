@@ -57,11 +57,8 @@ final class Planform {
         }
     }
 
-    func layout(c: CGFloat, sn: CGFloat) {
-        let s = b.s
-        let proj = { (x: CGFloat, z: CGFloat) -> PlaneArt.Projected in
-            PlaneArt.project(x: x, u: self.u, z: z, c: c, sn: sn)
-        }
+    /// The projected wing outline: tip curves bulging past the span.
+    private func outlinePath(_ proj: (CGFloat, CGFloat) -> PlaneArt.Projected) -> CGPath {
         let fT = proj(xTE, -span), fL = proj(xLE, -span), nT = proj(xTE, span),
             nL = proj(xLE, span)
         let bfT = proj(xTE, -span - bulge), bfL = proj(xLE, -span - bulge)
@@ -74,11 +71,10 @@ final class Planform {
         p.addCurve(
             to: b.pt(nT.x, nT.y), control1: b.pt(bnL.x, bnL.y), control2: b.pt(bnT.x, bnT.y))
         p.closeSubpath()
-        frontShape.path = p
-        backShape.path = p
-        let visible: CGFloat = sn > 0.02 ? 1 : 0
-        front.alpha = visible
-        back.alpha = visible
+        return p
+    }
+
+    private func placeEmblems(_ proj: (CGFloat, CGFloat) -> PlaneArt.Projected, sn: CGFloat) {
         for (i, e) in emblems.enumerated() {
             let q = proj(e.0, e.1)
             for n in [frontEmblems[i], backEmblems[i]] {
@@ -87,6 +83,20 @@ final class Planform {
                 n.yScale = q.k * 0.9 * sn
             }
         }
+    }
+
+    func layout(c: CGFloat, sn: CGFloat) {
+        let s = b.s
+        let proj = { (x: CGFloat, z: CGFloat) -> PlaneArt.Projected in
+            PlaneArt.project(x: x, u: self.u, z: z, c: c, sn: sn)
+        }
+        let outline = outlinePath(proj)
+        frontShape.path = outline
+        backShape.path = outline
+        let visible: CGFloat = sn > 0.02 ? 1 : 0
+        front.alpha = visible
+        back.alpha = visible
+        placeEmblems(proj, sn: sn)
         // Where the plan-form passes behind the fuselage: a line at constant screen y.
         let ac = abs(c)
         var zb: CGFloat = ac < 1e-4 ? (u * sn > radius ? -1e4 : 1e4) : (radius - u * sn) / c

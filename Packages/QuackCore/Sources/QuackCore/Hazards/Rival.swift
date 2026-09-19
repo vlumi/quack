@@ -65,49 +65,54 @@ extension Run {
     /// The rival's mind for one step: pursue a human in range, else patrol
     /// the stretch, always keeping to the height band. The elevator is all it has.
     func rivalInput(_ e: Pilot) -> PlaneInput {
-        let strip = model.strip
+        let height = e.plane.y - model.strip.groundHeight(at: e.plane.x)
         let t = rivalTuning
-        let height = e.plane.y - strip.groundHeight(at: e.plane.x)
-        let heading = e.plane.heading
-        var wanted: Double
         var pointed = false
-        let target = nearestHuman(to: e)
-        let dx = target.map { strip.offset(from: e.plane.x, to: $0.plane.x) } ?? .infinity
-        let dy = target.map { $0.plane.y - e.plane.y } ?? 0
-        let distance = hypot(dx, dy)
-        if let target, distance <= t.engageRange, height > t.minHeight * 0.5 {
-            // Lead the target a little and fly at it.
-            let lead = distance / max(1, e.plane.speed + 60)
-            wanted = atan2(dy + target.plane.vy * lead, dx + target.plane.vx * lead)
-            let turn = FlightModel.shortestTurn(from: heading, to: wanted)
-            pointed = distance <= t.fireRange && abs(turn) <= t.fireCone
+        let wanted: Double
+        if let target = nearestHuman(to: e), height > t.minHeight * 0.5,
+            let pursuit = pursuitHeading(of: e, at: target)
+        {
+            wanted = pursuit.heading
+            pointed = pursuit.inRange
         } else {
-            // Patrol: along the stretch, turning back at its ends, within the band.
-            let along = strip.offset(from: e.patrol.lowerBound, to: e.plane.x)
-            let span = e.patrol.upperBound - e.patrol.lowerBound
-            let way: Double
-            if along <= 0 {
-                way = 1
-            } else if along >= span {
-                way = -1
-            } else {
-                way = e.plane.direction
-            }
-            let climb: Double
-            if height < t.minHeight {
-                climb = 0.35
-            } else if height > t.maxHeight {
-                climb = -0.25
-            } else {
-                climb = 0
-            }
-            wanted = way > 0 ? climb : .pi - climb
+            wanted = patrolHeading(of: e, height: height)
         }
-        // The elevator is plane-relative: inverted, a pull turns the heading the other way.
-        let turn = FlightModel.shortestTurn(from: heading, to: wanted)
+        return PlaneInput(pitch: elevator(of: e, toward: wanted), power: true, fire: pointed)
+    }
+
+    /// The heading at a human within engage range, led a little, and whether
+    /// it is close and dead ahead enough to fire at.
+    private func pursuitHeading(of e: Pilot, at target: Pilot) -> (heading: Double, inRange: Bool)?
+    {
+        let t = rivalTuning
+        let dx = model.strip.offset(from: e.plane.x, to: target.plane.x)
+        let dy = target.plane.y - e.plane.y
+        let distance = hypot(dx, dy)
+        guard distance <= t.engageRange else { return nil }
+        let lead = distance / max(1, e.plane.speed + 60)
+        let heading = atan2(dy + target.plane.vy * lead, dx + target.plane.vx * lead)
+        let turn = FlightModel.shortestTurn(from: e.plane.heading, to: heading)
+        return (heading, distance <= t.fireRange && abs(turn) <= t.fireCone)
+    }
+
+    /// Along the stretch, turning back at its ends, climbing or descending
+    /// back into the height band.
+    private func patrolHeading(of e: Pilot, height: Double) -> Double {
+        let t = rivalTuning
+        let along = model.strip.offset(from: e.patrol.lowerBound, to: e.plane.x)
+        let span = e.patrol.upperBound - e.patrol.lowerBound
+        let way: Double = along <= 0 ? 1 : (along >= span ? -1 : e.plane.direction)
+        let climb: Double = height < t.minHeight ? 0.35 : (height > t.maxHeight ? -0.25 : 0)
+        return way > 0 ? climb : .pi - climb
+    }
+
+    /// The elevator that turns the plane toward `wanted`, in the plane's own
+    /// sense: inverted, a pull turns the heading the other way.
+    private func elevator(of e: Pilot, toward wanted: Double) -> Double {
+        let turn = FlightModel.shortestTurn(from: e.plane.heading, to: wanted)
+        guard abs(turn) >= 0.03 else { return 0 }
         let sense: Double = e.plane.inverted ? -1 : 1
-        let pitch = abs(turn) < 0.03 ? 0 : min(1, max(-1, turn * 4)) * sense
-        return PlaneInput(pitch: pitch, power: true, fire: pointed)
+        return min(1, max(-1, turn * 4)) * sense
     }
 
     /// Every rival's step: fly by its own mind in the same air, fire bursts,
@@ -119,20 +124,28 @@ extension Run {
     }
 
     private mutating func advanceRival(at i: Int, dt: Double) {
-        var e = pilots[i]
-        let strip = model.strip
-        let t = rivalTuning
-        if e.falling || e.down {
+        if pilots[i].falling || pilots[i].down {
             fall(at: i, dt: dt)
             return
         }
+        var e = pilots[i]
         let input = rivalInput(e)
         e.plane = model.flight.advance(e.plane, input: input, dt: dt)
-        e.plane.x = strip.wrap(e.plane.x + model.wind(at: e.plane) * dt)
-        // Bursts along its heading, in the same rounds as the humans' guns.
+        e.plane.x = model.strip.wrap(e.plane.x + model.wind(at: e.plane) * dt)
+        fireBurst(&e, wanting: input.fire, dt: dt)
+        takeHumansRounds(&e)
+        if e.plane.y - model.landing.gearHeight <= model.strip.surfaceHeight(at: e.plane.x) {
+            e.falling = true
+        }
+        pilots[i] = e
+    }
+
+    /// Bursts along its heading, in the same rounds as the humans' guns.
+    private func fireBurst(_ e: inout Pilot, wanting fire: Bool, dt: Double) {
+        let t = rivalTuning
         e.fireClock += dt
         if e.fireClock >= t.burst + t.pause { e.fireClock = 0 }
-        if input.fire, e.fireClock < t.burst, e.gunCooldown == 0 {
+        if fire, e.fireClock < t.burst, e.gunCooldown == 0 {
             let m = e.plane.muzzle(gun)
             e.bullets.append(
                 Bullet(
@@ -142,28 +155,27 @@ extension Run {
             e.gunCooldown = gun.fireInterval
         }
         e.gunCooldown = max(0, e.gunCooldown - dt)
-        // The humans' rounds.
+    }
+
+    /// Any human's round on the rival takes its health; the last one drops it
+    /// and credits the shooter.
+    private mutating func takeHumansRounds(_ e: inout Pilot) {
+        let radius = rivalTuning.hitRadius
         for j in pilots.indices where pilots[j].brain == .human {
-            if let hit = pilots[j].bullets.firstIndex(where: {
-                dist2($0.x, $0.y, e.plane.x, e.plane.y) < t.hitRadius * t.hitRadius
-            }) {
-                pilots[j].bullets.remove(at: hit)
-                e.health -= 1
-                if e.health <= 0 {
-                    e.falling = true
-                    e.downs += 1
-                    pilots[j].kills += 1
-                    hazardEvent = .rivalHit(down: true)
-                } else {
-                    hazardEvent = .rivalHit(down: false)
-                }
+            guard
+                let hit = pilots[j].bullets.firstIndex(where: {
+                    dist2($0.x, $0.y, e.plane.x, e.plane.y) < radius * radius
+                })
+            else { continue }
+            pilots[j].bullets.remove(at: hit)
+            e.health -= 1
+            if e.health <= 0 {
+                e.falling = true
+                e.downs += 1
+                pilots[j].kills += 1
             }
+            hazardEvent = .rivalHit(down: e.health <= 0)
         }
-        // Into a hill, and it is gone too.
-        if e.plane.y - model.landing.gearHeight <= strip.surfaceHeight(at: e.plane.x) {
-            e.falling = true
-        }
-        pilots[i] = e
     }
 
     /// Every rival's rounds fly like the humans' and burst on a human as a hit.

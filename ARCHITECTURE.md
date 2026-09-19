@@ -22,13 +22,15 @@ holds one concern:
 | `Hazards/` | the guns and the rival pilot | `Screens/` | title, hangar, lobby, parked panel, the game view |
 | `Duckfight/` | the fight, its sync, roster, session, wire | `Tuning/`, `Career/`, `Net/` | the panel and store, the company store, Multipeer |
 
-The tests mirror the core's folders.
+`Tests/QuackCoreTests` mirrors the core's folders. `Tests/QuackKitTests`
+covers the kit's logic that needs no screen: the stores, the keyboard
+controls, device names, the palette.
 
 | | `QuackCore` | `QuackKit` |
 |---|---|---|
 | holds | the flight model, plane state and input, tuning | SpriteKit scene, SwiftUI host, touch and keyboard → `PlaneInput` |
 | imports | Foundation | SpriteKit, SwiftUI, QuackCore |
-| tested | headless, coverage-gated | coverage-ignored |
+| tested | headless, coverage-gated | screen-free logic headless, coverage-ignored |
 
 **Testable logic goes in QuackCore.** A feature that needs platform I/O is a
 versioned `Codable` model in QuackCore plus a dumb shim in QuackKit.

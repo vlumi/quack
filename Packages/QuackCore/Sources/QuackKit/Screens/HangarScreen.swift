@@ -45,29 +45,30 @@ struct HangarScreen: View {
             }
             Spacer(minLength: 12)
             if let price = career.nextPrice(upgrade) {
-                Button {
-                    store.career.buy(upgrade)
-                } label: {
-                    Text("Buy, \(Int(price)) fr", bundle: .module)
-                        .font(.custom("AvenirNext-Bold", size: 15, relativeTo: .body))
-                        .padding(.vertical, 7)
-                        .padding(.horizontal, 14)
-                        .foregroundStyle(
-                            career.canBuy(upgrade) ? Color.white : TitleScreen.ink.opacity(0.5)
-                        )
-                        .background(
-                            career.canBuy(upgrade)
-                                ? TitleScreen.trim : TitleScreen.ink.opacity(0.12),
-                            in: Capsule())
-                }
-                .buttonStyle(.plain)
-                .disabled(!career.canBuy(upgrade))
+                buyButton(upgrade, price: price, affordable: career.canBuy(upgrade))
             } else {
                 Text("Bought", bundle: .module)
                     .font(.custom("AvenirNext-Bold", size: 15, relativeTo: .body))
                     .foregroundStyle(TitleScreen.ink.opacity(0.6))
             }
         }
+    }
+
+    private func buyButton(_ upgrade: Career.Upgrade, price: Double, affordable: Bool) -> some View
+    {
+        Button {
+            store.career.buy(upgrade)
+        } label: {
+            Text("Buy, \(Int(price)) fr", bundle: .module)
+                .font(.custom("AvenirNext-Bold", size: 15, relativeTo: .body))
+                .padding(.vertical, 7)
+                .padding(.horizontal, 14)
+                .foregroundStyle(affordable ? Color.white : TitleScreen.ink.opacity(0.5))
+                .background(
+                    affordable ? TitleScreen.trim : TitleScreen.ink.opacity(0.12), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(!affordable)
     }
 
     private func name(_ upgrade: Career.Upgrade) -> Text {

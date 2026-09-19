@@ -35,5 +35,8 @@ let package = Package(
             swiftSettings: featureFlagSettings
         ),
         .testTarget(name: "QuackCoreTests", dependencies: ["QuackCore"]),
+        // The kit's logic that needs no screen: stores, controls, naming, colours.
+        .testTarget(
+            name: "QuackKitTests", dependencies: ["QuackKit"], swiftSettings: featureFlagSettings),
     ]
 )
