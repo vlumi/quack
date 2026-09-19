@@ -12,6 +12,7 @@ public struct GameView: View {
     enum Screen {
         case title
         case hangar
+        case lobby
         case playing
         case paused
     }
@@ -20,6 +21,8 @@ public struct GameView: View {
     @StateObject private var tuning: TuningStore
     @StateObject private var careers: CareerStore
     @ObservedObject private var hud: HUDState
+    @StateObject private var session: FightSession
+    @State private var fightOptions = DuckfightOptions()
     @State private var scene: FlightScene
     @State private var screen = Screen.title
     #if os(macOS)
@@ -39,12 +42,30 @@ public struct GameView: View {
         _tuning = StateObject(wrappedValue: tuning)
         _careers = StateObject(wrappedValue: careers)
         hud = scene.hud
+        let session = FightSession(
+            transport: MultipeerTransport(displayName: DeviceName.uniqueKey()),
+            name: DeviceName.friendly)
+        _session = StateObject(wrappedValue: session)
         _scene = State(initialValue: scene)
     }
 
     public var body: some View {
         game
             .overlay(menus)
+            .onAppear {
+                session.whenStarted { start in
+                    scene.startFight(start, session: session)
+                    screen = .playing
+                }
+            }
+            .onReceive(session.$phase) { phase in
+                // The host left mid-fight: back to the lobby with the reason on it.
+                if case .ended = phase, screen == .playing {
+                    scene.leaveFight()
+                    scene.attract = true
+                    screen = .lobby
+                }
+            }
             .onReceive(tuning.$tuning) { scene.tuning = $0 }
             .tuningPanel(store: tuning) { open in
                 scene.simulationPaused = open || screen == .paused
@@ -67,9 +88,26 @@ public struct GameView: View {
                     scene.attract = false
                     screen = .playing
                 },
-                hangar: { screen = .hangar })
+                hangar: { screen = .hangar },
+                duckfight: { screen = .lobby })
         case .hangar:
             HangarScreen(store: careers) { screen = .title }
+        case .lobby:
+            LobbyScreen(
+                session: session, options: $fightOptions,
+                start: {
+                    session.startFight(
+                        seed: UInt64.random(in: 1...1_000_000), options: fightOptions,
+                        tuning: tuning.tuning.values)
+                },
+                back: { screen = .title })
+        case .playing where hud.fightOver:
+            FightOverScreen(standings: hud.standings) {
+                scene.leaveFight()
+                scene.attract = true
+                session.leave()
+                screen = .title
+            }
         case .playing:
             VStack {
                 Spacer()
@@ -91,6 +129,10 @@ public struct GameView: View {
                 },
                 quit: {
                     scene.simulationPaused = false
+                    if scene.session != nil {
+                        session.leave()
+                        scene.leaveFight()
+                    }
                     scene.attract = true
                     screen = .title
                 })

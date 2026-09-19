@@ -73,7 +73,7 @@ final class Minimap: SKNode {
         }
     }
 
-    func update(_ practice: Practice) {
+    func update(_ practice: Practice, seat: Int = 0) {
         let strip = practice.model.strip
         let gear = practice.model.landing.gearHeight
         let across = { (x: Double) -> CGFloat in
@@ -101,7 +101,7 @@ final class Minimap: SKNode {
             dot.isHidden = balloon.popped
             dot.position = CGPoint(x: across(balloon.x), y: up(balloon.y))
         }
-        let plane = practice.plane
+        let plane = practice.pilots[min(seat, practice.pilots.count - 1)].plane
         planeMark.position = CGPoint(x: across(plane.x), y: up(plane.y - gear))
         // Pointing the way the plane flies, as it would look in the squeezed box.
         let sx = size.width / CGFloat(strip.length)

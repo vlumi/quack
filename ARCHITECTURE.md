@@ -167,15 +167,70 @@ of the display's refresh rate.
   out (`gunHealth`). `engineShotOut` at `hitsToStopEngine` forces power
   off like an empty tank; `settleDamage` turns the repair due into a parked
   repair and mends the hits at the next stop. A wreck clears it all.
-- `Enemy`, `EnemyTuning` — the rival pilot (`Enemy.swift`): a `PlaneState`
+- `Pilot` — one seat in a run (`Pilot.swift`): a `Brain` (human or rival),
+  its plane and phase, rounds, belt, tank, hits and repair due, and the
+  rival's own health, patrol stretch and falling state. `Practice.pilots`
+  holds every seat; the first is the single player's, and `plane`, `phase`,
+  `ammo`, `fuel`, `hits` and the rest on `Practice` read and write that
+  seat, so single-player code and the scene address it as before. Every
+  device in a lockstep game simulates every seat the same way, which is why
+  the local player is nothing special in the sim.
+- `DuckfightOptions`, `Standing` — the Duckfight (`Duckfight.swift`): how
+  many human and rival seats, whether the guns are dug in, health per plane,
+  the respawn delay and the duration. `seatTheDuckfight` parks each human
+  at its own field and sets each rival on its own stretch; `advance(inputs:)`
+  takes one input per human seat and flies every seat the same way on every
+  device (`Practice+Seat.swift` is one seat's share of a step: tank, flight,
+  damage settled, belt, rounds). `advanceDuels` bursts humans' rounds on
+  any other plane; `damage(seat:by:at:)` is the one door for a hit: health
+  and a fall in a Duckfight, with the shooter credited a kill, else repair
+  due. A downed seat `fall`s to the ground, waits `respawnDelay`, and is
+  back at its field with everything full; the fight ends at `duration`,
+  standings by kills. Not yet reachable from the app: the lobby and the
+  lockstep come next.
+- **The sync layer** (`Sync.swift`, `FightSnapshot.swift`, `Wire.swift`,
+  `FightRoster.swift`, `LobbyMessages.swift`) — host-authoritative, as Skid
+  Jam settled on after lockstep stalled in Multipeer's bursts: one device
+  simulates the one true fight and the rest send thumbs and render
+  snapshots, so nothing stalls and nothing diverges. `PlaneInputWire` is a
+  player's input in two bytes; `InputPacket` carries the newest eight
+  ticks so a lost packet is repaired by the next. `HostRelay` holds the
+  freshest input per remote seat (superseding, never rewinding) and hands
+  the host's sim its inputs in seat order; `FightSnapshot` is the host's
+  word, per seat the pose, what it is doing, health, tallies, belt, tank,
+  respawn clock and rounds, hand-packed in `Float32`, every third tick;
+  `ClientView` sends thumbs every other frame, buffers snapshots, and
+  plays them out a steady, adaptive lag behind the newest (the worst recent
+  arrival gap plus one interval) so a bursty link costs latency, not
+  rhythm, and `apply(to:)` lays a snapshot over the client's copy of the
+  fight for the scene to draw. `FightRoster` seats devices in join order,
+  never renumbering; `FightStart` (seed, roster, options, the host's dials)
+  builds the same fight everywhere, with `JoinRequest`, `RosterUpdate` and
+  `LeaveNotice` as the lobby's other words, JSON behind a tag byte.
+  Transport-free and tested in one process.
+- `FightTransport`, `FightSession` — the session around a fight
+  (`FightSession.swift`), also transport-free: a `FightTransport` sends
+  bytes to everyone, reliably or not, and reports peers coming and going
+  on the main actor. The session hosts (seating itself as seat 0 and
+  advertising) or joins (browsing, then `askToJoin` a chosen host, since a
+  room can hold two fights); the host seats a `JoinRequest` or refuses it
+  with a reason in the `RosterUpdate`; `startFight` sends a `FightStart`
+  and applies it exactly as a guest does; then the host asks it for
+  `hostInputs` each tick and `broadcast`s, and a guest `publish`es thumbs
+  and draws `view(advancedBy:)`. A guest leaving costs its seat, which flies
+  idle mid-fight with the roster frozen; the host leaving ends it for
+  everyone. Two sessions are driven against each other over a loopback in
+  the tests.
+- `EnemyTuning` — the rival pilot (`Enemy.swift`): a rival seat's plane
   flown by `FlightModel` from `enemyInput`, which is the whole mind: pursue
   the courier within `engageRange` with a little lead, else patrol its
   stretch between `minHeight` and `maxHeight`, turning at the ends, the
   elevator set from the shortest turn to the wanted heading; fire in bursts
-  when pointed within `fireRange`. `advanceEnemy` flies it in the wind,
-  takes the courier's rounds (`hitRadius`, `health`) and drops it falling
-  until the ground; `advanceEnemyBullets` flies its rounds and bursts them
-  on the courier as hits. One a courier run; none in the balloon run.
+  when pointed within `fireRange`, going for the nearest human in the air.
+  `advanceRivals` flies each rival seat in the wind, takes the humans'
+  rounds (`hitRadius`, `health`) and drops it falling until the ground;
+  `advanceRivalBullets` flies its rounds and bursts them on any human as
+  hits. One a courier run; none in the balloon run.
 - `FuelTuning` — the tank in seconds of engine (`Fuel.swift`):
   `burnAndRefuel` drains a second a second whenever the plane is not parked
   or wrecked and fills while parked at `refuelRate`, charging `price` a
@@ -265,10 +320,35 @@ alpha follows the plane's attitude against a fixed sun.
 The rival is a second `PlaneNode` in the rival livery, placed each frame
 with its rounds as tracers and a red chevron when off screen; a burst marks
 each round that finds it and a bigger one where it meets the ground.
+`MultipeerTransport` is the `FightTransport` in the app, after Skid Jam's:
+infrastructure Wi-Fi or peer-to-peer Wi-Fi and Bluetooth, the guest
+inviting and the host accepting anyone, every call into Multipeer on one
+serial queue (sends and teardowns block, and froze Skid's lobby from the
+main thread three times) and every callback hopped to the main actor. The
+service type `quack-fight` matches the `NSBonjourServices` in the plists;
+the Mac sandbox has the network client and server entitlements. `DeviceName`
+keys a device by its name plus a random suffix, since two iPhones are both
+"iPhone", and shows the name alone.
+
 `HazardArt` draws each gun as a sandbag ring with a barrel that tracks the
 plane (drooping, faded, when knocked out), a muzzle puff when it fires, the
 shells as dark rounds with a short trail, and a burst where one hits; the
 status line flashes the hit, the engine going, and a gun knocked out.
+
+**A fight on screen.** `FlightScene` flies and reads out one `localSeat`
+(seat 0 in single player; in a fight, the session's) through `me`, and draws
+every other seat as a `PlaneNode` in its livery with its rounds and a chevron
+(`resetSeats`, `placeSeats`). `startFight` builds the fight from the
+session's start and keeps the host's dials rather than the panel's. On the
+host, each step takes `hostInputs` and `broadcast`s; on a guest, thumbs are
+`publish`ed and the `view` snapshot is laid over the local copy each frame,
+with hits and downs read off the differences between snapshots. The readouts
+show the time left and the seat's tally; a downed seat's status counts down
+its return; `HUDState` carries the standings for the `FightOverScreen`.
+`LobbyScreen`, off the title, hosts or joins, shows the roster, sets rivals,
+guns and duration, and starts; the `FightSession` lives in `GameView` with a
+`MultipeerTransport`, and the host leaving mid-fight sends the guest back to
+the lobby with the reason.
 
 **The parked panel** (`ParkedPanel`, SwiftUI) sits at the bottom while the
 plane is parked: the board's jobs as cards (`FlightScene.pick`) and two

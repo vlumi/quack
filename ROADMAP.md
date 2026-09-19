@@ -84,7 +84,18 @@ a loop and a half-loop turn, on a real iPhone and a Mac.
 
 ## 0.6 — Duckfight
 
-- [ ] 2–4 planes over Nearby, lockstep. Skid Jam's networking is the model.
+- [x] The fight in the sim: seats for humans and rivals, one input per
+  seat, two rounds down a plane, respawn at its field, guns as an option,
+  most kills at the clock.
+- [x] The sync layer, host-authoritative as Skid Jam settled on: input
+  wire, host relay, snapshots, client view, roster and lobby messages.
+- [x] The Multipeer transport and the session that drives the sync, the
+  session tested over a loopback in one process.
+- [x] The lobby: host or join, seats, rivals to fill, guns on or off, start.
+- [x] The scene for a fight: the other players' planes, the local seat's
+  readouts, standings.
+- [ ] Fight it on two devices: the link, the lag, the snapshot rate, and
+  whether the guest's own plane feels right a moment behind.
 
 ## 0.7 — Daily Drop, generation & ranking
 

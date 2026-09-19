@@ -78,7 +78,7 @@ final class StripLook {
         _ practice: Practice, planePoints: CGPoint, cameraY: CGFloat, scale: CGFloat, box: CGSize
     ) {
         let strip = practice.model.strip
-        let planeX = practice.plane.x
+        let planeX = Double(planePoints.x / scale)
         sky.update(
             planePoints: planePoints.x, driftPoints: CGFloat(practice.airDrift) * scale,
             cameraY: cameraY, boxWidth: box.width)

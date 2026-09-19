@@ -307,8 +307,25 @@ so the turn back and the approach are part of the time.
 ## Duckfight (nearby multiplayer)
 
 Two to four planes over MultipeerConnectivity, one strip, each device its own
-viewport, deterministic lockstep (Skid Jam's networking is the model). Guns
-are the point here. Single-screen shared play on one iPad was considered and
+viewport. Skid Jam's networking is the model, including its lesson: it
+began as deterministic lockstep and stalled in the bursts Multipeer's radio
+delivers in, so it became host-authoritative, one device's sim as the truth
+and the rest rendering snapshots a short lag behind. Quack takes the
+finished design, not the detour (2026-09-18). The sim's determinism still
+matters: the host and the guests build the same fight from one start
+message, and replays and the AI pilot stand on it. The lobby is deliberately
+small: host or join, a list of who is seated, rivals to fill, guns on or
+off, minutes; a guest picks a host rather than joining whatever it sees,
+since a room can hold two fights. The fight ends on the clock with the
+standings, and everyone goes back to the lobby, not to the title. Guns
+are the point here. As built in the sim (2026-09-18): every seat is a
+`Pilot`, human or rival, and the run flies all of them from one list of
+inputs, so every device runs the same fight. Humans start parked at their
+own fields; rivals fill empty seats as AI players on their own stretches.
+Two rounds down a plane, which falls to the ground and is back at its field
+five seconds later with a full belt and tank, so nobody sits out; the
+shooter is credited. The anti-aircraft guns are an option, off by default.
+Most kills when the clock runs out wins. Single-screen shared play on one iPad was considered and
 dropped: the original split the screen because both players sat at one
 keyboard, and that does not survive a hand-held device.
 

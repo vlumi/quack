@@ -10,4 +10,14 @@ public final class HUDState: ObservableObject {
     @Published public var chosen = 0
     @Published public var carrying: Contract?
     @Published public var fieldNames: [String] = []
+    /// A Duckfight's end, and its standings.
+    @Published public var fightOver = false
+    @Published public var standings: [Standing] = []
+
+    public struct Standing: Equatable, Sendable {
+        public let name: String
+        public let kills: Int
+        public let downs: Int
+        public let isMe: Bool
+    }
 }

@@ -18,9 +18,18 @@ public final class FlightScene: SKScene {
     public static let worldHeight: CGFloat = 70
 
     var practice = Practice(seed: 1)
-    private var run: UInt64 = 1
+    var run: UInt64 = 1
+    /// The seat this screen flies and reads out. Seat 0 in single player; in
+    /// a fight, whichever the session gave this device.
+    public internal(set) var localSeat = 0
+    var me: Pilot { practice.pilots[min(localSeat, practice.pilots.count - 1)] }
+    /// The fight this scene is in, if it is: drives the sim on the host and
+    /// draws snapshots on a guest.
+    var session: FightSession?
+    var fightTick = 0
+    var lastSeats: [FightSnapshot.Seat] = []
     /// What the runs are for; the title screen sets it.
-    public private(set) var mode = Practice.Mode.courier
+    public internal(set) var mode = Practice.Mode.courier
     /// The company a courier run flies for. Set before `start`.
     public var career = Career()
     /// Told the till's money whenever it changes while parked, so the company keeps it.
@@ -29,14 +38,14 @@ public final class FlightScene: SKScene {
     public let hud = HUDState()
     /// A takeoff asked for by the panel, handed to the next step.
     var takeOffRequest: Double = 0
-    private var moneyTold: Double?
+    var moneyTold: Double?
     /// Behind the title screen the world runs but nobody is flying: inputs
     /// are ignored and the readouts are off.
     public var attract = false {
         didSet { setHUDHidden(attract) }
     }
     private var input = PlaneInput.idle
-    private var accumulator: TimeInterval = 0
+    var accumulator: TimeInterval = 0
     private var lastTime: TimeInterval?
 
     let world = SKNode()
@@ -56,10 +65,10 @@ public final class FlightScene: SKScene {
     var gunNodes: [SKNode] = []
     var shellNodes: [SKNode] = []
     var engineWasShotOut = false
-    /// The rival pilot's plane, its rounds, and the chevron pointing at it.
-    let enemyNode: PlaneNode
-    var enemyBulletNodes: [SKNode] = []
-    let enemyMarker: SKShapeNode
+    /// Every other seat's plane, its rounds, and the chevron pointing at it, by seat.
+    var seatNodes: [Int: PlaneNode] = [:]
+    var seatBulletNodes: [Int: [SKNode]] = [:]
+    var seatMarkers: [Int: SKShapeNode] = [:]
     private var balloonNodes: [SKNode] = []
     private var bulletNodes: [SKNode] = []
     /// One chevron per balloon, and one for the field, on the edge of the box
@@ -89,7 +98,7 @@ public final class FlightScene: SKScene {
     var engineWasRunning = true
     let speedLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     let altitudeLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
-    private let controls: ThumbControls
+    let controls: ThumbControls
     var cameraY: CGFloat = 0
     private var wasFiring = false
 
@@ -116,9 +125,6 @@ public final class FlightScene: SKScene {
     /// The thumb overlay draws from `overlay`, which the controls keep current.
     public init(overlay: ThumbOverlayState) {
         planeNode = PlaneNode(livery: .courier, pointsPerMetre: scale)
-        enemyNode = PlaneNode(livery: .rival, pointsPerMetre: scale)
-        enemyMarker = SceneArt.markerNode(
-            scale: scale, colour: SKColor(red: 0.85, green: 0.15, blue: 0.15, alpha: 1))
         controls = ThumbControls(overlay: overlay)
         speedDial = Dial(radius: 44, maximum: 240, majorEvery: 60)
         fieldMarker = SceneArt.markerNode(scale: scale, colour: .white)
@@ -138,8 +144,6 @@ public final class FlightScene: SKScene {
         world.addChild(balloonLayer)
         world.addChild(bulletLayer)
         world.addChild(planeNode)
-        hazardLayer.addChild(enemyNode)
-        markerLayer.addChild(enemyMarker)
         world.addChild(look.clouds)
         markerLayer.zPosition = 50
         markerLayer.addChild(fieldMarker)
@@ -162,14 +166,14 @@ public final class FlightScene: SKScene {
         render(at: 0)
     }
 
-    private func applyTuning() {
-        practice.apply(tuning)
+    func applyTuning() {
+        if session == nil { practice.apply(tuning) }
         controls.throwDistance = CGFloat(tuning.throwDistance)
         controls.minimumThrow = CGFloat(tuning.minimumThrow)
         controls.invertedPitch = tuning.invertedPitch
         rollDuration = tuning.rollDuration
         speedDial.redBelow = CGFloat(tuning.flight.stallSpeed * 3.6)
-        practice.resizeFields(to: tuning.fieldLength)
+        if session == nil { practice.resizeFields(to: tuning.fieldLength) }
         // Amber where the air thins, red past the ceiling, where full power just holds level.
         altitudeDial.amberAbove = CGFloat(tuning.flight.thinAirFrom)
         altitudeDial.redAbove = CGFloat(tuning.flight.ceiling)
@@ -193,6 +197,7 @@ public final class FlightScene: SKScene {
             balloonColours: practice.balloons.indices.map { look.palette.balloon($0) })
         resetTallies()
         resetHazards()
+        resetSeats()
     }
 
     /// Build the world's look again if the run, its hour or its scenery changed,
@@ -223,7 +228,9 @@ public final class FlightScene: SKScene {
         startRun()
     }
 
-    private func startRun() {
+    func startRun() {
+        session = nil
+        localSeat = 0
         practice = Practice(
             seed: run, mode: mode, fieldLength: tuning.fieldLength, career: career)
         moneyTold = nil
@@ -250,13 +257,16 @@ public final class FlightScene: SKScene {
         input.takeOff = takeOffRequest
         takeOffRequest = 0
         // Once the run is done, the next pull of the trigger starts the next one.
-        if practice.isFinished && input.fire && !wasFiring {
+        if practice.isFinished && input.fire && !wasFiring && session == nil {
             run += 1
             startRun()
         }
         wasFiring = input.fire
+        if let session, !session.isHost {
+            guestFrame(session, dt: min(currentTime - last, 0.25), at: currentTime)
+        }
         while accumulator >= FlightModel.dt {
-            practice.advance(input: input)
+            step(input)
             if let event = practice.lastEvent { show(event, at: currentTime) }
             if let event = practice.courierEvent { show(event, at: currentTime) }
             if let event = practice.hazardEvent { show(event, at: currentTime) }
@@ -266,29 +276,25 @@ public final class FlightScene: SKScene {
                         x: gunNodes[gun].position.x, y: gunNodes[gun].position.y + 2.5 * scale),
                     scale: scale, in: hazardLayer, size: 1.5)
             }
-            if engineWasRunning && !practice.engineRunning {
+            if engineWasRunning && !practice.engineRunning(at: localSeat) {
                 flash = (
                     String(localized: "Out of fuel: glide to a field", bundle: .module),
                     currentTime + 3
                 )
             }
-            engineWasRunning = practice.engineRunning
+            engineWasRunning = practice.engineRunning(at: localSeat)
             accumulator -= FlightModel.dt
         }
-        // The till is banked whenever the plane is parked, which is where money changes hands.
-        if practice.mode == .courier, case .parked = practice.phase, practice.money != moneyTold {
-            moneyTold = practice.money
-            onMoneyChange?(practice.money)
-        }
+        bankTheTill()
         render(at: currentTime)
         publishHUD()
     }
 
     private func render(at now: TimeInterval) {
-        let plane = practice.plane
+        let plane = me.plane
         planeNode.position = CGPoint(x: plane.x * scale, y: plane.y * scale)
         planeNode.zRotation = CGFloat(plane.heading)
-        if case .wrecked = practice.phase {
+        if case .wrecked = me.phase {
             planeNode.alpha = Int(now * 8) % 2 == 0 ? 0.25 : 1
         } else {
             planeNode.alpha = 1
@@ -319,14 +325,14 @@ public final class FlightScene: SKScene {
                 balloonNodes[i].position = CGPoint(x: near(b.x), y: CGFloat(b.y) * scale)
             }
         }
-        while bulletNodes.count < practice.bullets.count {
+        while bulletNodes.count < me.bullets.count {
             let n = SceneArt.tracerNode(scale: scale)
             bulletLayer.addChild(n)
             bulletNodes.append(n)
         }
         for (i, n) in bulletNodes.enumerated() {
-            if i < practice.bullets.count {
-                let b = practice.bullets[i]
+            if i < me.bullets.count {
+                let b = me.bullets[i]
                 n.isHidden = false
                 n.position = CGPoint(x: near(b.x), y: b.y * scale)
                 n.zRotation = atan2(b.vy, b.vx)
@@ -342,7 +348,7 @@ public final class FlightScene: SKScene {
         look.update(
             practice, planePoints: planeNode.position, cameraY: cameraY, scale: scale, box: size)
         placeHazards(near: near)
-        placeEnemy(near: near)
+        placeSeats(near: near)
         updateMarkers()
         updateHUD(at: now)
     }

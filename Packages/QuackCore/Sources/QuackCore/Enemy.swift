@@ -1,37 +1,15 @@
 import Foundation
 
-/// A rival pilot in the same kind of plane, flown by the sim: patrols a
-/// stretch of the strip, turns on the courier when close, fires short bursts
-/// along its heading, and goes down to rounds. One a courier run.
-public struct Enemy: Equatable, Sendable {
-    public var plane: PlaneState
-    /// The stretch it patrols, metres along the strip; it turns back at the ends.
-    public var patrol: ClosedRange<Double>
-    /// Hits it can still take; 0 and it is falling.
-    public var health: Int
-    /// Seconds into the burst-and-pause cycle.
-    public var fireClock: Double = 0
-    /// Falling out of the sky, until the ground.
-    public var falling = false
-    /// Gone for the run.
-    public var down = false
-
-    public init(plane: PlaneState, patrol: ClosedRange<Double>, health: Int) {
-        self.plane = plane
-        self.patrol = patrol
-        self.health = health
-    }
-
-    public var isFlying: Bool { !falling && !down }
-}
-
-/// How the rival flies and fights.
+/// How a rival pilot flies and fights: a seat with the rival's mind, in the
+/// same kind of plane, flown by the same model with only the elevator. It
+/// patrols a stretch of the strip, turns on a human in range, fires short
+/// bursts along its heading, and goes down to rounds.
 public struct EnemyTuning: Equatable, Sendable {
-    /// Metres within which it turns on the courier.
+    /// Metres within which it turns on a human.
     public var engageRange: Double = 300
-    /// Metres within which it fires, when pointed at the courier.
+    /// Metres within which it fires, when pointed at its target.
     public var fireRange: Double = 120
-    /// Radians off its heading the courier may be for it to fire.
+    /// Radians off its heading the target may be for it to fire.
     public var fireCone: Double = 0.18
     /// Seconds of burst, then seconds of pause.
     public var burst: Double = 0.35
@@ -50,31 +28,59 @@ public struct EnemyTuning: Equatable, Sendable {
 }
 
 extension Practice {
-    /// The rival for a courier run: half a lap from home, flying right, high.
-    static func enemy(strip: Strip, tuning: EnemyTuning, health: Int) -> Enemy {
+    /// A rival seat: half a lap from home, flying right, high.
+    static func rival(strip: Strip, tuning: EnemyTuning, health: Int) -> Pilot {
         let home = strip.airfields[0]
         let centre = strip.wrap(home.start + strip.length / 2)
         let y = strip.groundHeight(at: centre) + 70
-        return Enemy(
-            plane: PlaneState(x: centre, y: y, heading: 0, speed: 40),
-            patrol: (centre - tuning.patrolHalf)...(centre + tuning.patrolHalf), health: health)
+        var pilot = Pilot(
+            brain: .rival, plane: PlaneState(x: centre, y: y, heading: 0, speed: 40),
+            phase: .flying, ammo: 0, fuel: 0)
+        pilot.patrol = (centre - tuning.patrolHalf)...(centre + tuning.patrolHalf)
+        pilot.health = health
+        return pilot
     }
 
-    /// The rival's mind for one step: pursue the courier in range, else patrol
+    /// The rival seat, if the run has one. Setting it to nil takes every rival out.
+    public var enemy: Pilot? {
+        get { pilots.first { $0.brain == .rival } }
+        set {
+            pilots.removeAll { $0.brain == .rival }
+            if let newValue { pilots.append(newValue) }
+        }
+    }
+
+    /// The rival's rounds in the air.
+    public var enemyBullets: [Bullet] { pilots.first { $0.brain == .rival }?.bullets ?? [] }
+
+    /// The nearest human seat in the air, for a rival to go for.
+    func nearestHuman(to e: Pilot) -> Pilot? {
+        let strip = model.strip
+        return pilots.filter { $0.brain == .human && !$0.phase.isOnGround }.min {
+            hypot(strip.offset(from: e.plane.x, to: $0.plane.x), $0.plane.y - e.plane.y)
+                < hypot(strip.offset(from: e.plane.x, to: $1.plane.x), $1.plane.y - e.plane.y)
+        }
+    }
+
+    /// The rival's mind for one step: pursue a human in range, else patrol
     /// the stretch, always keeping to the height band. The elevator is all it has.
-    func enemyInput(_ e: Enemy) -> PlaneInput {
+    func enemyInput(_ e: Pilot) -> PlaneInput {
         let strip = model.strip
         let t = enemyTuning
-        let dx = strip.offset(from: e.plane.x, to: plane.x)
-        let dy = plane.y - e.plane.y
-        let distance = hypot(dx, dy)
         let height = e.plane.y - strip.groundHeight(at: e.plane.x)
         let heading = e.plane.heading
-        let wanted: Double
-        if distance <= t.engageRange && !phase.isOnGround && height > t.minHeight * 0.5 {
-            // Lead the courier a little and fly at it.
+        var wanted: Double
+        var pointed = false
+        let target = nearestHuman(to: e)
+        let dx = target.map { strip.offset(from: e.plane.x, to: $0.plane.x) } ?? .infinity
+        let dy = target.map { $0.plane.y - e.plane.y } ?? 0
+        let distance = hypot(dx, dy)
+        if let target, distance <= t.engageRange, height > t.minHeight * 0.5 {
+            // Lead the target a little and fly at it.
             let lead = distance / max(1, e.plane.speed + 60)
-            wanted = atan2(dy + plane.vy * lead, dx + plane.vx * lead)
+            wanted = atan2(dy + target.plane.vy * lead, dx + target.plane.vx * lead)
+            let turn = FlightModel.shortestTurn(from: heading, to: wanted)
+            pointed = distance <= t.fireRange && abs(turn) <= t.fireCone
         } else {
             // Patrol: along the stretch, turning back at its ends, within the band.
             let along = strip.offset(from: e.patrol.lowerBound, to: e.plane.x)
@@ -101,90 +107,95 @@ extension Practice {
         let turn = FlightModel.shortestTurn(from: heading, to: wanted)
         let sense: Double = e.plane.inverted ? -1 : 1
         let pitch = abs(turn) < 0.03 ? 0 : min(1, max(-1, turn * 4)) * sense
-        let pointed = distance <= t.fireRange && abs(turn) <= t.fireCone && !phase.isOnGround
         return PlaneInput(pitch: pitch, power: true, fire: pointed)
     }
 
-    /// The rival's step: fly by its own input in the same air, fire bursts,
-    /// take the courier's rounds, and fall when shot down.
-    mutating func advanceEnemy(dt: Double) {
-        guard var e = enemy, !e.down else { return }
+    /// Every rival's step: fly by its own mind in the same air, fire bursts,
+    /// take the humans' rounds, and fall when shot down.
+    mutating func advanceRivals(dt: Double) {
+        for i in pilots.indices where pilots[i].brain == .rival {
+            advanceRival(at: i, dt: dt)
+        }
+    }
+
+    private mutating func advanceRival(at i: Int, dt: Double) {
+        var e = pilots[i]
         let strip = model.strip
         let t = enemyTuning
-        if e.falling {
-            e.plane.speed = max(0, e.plane.speed - 8 * dt)
-            e.plane.heading = FlightModel.wrap(e.plane.heading - 2 * dt * e.plane.direction)
-            e.plane.x = strip.wrap(e.plane.x + e.plane.vx * dt)
-            e.plane.y += e.plane.vy * dt - 12 * dt
-            if e.plane.y <= strip.surfaceHeight(at: e.plane.x) + 1 {
-                e.down = true
-                hazardEvent = .enemyDown
-            }
-            enemy = e
+        if e.falling || e.down {
+            fall(at: i, dt: dt)
             return
         }
         let input = enemyInput(e)
         e.plane = model.flight.advance(e.plane, input: input, dt: dt)
         e.plane.x = strip.wrap(e.plane.x + model.wind(at: e.plane) * dt)
-        // Bursts along its heading, in the courier's gun's rounds.
+        // Bursts along its heading, in the same rounds as the humans' guns.
         e.fireClock += dt
         if e.fireClock >= t.burst + t.pause { e.fireClock = 0 }
-        if input.fire, e.fireClock < t.burst, enemyCooldown == 0 {
+        if input.fire, e.fireClock < t.burst, e.gunCooldown == 0 {
             let m = e.plane.muzzle(gun)
-            enemyBullets.append(
+            e.bullets.append(
                 Bullet(
                     x: m.x, y: m.y,
                     vx: e.plane.vx + cos(e.plane.heading) * gun.muzzleSpeed,
                     vy: e.plane.vy + sin(e.plane.heading) * gun.muzzleSpeed))
-            enemyCooldown = gun.fireInterval
+            e.gunCooldown = gun.fireInterval
         }
-        enemyCooldown = max(0, enemyCooldown - dt)
-        // The courier's rounds.
-        if let hit = bullets.firstIndex(where: {
-            dist2($0.x, $0.y, e.plane.x, e.plane.y) < t.hitRadius * t.hitRadius
-        }) {
-            bullets.remove(at: hit)
-            e.health -= 1
-            if e.health <= 0 {
-                e.falling = true
-                hazardEvent = .enemyHit(down: true)
-            } else {
-                hazardEvent = .enemyHit(down: false)
+        e.gunCooldown = max(0, e.gunCooldown - dt)
+        // The humans' rounds.
+        for j in pilots.indices where pilots[j].brain == .human {
+            if let hit = pilots[j].bullets.firstIndex(where: {
+                dist2($0.x, $0.y, e.plane.x, e.plane.y) < t.hitRadius * t.hitRadius
+            }) {
+                pilots[j].bullets.remove(at: hit)
+                e.health -= 1
+                if e.health <= 0 {
+                    e.falling = true
+                    e.downs += 1
+                    pilots[j].kills += 1
+                    hazardEvent = .enemyHit(down: true)
+                } else {
+                    hazardEvent = .enemyHit(down: false)
+                }
             }
         }
         // Into a hill, and it is gone too.
         if e.plane.y - model.landing.gearHeight <= strip.surfaceHeight(at: e.plane.x) {
             e.falling = true
         }
-        enemy = e
+        pilots[i] = e
     }
 
-    /// The rival's rounds fly like the courier's and burst on the courier.
-    mutating func advanceEnemyBullets(dt: Double) {
+    /// Every rival's rounds fly like the humans' and burst on a human as a hit.
+    mutating func advanceRivalBullets(dt: Double) {
         let strip = model.strip
-        let plane = self.plane
-        let canBeHit = !phase.isOnGround
         let radius = hazardTuning.burstRadius
-        var hit = false
-        for i in enemyBullets.indices {
-            enemyBullets[i].x = strip.wrap(enemyBullets[i].x + enemyBullets[i].vx * dt)
-            enemyBullets[i].y += enemyBullets[i].vy * dt
-            enemyBullets[i].age += dt
-        }
         let life = gun.bulletLife
-        enemyBullets.removeAll { b in
-            let dx = strip.offset(from: b.x, to: plane.x)
-            let dy = b.y - plane.y
-            if canBeHit, dx * dx + dy * dy < radius * radius {
-                hit = true
-                return true
+        let humans = targets
+        for i in pilots.indices where pilots[i].brain == .rival {
+            var rounds = pilots[i].bullets
+            for k in rounds.indices {
+                rounds[k].x = strip.wrap(rounds[k].x + rounds[k].vx * dt)
+                rounds[k].y += rounds[k].vy * dt
+                rounds[k].age += dt
             }
-            return b.age >= life || b.y < strip.surfaceHeight(at: b.x)
-        }
-        if hit {
-            hits += 1
-            repairDue += hazardTuning.repairPerHit
-            hazardEvent = .hit(x: plane.x, y: plane.y)
+            var hitHumans: [Int] = []
+            let planes = pilots.map(\.plane)
+            rounds.removeAll { b in
+                for j in humans {
+                    let dx = strip.offset(from: b.x, to: planes[j].x)
+                    let dy = b.y - planes[j].y
+                    if dx * dx + dy * dy < radius * radius {
+                        hitHumans.append(j)
+                        return true
+                    }
+                }
+                return b.age >= life || b.y < strip.surfaceHeight(at: b.x)
+            }
+            pilots[i].bullets = rounds
+            for j in hitHumans {
+                damage(seat: j, by: i, at: (planes[j].x, planes[j].y))
+            }
         }
     }
 }

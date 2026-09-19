@@ -15,11 +15,17 @@ followed by its list items (no prose between), so the release script can promote
 it with a one-line edit — and keep it UNIQUE in the file (the script promotes
 the first match).
 
+## [0.6.0]
+
+**Milestone 6 — Duckfight.** Two to four planes over nearby devices.
+
+### Unreleased (next build)
+
+- Duckfight: from the title screen, host a fight or join one nearby over Wi-Fi or Bluetooth. Two to four planes on one strip, each device its own view. Rivals can fill empty seats, the anti-aircraft guns are an option, and the fight lasts one to ten minutes. Two rounds down a plane, which falls and is back at its field five seconds later; most downed when the clock runs out wins, with the standings at the end. The host's device runs the fight and the others draw its word a moment behind, so nothing stalls.
+
 ## [0.5.0]
 
 **Milestone 5 — hazards.** Guns on the strip, and something that shoots back.
-
-### Unreleased (next build)
 
 ### build 8 — 2026-09-17
 

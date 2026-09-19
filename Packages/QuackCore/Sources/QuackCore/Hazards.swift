@@ -83,22 +83,57 @@ extension Practice {
     }
 
     /// Whether the plane is too shot up to run the engine.
-    public var engineShotOut: Bool { hits >= hazardTuning.hitsToStopEngine }
+    public var engineShotOut: Bool { engineShotOut(at: 0) }
+    public func engineShotOut(at i: Int) -> Bool { pilots[i].hits >= hazardTuning.hitsToStopEngine }
 
-    /// The guns' step: each live gun in range fires a shell at where the
-    /// plane will be, with scatter; shells fly, burst on the plane or the
-    /// ground, and expire; rounds knock guns out.
-    mutating func advanceHazards(dt: Double) {
+    /// The human seats that can be shot at: in the air, not falling.
+    var targets: [Int] {
+        pilots.indices.filter {
+            pilots[$0].brain == .human && !pilots[$0].phase.isOnGround && pilots[$0].isFlying
+        }
+    }
+
+    /// A hit on seat `j`, from seat `by` if a plane fired it. In a Duckfight it
+    /// takes health and the plane falls at none, the shooter credited; anywhere
+    /// else it is repair due at the next stop and, at enough, a dead engine.
+    mutating func damage(seat j: Int, by shooter: Int?, at point: (Double, Double)) {
+        if mode == .duckfight {
+            pilots[j].health -= 1
+            hazardEvent = .hit(x: point.0, y: point.1)
+            if pilots[j].health <= 0 && !pilots[j].falling {
+                pilots[j].falling = true
+                pilots[j].downs += 1
+                if let shooter { pilots[shooter].kills += 1 }
+                hazardEvent = .downed(seat: j, by: shooter)
+            }
+        } else {
+            pilots[j].hits += 1
+            pilots[j].repairDue += hazardTuning.repairPerHit
+            hazardEvent = .hit(x: point.0, y: point.1)
+        }
+    }
+
+    /// Each live gun in range fires a shell at the nearest human in the air,
+    /// aimed at where its straight flight will be, with scatter.
+    private mutating func fireGuns(dt: Double) {
         let strip = model.strip
         let t = hazardTuning
+        let humans = targets
         for i in guns.indices where guns[i].isAlive {
             guns[i].cooldown = max(0, guns[i].cooldown - dt)
             let gx = guns[i].x
             let gy = strip.groundHeight(at: gx) + 1
+            // The nearest human in the air, if one is in range.
+            let aimed = humans.min {
+                hypot(strip.offset(from: gx, to: pilots[$0].plane.x), pilots[$0].plane.y - gy)
+                    < hypot(strip.offset(from: gx, to: pilots[$1].plane.x), pilots[$1].plane.y - gy)
+            }
+            guard let aimed else { continue }
+            let plane = pilots[aimed].plane
             let dx = strip.offset(from: gx, to: plane.x)
             let dy = plane.y - gy
             let distance = hypot(dx, dy)
-            guard distance <= t.range, guns[i].cooldown == 0, !phase.isOnGround else { continue }
+            guard distance <= t.range, guns[i].cooldown == 0 else { continue }
             // Lead the plane: aim where it will be when the shell gets there,
             // the flight time re-taken a few times so the lead settles.
             var flight = distance / t.shellSpeed
@@ -116,9 +151,18 @@ extension Practice {
             guns[i].cooldown = t.fireInterval
             lastShotFrom = i
         }
-        var burstAt: (Double, Double)?
-        let plane = self.plane
-        let canBeHit = !phase.isOnGround
+    }
+
+    /// The guns' step: each live gun in range fires a shell at where the
+    /// plane will be, with scatter; shells fly, burst on the plane or the
+    /// ground, and expire; rounds knock guns out.
+    mutating func advanceHazards(dt: Double) {
+        let strip = model.strip
+        let t = hazardTuning
+        let humans = targets
+        fireGuns(dt: dt)
+        var bursts: [(Int, (Double, Double))] = []
+        let planes = pilots.map(\.plane)
         var flown = shells
         for i in flown.indices {
             flown[i].x = strip.wrap(flown[i].x + flown[i].vx * dt)
@@ -126,20 +170,18 @@ extension Practice {
             flown[i].age += dt
         }
         flown.removeAll { shell in
-            let dx = strip.offset(from: shell.x, to: plane.x)
-            let dy = shell.y - plane.y
-            if canBeHit, dx * dx + dy * dy < t.burstRadius * t.burstRadius {
-                burstAt = (shell.x, shell.y)
-                return true
+            for j in humans {
+                let dx = strip.offset(from: shell.x, to: planes[j].x)
+                let dy = shell.y - planes[j].y
+                if dx * dx + dy * dy < t.burstRadius * t.burstRadius {
+                    bursts.append((j, (shell.x, shell.y)))
+                    return true
+                }
             }
             return shell.age >= t.shellLife || shell.y < strip.surfaceHeight(at: shell.x)
         }
         shells = flown
-        if let burst = burstAt {
-            hits += 1
-            repairDue += t.repairPerHit
-            hazardEvent = .hit(x: burst.0, y: burst.1)
-        }
+        for (j, at) in bursts { damage(seat: j, by: nil, at: at) }
         knockOutGuns()
     }
 
@@ -160,11 +202,11 @@ extension Practice {
 
     /// Parked, the ground crew repairs the damage: the repair due becomes a
     /// parked repair, once, and the hits are mended.
-    mutating func settleDamage() {
-        guard case .parked(let repair) = phase, repairDue > 0 else { return }
-        phase = .parked(repair: repair + repairDue)
-        repairDue = 0
-        hits = 0
+    mutating func settleDamage(at i: Int) {
+        guard case .parked(let repair) = pilots[i].phase, pilots[i].repairDue > 0 else { return }
+        pilots[i].phase = .parked(repair: repair + pilots[i].repairDue)
+        pilots[i].repairDue = 0
+        pilots[i].hits = 0
     }
 }
 
@@ -176,4 +218,6 @@ public enum HazardEvent: Equatable, Sendable {
     case enemyHit(down: Bool)
     /// The rival has met the ground.
     case enemyDown
+    /// In a Duckfight, seat `seat` has been shot down, by seat `by` if a plane did it.
+    case downed(seat: Int, by: Int?)
 }
