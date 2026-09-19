@@ -46,36 +46,44 @@ struct ThumbOverlay: View {
         CGPoint(x: size.width * 0.82, y: size.height * 0.62)
     }
 
-    private func drawPitchPad(_ context: inout GraphicsContext, size: CGSize) {
-        let engaged = state.pitchKnob != nil
-        let rest = engaged ? 1.0 : 0.5
-        let origin = state.pitchOrigin ?? restingPitch(size)
-        let up = engaged ? state.throwUp : 80
-        let down = engaged ? state.throwDown : 80
-        // The track: the range the thumb can travel, top to bottom.
+    /// The range the thumb can travel, and the mark where level is.
+    private func drawTrack(
+        _ context: inout GraphicsContext, origin: CGPoint, up: CGFloat, down: CGFloat, rest: Double
+    ) {
         let track = CGRect(x: origin.x - 22, y: origin.y - up, width: 44, height: up + down)
         context.fill(
             Path(roundedRect: track, cornerRadius: 22), with: .color(.white.opacity(0.14 * rest)))
         context.stroke(
             Path(roundedRect: track, cornerRadius: 22), with: .color(ink.opacity(0.45 * rest)),
             lineWidth: 1.5)
-        // Centre mark: where level is.
         var cross = Path()
         cross.move(to: CGPoint(x: origin.x - 8, y: origin.y))
         cross.addLine(to: CGPoint(x: origin.x + 8, y: origin.y))
         context.stroke(cross, with: .color(ink.opacity(0.8 * rest)), lineWidth: 2)
-        // The bar to the knob: how much elevator is in.
+    }
+
+    /// The bar from level to the thumb, and the knob: how much elevator is in.
+    private func drawKnob(_ context: inout GraphicsContext, origin: CGPoint, knobY: CGFloat) {
+        var bar = Path()
+        bar.move(to: origin)
+        bar.addLine(to: CGPoint(x: origin.x, y: knobY))
+        context.stroke(bar, with: .color(ink.opacity(0.7)), lineWidth: 4)
+        let dot = CGRect(x: origin.x - 9, y: knobY - 9, width: 18, height: 18)
+        context.fill(Path(ellipseIn: dot), with: .color(ink.opacity(0.9)))
+    }
+
+    private func drawPitchPad(_ context: inout GraphicsContext, size: CGSize) {
+        let engaged = state.pitchKnob != nil
+        let rest = engaged ? 1.0 : 0.5
+        let origin = state.pitchOrigin ?? restingPitch(size)
+        let up = engaged ? state.throwUp : 80
+        let down = engaged ? state.throwDown : 80
+        drawTrack(&context, origin: origin, up: up, down: down, rest: rest)
         if let knob = state.pitchKnob {
-            let y = min(max(knob.y, origin.y - up), origin.y + down)
-            var bar = Path()
-            bar.move(to: origin)
-            bar.addLine(to: CGPoint(x: origin.x, y: y))
-            context.stroke(bar, with: .color(ink.opacity(0.7)), lineWidth: 4)
-            let dot = CGRect(x: origin.x - 9, y: y - 9, width: 18, height: 18)
-            context.fill(Path(ellipseIn: dot), with: .color(ink.opacity(0.9)))
+            drawKnob(
+                &context, origin: origin, knobY: min(max(knob.y, origin.y - up), origin.y + down))
         }
-        // Chevrons: which way is nose up. Pulling toward you (down) lifts the
-        // nose unless inverted, and the lit one shows the elevator's sense.
+        // Pulling toward you lifts the nose unless inverted; the lit chevron shows the sense.
         let noseUpIsDown = !pitchInverted
         let upLit = max(0, noseUpIsDown ? -state.pitch : state.pitch)
         let downLit = max(0, noseUpIsDown ? state.pitch : -state.pitch)
@@ -110,7 +118,6 @@ struct ThumbOverlay: View {
             Path(ellipseIn: ring), with: .color(.white.opacity((state.firing ? 0.3 : 0.14) * rest)))
         context.stroke(
             Path(ellipseIn: ring), with: .color(ink.opacity(0.45 * rest)), lineWidth: 1.5)
-        // A gun-sight: ring and dot, filling when held.
         let inner = ring.insetBy(dx: r * 0.55, dy: r * 0.55)
         context.stroke(Path(ellipseIn: inner), with: .color(ink.opacity(0.8 * rest)), lineWidth: 2)
         let dot = ring.insetBy(dx: r - 4, dy: r - 4)

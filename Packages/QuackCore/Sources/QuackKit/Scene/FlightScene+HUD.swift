@@ -5,49 +5,37 @@ import SpriteKit
 /// line, the gauges, and the chevrons on the box's edge.
 extension FlightScene {
     func setUpHUD() {
-        for label in [countLabel, clockLabel] {
-            label.fontSize = 30
-            label.fontColor = SKColor(white: 0.12, alpha: 1)
-            label.horizontalAlignmentMode = .left
-            label.verticalAlignmentMode = .top
-            label.zPosition = 100
-            addChild(label)
-        }
-        ammoLabel.fontSize = 20
-        ammoLabel.horizontalAlignmentMode = .left
-        ammoLabel.verticalAlignmentMode = .top
-        ammoLabel.zPosition = 100
-        addChild(ammoLabel)
-        statusLabel.fontSize = 26
-        statusLabel.fontColor = SKColor(white: 0.12, alpha: 1)
-        statusLabel.horizontalAlignmentMode = .center
-        statusLabel.verticalAlignmentMode = .top
-        statusLabel.zPosition = 100
-        addChild(statusLabel)
+        addReadout(countLabel, size: 30, aligned: .left)
+        addReadout(clockLabel, size: 30, aligned: .left)
+        addReadout(ammoLabel, size: 20, aligned: .left)
+        addReadout(statusLabel, size: 26, aligned: .center)
         for label in [speedLabel, altitudeLabel, fuelLabel] {
-            label.fontSize = 20
-            label.fontColor = SKColor(white: 0.12, alpha: 1)
-            label.horizontalAlignmentMode = .center
-            label.verticalAlignmentMode = .top
-            label.zPosition = 100
-            addChild(label)
+            addReadout(label, size: 20, aligned: .center)
         }
-        minimap.zPosition = 100
-        addChild(minimap)
-        for tally in [balloonTally, roundTally] {
-            tally.zPosition = 100
-            addChild(tally)
+        for node in [minimap, balloonTally, roundTally] {
+            node.zPosition = 100
+            addChild(node)
         }
-        let ink = SKColor(white: 0.12, alpha: 1)
         let symbols = [
             (fuelDial, "fuelpump.fill"), (speedDial, "speedometer"),
             (altitudeDial, "arrow.up.to.line"),
         ]
         for (dial, symbol) in symbols {
             dial.zPosition = 100
-            dial.setIcon(SceneArt.symbol(symbol, pointSize: 22, colour: ink), size: 18)
+            dial.setIcon(SceneArt.symbol(symbol, pointSize: 22, colour: hudInk), size: 18)
             addChild(dial)
         }
+    }
+
+    private func addReadout(
+        _ label: SKLabelNode, size: CGFloat, aligned: SKLabelHorizontalAlignmentMode
+    ) {
+        label.fontSize = size
+        label.fontColor = hudInk
+        label.horizontalAlignmentMode = aligned
+        label.verticalAlignmentMode = .top
+        label.zPosition = 100
+        addChild(label)
     }
 
     /// Paint the readouts in the hour's ink.
@@ -174,21 +162,35 @@ extension FlightScene {
     }
 
     func updateHUD(at now: TimeInterval) {
+        updateGauges()
+        updateTopLines()
+        balloonTally.isHidden = run.mode != .balloons || run.isFinished
+        balloonTally.update(present: run.balloons.map { !$0.popped })
+        roundTally.update(count: me.ammo)
+        updateAmmo()
+        minimap.update(run, seat: localSeat)
+        statusLabel.text = status(at: now)
+    }
+
+    private func updateGauges() {
         let plane = me.plane
         let kmh = Int((plane.speed * 3.6).rounded())
-        // Above sea level, which is what thins the air; on a field it reads the field's elevation.
         let metres = Int((plane.y - run.model.landing.gearHeight).rounded())
         speedDial.value = CGFloat(kmh)
         altitudeDial.value = CGFloat(metres)
-        fuelDial.value = CGFloat(run.fuelShare(at: localSeat))
+        speedLabel.text = String(localized: "\(kmh) km/h", bundle: .module)
+        altitudeLabel.text = String(localized: "\(metres) m", bundle: .module)
+        let share = run.fuelShare(at: localSeat)
+        fuelDial.value = CGFloat(share)
         let left = Int(me.fuel.rounded(.down))
         fuelLabel.text = String(
             localized: "\(left / 60):\(left % 60, specifier: "%02d") fuel", bundle: .module)
         fuelLabel.fontColor =
-            run.fuelShare(at: localSeat) < 0.2
-            ? SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1) : hudInk
-        speedLabel.text = String(localized: "\(kmh) km/h", bundle: .module)
-        altitudeLabel.text = String(localized: "\(metres) m", bundle: .module)
+            share < 0.2 ? SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1) : hudInk
+    }
+
+    /// The two lines top left: what the mode counts, and what it is worth.
+    private func updateTopLines() {
         let seconds = run.elapsed.formatted(.number.precision(.fractionLength(1)))
         if run.mode == .duckfight {
             let left = max(0, run.duckfight.duration - run.elapsed)
@@ -211,21 +213,13 @@ extension FlightScene {
                 localized: "Landed in \(seconds) s. Fire to go again.", bundle: .module)
             clockLabel.text = ""
         } else {
-            // The balloons left are the row of balloons; the clock takes the top line.
             countLabel.text = String(localized: "\(seconds) s", bundle: .module)
             clockLabel.text = ""
         }
-        balloonTally.isHidden = run.mode != .balloons || run.isFinished
-        balloonTally.update(present: run.balloons.map { !$0.popped })
-        roundTally.update(count: me.ammo)
-        updateAmmo()
-        minimap.update(run, seat: localSeat)
-        statusLabel.text = status(at: now)
     }
 
     /// Rounds left; red and a hint when the belt is empty, a note while it loads.
     private func updateAmmo() {
-        // The belt is the row of rounds; words only when there is something to say.
         if me.ammo == 0 && !run.isRearming(at: localSeat) {
             ammoLabel.text = String(localized: "Out of rounds: land to rearm", bundle: .module)
             ammoLabel.fontColor = SKColor(red: 0.75, green: 0.1, blue: 0.1, alpha: 1)
@@ -275,7 +269,6 @@ extension FlightScene {
                 markerNodes[i], at: plane.x + strip.offset(from: plane.x, to: b.x), b.y,
                 hidden: b.popped, from: plane)
         }
-        // The chevron points at the destination, aboard or being picked, else the nearest field.
         let target = (run.contract ?? run.chosen).map {
             strip.image(of: strip.airfields[$0.to], near: plane.x)
         }

@@ -53,33 +53,38 @@ final class BackdropNode: SKNode {
                 base + CGFloat(layer.height(at: layer.wrap(Double(px / scale) + shift))) * scale
             }
             let drop = 10 + 6 * CGFloat(index)
-            let lit = CGMutablePath()
-            let shaded = CGMutablePath()
-            lit.move(to: CGPoint(x: -half - 10, y: bottom))
-            shaded.move(to: CGPoint(x: -half - 10, y: bottom))
-            var px = -half - 10
-            while px <= half + 10 {
-                let y = ridge(px)
-                lit.addLine(to: CGPoint(x: px, y: y))
-                shaded.addLine(to: CGPoint(x: px, y: y - drop))
-                px += 8
-            }
-            for path in [lit, shaded] {
-                path.addLine(to: CGPoint(x: px - 8, y: bottom))
-                path.closeSubpath()
-            }
-            d.lit.path = lit
-            d.shaded.path = shaded
-            let period = CGFloat(layer.period) * scale
-            for (node, prop) in zip(d.props, layer.props) {
-                var x = CGFloat(layer.wrap(prop.x - shift)) * scale
-                if x > half + 200 { x -= period }
-                node.isHidden = x < -half - 200
-                if !node.isHidden {
-                    // Rooted a little into the ridge, behind its edge.
-                    node.position = CGPoint(x: x, y: ridge(x) - 3)
-                }
-            }
+            d.lit.path = BackdropNode.ridgePath(ridge, drop: 0, half: half, bottom: bottom)
+            d.shaded.path = BackdropNode.ridgePath(ridge, drop: drop, half: half, bottom: bottom)
+            placeProps(d, shift: shift, ridge: ridge, scale: scale, half: half)
+        }
+    }
+
+    /// The ridge as a filled shape across the box, dropped by `drop` points.
+    private static func ridgePath(
+        _ ridge: (CGFloat) -> CGFloat, drop: CGFloat, half: CGFloat, bottom: CGFloat
+    ) -> CGPath {
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: -half - 10, y: bottom))
+        var px = -half - 10
+        while px <= half + 10 {
+            path.addLine(to: CGPoint(x: px, y: ridge(px) - drop))
+            px += 8
+        }
+        path.addLine(to: CGPoint(x: px - 8, y: bottom))
+        path.closeSubpath()
+        return path
+    }
+
+    /// Props rooted a little into the ridge at their lap nearest the box.
+    private func placeProps(
+        _ d: Drawn, shift: Double, ridge: (CGFloat) -> CGFloat, scale: CGFloat, half: CGFloat
+    ) {
+        let period = CGFloat(d.layer.period) * scale
+        for (node, prop) in zip(d.props, d.layer.props) {
+            var x = CGFloat(d.layer.wrap(prop.x - shift)) * scale
+            if x > half + 200 { x -= period }
+            node.isHidden = x < -half - 200
+            if !node.isHidden { node.position = CGPoint(x: x, y: ridge(x) - 3) }
         }
     }
 

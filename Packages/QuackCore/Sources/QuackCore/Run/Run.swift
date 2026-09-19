@@ -293,7 +293,6 @@ public struct Run: Equatable, Sendable {
     mutating func fireAndFlyRounds(at i: Int, input: PlaneInput, dt: Double) {
         var p = pilots[i]
         p.gunCooldown = max(0, p.gunCooldown - dt)
-        // The gun is for the air: parked, the trigger does nothing.
         let gunFree = !p.phase.isOnGround
         if input.fire && gunFree && p.gunCooldown == 0 && p.ammo > 0 {
             p.ammo -= 1
@@ -301,7 +300,6 @@ public struct Run: Equatable, Sendable {
             p.bullets.append(
                 Bullet(
                     x: m.x, y: m.y,
-                    // Rounds fly in the moving air, as the plane does.
                     vx: p.plane.vx + wind + cos(p.plane.heading) * gun.muzzleSpeed,
                     vy: p.plane.vy + sin(p.plane.heading) * gun.muzzleSpeed))
             p.gunCooldown = gun.fireInterval

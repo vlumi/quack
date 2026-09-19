@@ -185,18 +185,21 @@ enum SceneArt {
         barNode.strokeColor = .clear
         n.addChild(barNode)
         if !field.name.isEmpty { n.addChild(sign(field.name, at: (x0 + x1) / 2, scale: scale)) }
+        n.addChild(windsock(at: (x0 + x1) / 2, scale: scale, palette: palette))
+        return n
+    }
+
+    /// A pole with the sock hanging from its top; `setWindsock` turns the sock for the wind.
+    private static func windsock(at mid: CGFloat, scale: CGFloat, palette: Palette) -> SKNode {
+        let ink = SKColor(white: 0.12, alpha: 1)
         let windsock = SKNode()
         windsock.alpha = 0.55
         windsock.zPosition = -1
-        n.addChild(windsock)
-        let mid = (x0 + x1) / 2
         let pole = SKShapeNode(
             rect: CGRect(x: mid - 0.12 * scale, y: 0, width: 0.25 * scale, height: 6 * scale))
         pole.fillColor = ink
         pole.strokeColor = .clear
         windsock.addChild(pole)
-        // The sock hangs from the pole's top, pointing downwind; the scene
-        // turns it for the wind (`SceneArt.setWindsock`).
         let sock = CGMutablePath()
         sock.addLines(between: [
             .zero, CGPoint(x: 3 * scale, y: -0.35 * scale), CGPoint(x: 3 * scale, y: -0.9 * scale),
@@ -210,7 +213,7 @@ enum SceneArt {
         sockNode.strokeColor = ink
         sockNode.lineWidth = 0.1 * scale
         windsock.addChild(sockNode)
-        return n
+        return windsock
     }
 
     /// The approach guides: a soft amber glow over each end of the field, the

@@ -17,20 +17,13 @@ extension FlightScene {
         case .gunKnockedOut:
             flash = (String(localized: "Gun knocked out", bundle: .module), now + 1.5)
         case .rivalHit(let down):
-            if down {
-                flash = (String(localized: "Rival shot down", bundle: .module), now + 2)
-            }
-            if let i = run.pilots.firstIndex(where: { $0.brain == .rival }),
-                let node = seatNodes[i]
-            {
-                HazardArt.burst(
-                    at: node.position, scale: scale, in: hazardLayer, size: down ? 4 : 2)
+            if down { flash = (String(localized: "Rival shot down", bundle: .module), now + 2) }
+            if let at = rivalNode?.position {
+                HazardArt.burst(at: at, scale: scale, in: hazardLayer, size: down ? 4 : 2)
             }
         case .rivalDown:
-            if let i = run.pilots.firstIndex(where: { $0.brain == .rival }),
-                let node = seatNodes[i]
-            {
-                HazardArt.burst(at: node.position, scale: scale, in: hazardLayer, size: 6)
+            if let at = rivalNode?.position {
+                HazardArt.burst(at: at, scale: scale, in: hazardLayer, size: 6)
             }
         case .downed(let seat, let by):
             let at = seat == localSeat ? planeNode.position : seatNodes[seat]?.position ?? .zero
@@ -51,6 +44,10 @@ extension FlightScene {
             hazardLayer.addChild(n)
             return n
         }
+    }
+
+    private var rivalNode: PlaneNode? {
+        run.pilots.firstIndex { $0.brain == .rival }.flatMap { seatNodes[$0] }
     }
 
     /// A plane node, rounds and a chevron for every seat but this one, for the run.
@@ -90,22 +87,7 @@ extension FlightScene {
             node.roll = p.plane.inverted ? .pi : 0
             node.alpha = p.falling ? 0.8 : 1
             var nodes = seatBulletNodes[i] ?? []
-            while nodes.count < p.bullets.count {
-                let n = SceneArt.tracerNode(scale: scale)
-                hazardLayer.addChild(n)
-                nodes.append(n)
-            }
-            for (k, n) in nodes.enumerated() {
-                if k < p.bullets.count {
-                    let b = p.bullets[k]
-                    n.isHidden = false
-                    n.position = CGPoint(x: near(b.x), y: b.y * scale)
-                    n.zRotation = atan2(b.vy, b.vx)
-                    n.children.first?.xScale = CGFloat(min(1, b.age * 10))
-                } else {
-                    n.isHidden = true
-                }
-            }
+            layoutTracers(&nodes, for: p.bullets, near: near, in: hazardLayer)
             seatBulletNodes[i] = nodes
             if let marker = seatMarkers[i] {
                 place(

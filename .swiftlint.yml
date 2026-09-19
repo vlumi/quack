@@ -34,6 +34,10 @@ disabled_rules:
   # literals, which is the opposite of SwiftLint's default. Let the formatter win.
   - trailing_comma
 
+function_body_length:
+  warning: 40
+  error: 50
+
 type_body_length:
   warning: 300
   error: 400

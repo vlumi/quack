@@ -95,33 +95,29 @@ final class SkyNode: SKNode {
         let glow = SKSpriteNode(texture: SkyNode.glow(b.colour))
         glow.size = CGSize(width: glowSize, height: glowSize)
         n.addChild(glow)
-        let r = b.radius
-        if b.isMoon {
-            // The whole moon faint in earthshine, the lit part a crescent: the
-            // right half of the disc, less the half-ellipse of the terminator.
-            let disc = SKShapeNode(circleOfRadius: r)
-            disc.fillColor = palette.sky[1].mix(b.colour, 0.13).color()
-            disc.strokeColor = .clear
-            n.addChild(disc)
-            let crescent = CGMutablePath()
-            crescent.addArc(
-                center: .zero, radius: r, startAngle: .pi / 2, endAngle: -.pi / 2, clockwise: true)
-            for i in 0...24 {
-                let a = -CGFloat.pi / 2 + CGFloat(i) / 24 * .pi
-                crescent.addLine(to: CGPoint(x: cos(a) * r * 0.4, y: sin(a) * r))
-            }
-            crescent.closeSubpath()
-            let lit = SKShapeNode(path: crescent)
-            lit.fillColor = b.colour.color()
-            lit.strokeColor = .clear
-            n.addChild(lit)
-        } else {
-            let disc = SKShapeNode(circleOfRadius: r)
-            disc.fillColor = b.colour.color()
-            disc.strokeColor = .clear
-            n.addChild(disc)
-        }
+        let disc = SKShapeNode(circleOfRadius: b.radius)
+        disc.fillColor = b.isMoon ? palette.sky[1].mix(b.colour, 0.13).color() : b.colour.color()
+        disc.strokeColor = .clear
+        n.addChild(disc)
+        if b.isMoon { n.addChild(SkyNode.crescent(radius: b.radius, colour: b.colour)) }
         return n
+    }
+
+    /// The lit part of the moon: the right half of the disc, less the
+    /// half-ellipse of the terminator.
+    private static func crescent(radius r: CGFloat, colour: RGB) -> SKNode {
+        let path = CGMutablePath()
+        path.addArc(
+            center: .zero, radius: r, startAngle: .pi / 2, endAngle: -.pi / 2, clockwise: true)
+        for i in 0...24 {
+            let a = -CGFloat.pi / 2 + CGFloat(i) / 24 * .pi
+            path.addLine(to: CGPoint(x: cos(a) * r * 0.4, y: sin(a) * r))
+        }
+        path.closeSubpath()
+        let lit = SKShapeNode(path: path)
+        lit.fillColor = colour.color()
+        lit.strokeColor = .clear
+        return lit
     }
 
     /// A soft glow fading out from a quarter of the texture's width to its edge.

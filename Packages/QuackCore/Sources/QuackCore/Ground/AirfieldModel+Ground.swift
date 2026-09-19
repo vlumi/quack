@@ -136,7 +136,6 @@ extension AirfieldModel {
         let dir = s.direction
         let airfield = groundField(s)
         let toEnd = max(0.5, dir > 0 ? airfield.end - s.x : s.x - airfield.start)
-        // Brake at least hard enough to stop on the field.
         let decel = max(landing.braking, s.speed * s.speed / (2 * toEnd))
         s.speed = max(0, s.speed - decel * dt)
         s.x += dir * s.speed * dt
@@ -158,7 +157,6 @@ extension AirfieldModel {
     ) -> FlightEvent? {
         let dir = s.direction
         guard input.power else {
-            // The engine has died on the roll: coast to a stop and sit there.
             s.speed = max(0, s.speed - landing.braking * dt)
             s.x += dir * s.speed * dt
             s.y = strip.groundHeight(at: s.x) + landing.gearHeight
@@ -169,7 +167,6 @@ extension AirfieldModel {
         s.x += dir * s.speed * dt
         s.y = strip.groundHeight(at: s.x) + landing.gearHeight
         if strip.airfield(under: s.x) == nil { return crash(&s, &phase) }
-        // Airspeed on the roll: speed over the ground less any wind from behind.
         // At rotate speed the plane lifts off by itself: the roll is the field's.
         let airspeed = s.speed - groundWind(facing: dir)
         if airspeed >= rotateSpeed {

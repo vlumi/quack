@@ -180,7 +180,6 @@ enum PropArt {
             paint.fill(Palette.Base.trunk), in: n)
         let crown = CGRect(x: -2.6 * s, y: 1.6 * s, width: 5.2 * s, height: 6.8 * s)
         shape(CGPath(ellipseIn: crown, transform: nil), paint.fill(Palette.Base.tree), in: n)
-        // The lit side: the left half of the crown.
         let left = CGMutablePath()
         let c = CGPoint(x: crown.midX, y: crown.midY)
         left.move(to: CGPoint(x: c.x, y: crown.maxY))

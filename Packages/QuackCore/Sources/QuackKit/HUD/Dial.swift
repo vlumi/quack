@@ -48,6 +48,12 @@ final class Dial: SKNode {
         amberArc.lineWidth = radius * 0.12
         addChild(amberArc)
         drawRedArc()
+        addTicks(majorEvery: majorEvery, ink: ink)
+        addNeedle(ink: ink)
+    }
+
+    /// Long and short ticks alternating, every half of `majorEvery`.
+    private func addTicks(majorEvery: CGFloat, ink: SKColor) {
         let ticks = CGMutablePath()
         var v: CGFloat = 0
         var i = 0
@@ -63,6 +69,9 @@ final class Dial: SKNode {
         tickNode.strokeColor = ink
         tickNode.lineWidth = radius * 0.05
         addChild(tickNode)
+    }
+
+    private func addNeedle(ink: SKColor) {
         let np = CGMutablePath()
         np.addLines(between: [
             CGPoint(x: -radius * 0.18, y: 0), CGPoint(x: 0, y: radius * 0.07),

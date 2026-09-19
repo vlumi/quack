@@ -1,9 +1,40 @@
 import QuackCore
 import SpriteKit
 
-/// The scene in a Duckfight: starting and leaving one, the host's step and a
-/// guest's frame, and, for the courier, banking the till.
+/// The scene's frame loop: reading input, stepping the sim on the host or
+/// drawing a guest's snapshot, and what a step's events show.
 extension FlightScene {
+    func readInput() {
+        input = attract ? .idle : controls.input
+        input.takeOff = takeOffRequest
+        takeOffRequest = 0
+    }
+
+    /// Once a single-player run is done, the next pull of the trigger starts the next one.
+    func restartWhenFinishedAndFired() {
+        if run.isFinished && input.fire && !wasFiring && session == nil {
+            nextSeed += 1
+            startRun()
+        }
+        wasFiring = input.fire
+    }
+
+    func showStepEvents(at now: TimeInterval) {
+        if let event = run.lastEvent { show(event, at: now) }
+        if let event = run.courierEvent { show(event, at: now) }
+        if let event = run.hazardEvent { show(event, at: now) }
+        if let gun = run.lastShotFrom, gunNodes.indices.contains(gun) {
+            let muzzle = CGPoint(
+                x: gunNodes[gun].position.x, y: gunNodes[gun].position.y + 2.5 * scale)
+            HazardArt.burst(at: muzzle, scale: scale, in: hazardLayer, size: 1.5)
+        }
+        let running = run.engineRunning(at: localSeat)
+        if engineWasRunning && !running {
+            flash = (String(localized: "Out of fuel: glide to a field", bundle: .module), now + 3)
+        }
+        engineWasRunning = running
+    }
+
     /// Fly a Duckfight the session agreed: the fight built from its start,
     /// this device's seat, and the session driving the traffic.
     public func startFight(_ start: FightStart, session: FightSession) {
